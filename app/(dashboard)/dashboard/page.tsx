@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { AccountSummary } from '@/components/dashboard/account-summary';
 import { QuotaCard } from '@/components/dashboard/quota-card';
 import { UsageTestButtons } from '@/components/dashboard/usage-test-buttons';
+import { AITools } from '@/components/dashboard/ai-tools';
 import { QUOTA_LIMITS, type PlanType } from '@/lib/quota/limits';
 
 export default async function DashboardPage() {
@@ -60,6 +61,7 @@ export default async function DashboardPage() {
           <QuotaCard title="Scraping Quota" used={scrapeUsed} limit={limits.SCRAPE} portal={portal} />
         </div>
       </div>
+      <AITools />
       <UsageTestButtons />
     </div>
   );
