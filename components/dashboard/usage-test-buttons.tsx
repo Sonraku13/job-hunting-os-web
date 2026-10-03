@@ -105,6 +105,43 @@ export function UsageTestButtons() {
             </Button>
           </div>
         </div>
+
+        <div className="pt-4 border-t border-zinc-800">
+          <h4 className="text-xs font-mono text-zinc-400 mb-2">SIMULASI DATABASE</h4>
+          <Button
+            onClick={async () => {
+              setLoading('SAVE_MOCK');
+              try {
+                const res = await fetch('/api/jobs/save', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    job_title: 'Senior Frontend Engineer',
+                    company_name: 'Tech Corp Indonesia',
+                    job_url: 'https://linkedin.com/jobs/view/123',
+                    location: 'Jakarta, Indonesia (Remote)',
+                    job_type: 'Full-time',
+                    salary_range: '15.000.000 - 25.000.000 IDR',
+                    job_description: 'We are looking for a Senior Frontend Engineer to build modern, scalable web applications using React, Next.js, and TypeScript.\n\nRequirements:\n- 5+ years experience\n- Strong understanding of React ecosystem',
+                    source: 'LinkedIn'
+                  }),
+                });
+                if (res.ok) {
+                  showToast('Lowongan contoh berhasil ditambahkan. Refresh halaman untuk melihat.', 'success');
+                } else {
+                  showToast('Gagal menambah lowongan', 'error');
+                }
+              } finally {
+                setLoading(null);
+              }
+            }}
+            disabled={loading !== null}
+            variant="outline"
+            className="w-full font-mono text-xs border-emerald-900/50 text-emerald-400 hover:bg-emerald-950/30"
+          >
+            {loading === 'SAVE_MOCK' ? 'Menyimpan...' : '+ Tambah Lowongan Contoh (Mock)'}
+          </Button>
+        </div>
       </div>
     </Card>
   );

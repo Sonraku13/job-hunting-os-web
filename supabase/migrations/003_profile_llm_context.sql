@@ -1,18 +1,42 @@
 -- Tambahan kolom penting untuk LLM personalization & Jobstreet/LinkedIn mapping
 
 alter table public.user_profiles
-  add column if not exists target_locations text[] default array['Indonesia']::text[],
-  add column if not exists target_classifications text[],
-  add column if not exists target_employment_types text[],
-  add column if not exists target_work_arrangements text[],
-  add column if not exists min_salary numeric,
-  add column if not exists max_salary numeric,
-  add column if not exists linkedin_geo_id text,
-  add column if not exists jobstreet_location_id text,
-  add column if not exists years_of_experience integer default 0,
-  add column if not exists current_role text,
-  add column if not exists career_goals text,
-  add column if not exists spoken_languages text[] default array['Indonesian']::text[],
+  add column if not exists target_locations text[] default array['Indonesia']::text[];
+
+alter table public.user_profiles
+  add column if not exists target_classifications text[];
+
+alter table public.user_profiles
+  add column if not exists target_employment_types text[];
+
+alter table public.user_profiles
+  add column if not exists target_work_arrangements text[];
+
+alter table public.user_profiles
+  add column if not exists min_salary numeric;
+
+alter table public.user_profiles
+  add column if not exists max_salary numeric;
+
+alter table public.user_profiles
+  add column if not exists linkedin_geo_id text;
+
+alter table public.user_profiles
+  add column if not exists jobstreet_location_id text;
+
+alter table public.user_profiles
+  add column if not exists years_of_experience integer default 0;
+
+alter table public.user_profiles
+  add column if not exists "current_role" text;
+
+alter table public.user_profiles
+  add column if not exists career_goals text;
+
+alter table public.user_profiles
+  add column if not exists spoken_languages text[] default array['Indonesian']::text[];
+
+alter table public.user_profiles
   add column if not exists llm_context text;
 
 comment on column public.user_profiles.llm_context is 'Ringkasan naratif personal untuk prompt LLM: latar belakang, motivasi, gaya bahasa, dan target karir yang sangat personal';

@@ -6,7 +6,7 @@ alter table public.saved_jobs
   add column if not exists company_size text,
   add column if not exists company_industry text,
   add column if not exists posted_at timestamptz,
-  add column if not expires_at timestamptz,
+  add column if not exists expires_at timestamptz,
   add column if not exists function_category text,
   add column if not exists employment_type_id text,
   add column if not exists work_arrangement text,
