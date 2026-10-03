@@ -58,7 +58,7 @@ async function callZapiChatEx(messages: { role: string; content: string }[]): Pr
 async function callGeminiDirect(prompt: string): Promise<string> {
   if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY not set');
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_KEY}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -136,7 +136,7 @@ ${text}`;
       position: 'Unknown',
       location: 'Unknown',
       salary: 'Unknown',
-      requirements: [text],
+      requirements: [resultText],
     };
   }
 }
