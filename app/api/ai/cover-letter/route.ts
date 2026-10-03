@@ -57,7 +57,7 @@ export async function POST(request: Request) {
       .eq('user_id', user.id)
       .single();
 
-    // 4. Generate Personalized Cover Letter with Gemini
+    // 4. Generate Personalized Cover Letter with Gemini / Zapi
     const coverLetter = await callGeminiPersonalizedCoverLetter({
       jobTitle: job.job_title,
       companyName: job.company_name,
@@ -69,6 +69,13 @@ export async function POST(request: Request) {
       careerGoals: profile?.career_goals,
       llmContext: profile?.llm_context,
     });
+
+    // 5. Simpan hasil ke database agar dapat diakses & dicopy kapan saja
+    await supabase
+      .from('saved_jobs')
+      .update({ cover_letter: coverLetter })
+      .eq('id', jobId)
+      .eq('user_id', user.id);
 
     return NextResponse.json({
       success: true,

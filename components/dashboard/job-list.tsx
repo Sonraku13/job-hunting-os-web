@@ -199,7 +199,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                         rel="noopener noreferrer"
                         className="inline-flex items-center rounded border border-zinc-700 bg-zinc-800/80 px-3 py-1.5 font-mono text-xs text-zinc-200 transition-colors hover:bg-zinc-700"
                       >
-                        Buka Lowongan &rarr;
+                        URL
                       </a>
                     )}
 

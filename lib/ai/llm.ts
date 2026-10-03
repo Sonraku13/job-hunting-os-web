@@ -6,17 +6,17 @@ export interface ExtractResult {
   requirements: string[];
 }
 
-type LLMProvider = 'zapi-copilot' | 'zapi-chatgpt' | 'zapi-chatex' | 'gemini-direct';
+type LLMProvider = 'gemini-direct' | 'zapi-copilot' | 'zapi-chatex' | 'zapi-chatgpt';
 
 const ZAPI_KEY = process.env.ZAPI_API_KEY || '';
 const ZAPI_BASE = 'https://api.zapi.ink/v1';
 const GEMINI_KEY = process.env.GEMINI_API_KEY || '';
 
 const providerOrder: LLMProvider[] = [
-  'zapi-copilot',
-  'zapi-chatgpt',
-  'zapi-chatex',
   'gemini-direct',
+  'zapi-copilot',
+  'zapi-chatex',
+  'zapi-chatgpt',
 ];
 
 async function callZapiCopilot(messages: { role: string; content: string }[], mode: 'chat' | 'reasoning' | 'smart' = 'chat'): Promise<string> {
@@ -28,7 +28,9 @@ async function callZapiCopilot(messages: { role: string; content: string }[], mo
   });
   if (!res.ok) throw new Error(`Zapi Copilot error (${res.status}): ${await res.text()}`);
   const data = await res.json();
-  return data.choices?.[0]?.message?.content || data.content || 'Empty response';
+  const text = data.choices?.[0]?.message?.content ?? data.content ?? data.text ?? data.response ?? '';
+  if (!text || text === 'Empty response') throw new Error('Empty response from Zapi Copilot');
+  return text;
 }
 
 async function callZapiChatGPT(messages: { role: string; content: string }[]): Promise<string> {
@@ -40,7 +42,9 @@ async function callZapiChatGPT(messages: { role: string; content: string }[]): P
   });
   if (!res.ok) throw new Error(`Zapi ChatGPT error (${res.status}): ${await res.text()}`);
   const data = await res.json();
-  return data.choices?.[0]?.message?.content || data.content || 'Empty response';
+  const text = data.choices?.[0]?.message?.content ?? data.content ?? data.text ?? data.response ?? '';
+  if (!text || text === 'Empty response') throw new Error('Empty response from Zapi ChatGPT');
+  return text;
 }
 
 async function callZapiChatEx(messages: { role: string; content: string }[]): Promise<string> {
@@ -52,7 +56,9 @@ async function callZapiChatEx(messages: { role: string; content: string }[]): Pr
   });
   if (!res.ok) throw new Error(`Zapi ChatEx error (${res.status}): ${await res.text()}`);
   const data = await res.json();
-  return data.choices?.[0]?.message?.content || data.content || 'Empty response';
+  const text = data.choices?.[0]?.message?.content ?? data.content ?? data.text ?? data.response ?? '';
+  if (!text || text === 'Empty response') throw new Error('Empty response from Zapi ChatEx');
+  return text;
 }
 
 async function callGeminiDirect(prompt: string): Promise<string> {
@@ -72,7 +78,9 @@ async function callGeminiDirect(prompt: string): Promise<string> {
     throw new Error(`Gemini API error (${res.status}): ${errorText}`);
   }
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Gagal menghasilkan teks.';
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+  if (!text) throw new Error('Empty response from Gemini');
+  return text;
 }
 
 async function callWithFallback(messages: { role: string; content: string }[], mode: 'chat' | 'reasoning' | 'smart' = 'chat'): Promise<{ text: string; provider: LLMProvider }> {
@@ -82,17 +90,17 @@ async function callWithFallback(messages: { role: string; content: string }[], m
     try {
       let text = '';
       switch (provider) {
+        case 'gemini-direct':
+          text = await callGeminiDirect(messages.map(m => m.content).join('\n\n'));
+          break;
         case 'zapi-copilot':
           text = await callZapiCopilot(messages, mode);
-          break;
-        case 'zapi-chatgpt':
-          text = await callZapiChatGPT(messages);
           break;
         case 'zapi-chatex':
           text = await callZapiChatEx(messages);
           break;
-        case 'gemini-direct':
-          text = await callGeminiDirect(messages.map(m => m.content).join('\n\n'));
+        case 'zapi-chatgpt':
+          text = await callZapiChatGPT(messages);
           break;
       }
       if (text && text !== 'Empty response') {
@@ -141,6 +149,13 @@ ${text}`;
   }
 }
 
+const ANTI_HALLUCINATION_RULES = `PERATURAN KETAT ANTI-HALUSINASI & ISOLASI KONTEKS:
+1. HANYA gunakan fakta, skill, pengalaman, dan gelar yang TERTULIS EKSPLISIT pada data pelamar di bawah.
+2. DILARANG KERAS MENGARANG: nama perusahaan lama fiktif, angka tahun pengalaman fiktif, metrik/angka palsu, atau sertifikasi yang tidak ada di profil pelamar.
+3. ISOLASI TOTAL: Setiap tugas adalah entitas baru yang sepenuhnya terisolasi. JANGAN membawa konteks, memori, atau perusahaan dari lowongan/sesi sebelumnya.
+4. Jika profil pelamar tidak menyebutkan riwayat spesifik, jangan mereka-reka cerita; gunakan narasi adaptif berbasis minat, motivasi, dan transferrable skills umum yang relevan.
+5. Jangan tinggalkan placeholder kurung siku seperti [Nama Perusahaan] jika data perusahaan/posisi sudah tersedia.`;
+
 export async function generateCoverLetter(params: {
   jobTitle: string;
   companyName: string;
@@ -152,29 +167,79 @@ export async function generateCoverLetter(params: {
   careerGoals?: string | null;
   llmContext?: string | null;
 }): Promise<string> {
-  const prompt = `Bertindaklah sebagai spesialis karir profesional. Tulis surat lamaran kerja (Cover Letter) yang ringkas, persuasif, elegan, dan sangat kontekstual.
-Hindari kalimat template klise. Tulis dengan gaya naratif natural yang langsung menghubungkan kualifikasi pelamar dengan kebutuhan perusahaan.
+  const prompt = `${ANTI_HALLUCINATION_RULES}
 
-DATA PELAMAR:
+Tuliskan surat lamaran kerja (Cover Letter) resmi, profesional, dan tajam dalam Bahasa Indonesia untuk posisi berikut:
+
+DATA PELAMAR (HANYA GUNAKAN DATA INI):
 - Nama: ${params.applicantName || 'Pelamar'}
-- Posisi Sekarang: ${params.currentRole || 'Profesional'}
-- Pengalaman: ${params.experienceYears ? `${params.experienceYears} tahun` : 'Berpengalaman'}
-- Bio/Ringkasan: ${params.summary || 'Memiliki latar belakang teknis yang relevan'}
-- Target Karir: ${params.careerGoals || 'Mengembangkan solusi bernilai tambah bagi perusahaan'}
-- Konteks Tambahan / Gaya Bahasa: ${params.llmContext || 'Bahasa Indonesia profesional, percaya diri, tanpa basa-basi'}
+- Posisi / Role Saat Ini: ${params.currentRole || 'Profesional'}
+- Pengalaman Kerja: ${params.experienceYears ? `${params.experienceYears} tahun` : 'Sesuai profil'}
+- Ringkasan Bio Profil: ${params.summary || 'Memiliki latar belakang yang relevan'}
+- Target Karir: ${params.careerGoals || 'Memberikan kontribusi nyata dan berkembang bersama perusahaan'}
+- Catatan Personal / Gaya Bahasa: ${params.llmContext || 'Bahasa Indonesia profesional, percaya diri, tanpa basa-basi'}
 
-DETAIL LOWONGAN:
-- Posisi Tujuan: ${params.jobTitle}
+TARGET LOWONGAN:
+- Posisi: ${params.jobTitle}
 - Perusahaan: ${params.companyName}
-- Deskripsi & Syarat:
-${params.jobDescription || 'Tidak ada rincian deskripsi spesifik.'}
+- Deskripsi & Persyaratan Lowongan:
+${params.jobDescription || 'Tidak ada deskripsi rinci.'}
 
-Format surat lengkap dan siap kirim (tanpa placeholder kurung siku seperti [Nama Perusahaan] jika data sudah ada). Gunakan Bahasa Indonesia profesional.`;
+Format surat lengkap, siap dikirimkan, terstruktur rapi dengan pembuka, isi argumen nilai tambah, dan penutup profesional.`;
 
   const { text } = await callWithFallback([
-    { role: 'system', content: 'Kamu adalah career specialist yang menulis cover letter profesional, personal, dan anti-template.' },
+    {
+      role: 'system',
+      content:
+        'Kamu adalah konsultan karir profesional tingkat tinggi. Kamu menulis cover letter secara akurat hanya berdasar data profil yang diberikan tanpa halusinasi fakta.',
+    },
     { role: 'user', content: prompt },
   ], 'reasoning');
+
+  return text;
+}
+
+export async function generateApplicationEmail(params: {
+  jobTitle: string;
+  companyName: string;
+  jobDescription?: string | null;
+  applicantName?: string | null;
+  currentRole?: string | null;
+  experienceYears?: number | null;
+  summary?: string | null;
+  careerGoals?: string | null;
+  llmContext?: string | null;
+}): Promise<string> {
+  const prompt = `${ANTI_HALLUCINATION_RULES}
+
+Tuliskan format DRAFT EMAIL LAMARAN KERJA (Cold Email / Job Application Email) yang ringkas, sopan, dan efektif untuk HRD / Hiring Manager.
+
+DATA PELAMAR (HANYA GUNAKAN DATA INI):
+- Nama: ${params.applicantName || 'Pelamar'}
+- Posisi / Role Saat Ini: ${params.currentRole || 'Profesional'}
+- Pengalaman: ${params.experienceYears ? `${params.experienceYears} tahun` : 'Sesuai profil'}
+- Ringkasan Profil: ${params.summary || 'Memiliki keahlian relevan'}
+- Gaya Komunikasi: ${params.llmContext || 'Formal, sopan, efisien, to-the-point'}
+
+TARGET LOWONGAN:
+- Posisi: ${params.jobTitle}
+- Perusahaan: ${params.companyName}
+- Deskripsi Lowongan:
+${params.jobDescription || 'Tidak ada deskripsi rinci.'}
+
+OUTPUT FORMAT HARUS TERDIRI DARI:
+Subject: [Subjek Email yang memikat dan jelas, contoh: Lamaran Pekerjaan - Posisi - Nama]
+Body Email:
+[Isi email singkat 3-4 paragraf: salam pembuka, pengantar singkat, relevansi pelamar terhadap kebutuhan, lampiran CV/portofolio, dan salam penutup].`;
+
+  const { text } = await callWithFallback([
+    {
+      role: 'system',
+      content:
+        'Kamu adalah asisten profesional rekrutmen. Tulis draft email lamaran kerja yang bersih, tanpa halusinasi fakta luar, dan siap kirim.',
+    },
+    { role: 'user', content: prompt },
+  ], 'chat');
 
   return text;
 }
