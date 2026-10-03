@@ -1,68 +1,38 @@
 import { requireUser } from '@/lib/auth/require-user';
-import { createClient } from '@/lib/supabase/server';
-import { AccountSummary } from '@/components/dashboard/account-summary';
-import { QuotaCard } from '@/components/dashboard/quota-card';
-import { UsageTestButtons } from '@/components/dashboard/usage-test-buttons';
-import { AITools } from '@/components/dashboard/ai-tools';
-import { QUOTA_LIMITS, type PlanType } from '@/lib/quota/limits';
 
 export default async function DashboardPage() {
-  const user = await requireUser();
-  const supabase = await createClient();
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile) {
-    return <div>Loading...</div>;
-  }
-
-  const today = new Date();
-  const jakartaOffset = 7 * 60;
-  const localOffset = today.getTimezoneOffset();
-  const jakartaTime = new Date(today.getTime() + (jakartaOffset + localOffset) * 60000);
-  jakartaTime.setHours(0, 0, 0, 0);
-
-  const { data: events } = await supabase
-    .from('usage_events')
-    .select('action, portal')
-    .eq('user_id', user.id)
-    .gte('created_at', jakartaTime.toISOString())
-    .order('created_at', { ascending: true });
-
-  const aiUsed =
-    events?.filter((e) => e.action === 'AI_EXTRACT' || e.action === 'AI_GENERATE').length || 0;
-
-  const scrapeUsed =
-    events?.filter((e) => e.action === 'SCRAPE_LINKEDIN' || e.action === 'SCRAPE_JOBSTREET')
-      .length || 0;
-
-  const portal =
-    events?.find((e) => e.action === 'SCRAPE_LINKEDIN' || e.action === 'SCRAPE_JOBSTREET')
-      ?.portal || null;
-
-  const plan: PlanType = profile.plan as PlanType;
-  const limits = QUOTA_LIMITS[plan];
+  await requireUser();
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-2">
-        <AccountSummary
-          email={profile.email || user.email || ''}
-          fullName={profile.full_name || ''}
-          plan={plan}
-          paidUntil={profile.paid_until}
-        />
-        <div className="space-y-4">
-          <QuotaCard title="AI Quota" used={aiUsed} limit={limits.AI} />
-          <QuotaCard title="Scraping Quota" used={scrapeUsed} limit={limits.SCRAPE} portal={portal} />
+    <div className="space-y-8 max-w-7xl">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="mt-2 text-zinc-400">Lowongan yang telah berhasil dikumpulkan</p>
+      </div>
+
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-12 text-center">
+        <div className="mx-auto max-w-md">
+          <svg 
+            className="mx-auto h-16 w-16 text-zinc-700 dark:text-zinc-600" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={1} 
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+            />
+          </svg>
+          <h3 className="mt-4 text-lg font-semibold text-zinc-100">Belum Ada Lowongan Tersimpan</h3>
+          <p className="mt-2 text-sm text-zinc-400">
+            Hasil scraping dari LinkedIn dan Jobstreet akan otomatis tampil di sini.
+            Mulai dengan mengklik tombol scraping di halaman Billing atau gunakan AI Tools.
+          </p>
         </div>
       </div>
-      <AITools />
-      <UsageTestButtons />
     </div>
   );
 }

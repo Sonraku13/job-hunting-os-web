@@ -13,32 +13,30 @@ export function QuotaCard({ title, used, limit, portal }: QuotaCardProps) {
 
   return (
     <Card>
-      <h3 className="text-lg font-semibold mb-3">{title}</h3>
-      <div className="space-y-3">
+      <h3 className="text-lg font-semibold mb-5 tracking-tight">{title}</h3>
+      <div className="space-y-5">
         <div>
-          <div className="flex justify-between text-sm mb-1">
-            <span className="text-gray-400">Penggunaan hari ini</span>
-            <span className={isNearLimit ? 'text-yellow-400' : 'text-white'}>
-              {used} / {limit}
-            </span>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm text-zinc-400 mb-2">Penggunaan hari ini</span>
+            <span className={isNearLimit ? 'text-yellow-400' : 'text-white'}>{used}</span>
           </div>
-          <div className="w-full bg-gray-800 rounded-full h-2">
-            <div
-              className={`h-2 rounded-full transition-all ${
-                percentage >= 100
-                  ? 'bg-red-500'
-                  : isNearLimit
-                  ? 'bg-yellow-500'
-                  : 'bg-blue-500'
-              }`}
-              style={{ width: `${Math.min(percentage, 100)}%` }}
-            />
+          <div className="space-y-2">
+            <div className="h-2 w-full rounded-full bg-zinc-900 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${Math.min(percentage, 100)}%`,
+                  backgroundColor: percentage >= 100 ? '#ef4444' : isNearLimit ? '#eab308' : '#3b82f6'
+                }}
+              />
+            </div>
+            <span className="text-xs text-zinc-500">{limit} hari</span>
           </div>
         </div>
         {portal && (
-          <div className="text-sm">
-            <span className="text-gray-400">Portal digunakan:</span>{' '}
-            <span className="text-white font-medium">{portal}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-zinc-400">Portal digunakan</span>
+            <span className="text-sm font-medium text-zinc-200">{portal}</span>
           </div>
         )}
       </div>

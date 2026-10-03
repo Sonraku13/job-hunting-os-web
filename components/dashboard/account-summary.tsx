@@ -11,30 +11,30 @@ interface AccountSummaryProps {
 export function AccountSummary({ email, fullName, plan, paidUntil }: AccountSummaryProps) {
   return (
     <Card>
-      <h2 className="text-xl font-semibold mb-4">Akun Saya</h2>
-      <div className="space-y-2 text-sm">
-        <div>
-          <span className="text-gray-400">Nama:</span>{' '}
-          <span className="text-white">{fullName || email}</span>
+      <h2 className="text-lg font-semibold mb-4 tracking-tight">Akun Saya</h2>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-zinc-400">Nama</span>
+          <span className="text-sm font-medium">{fullName || email}</span>
         </div>
-        <div>
-          <span className="text-gray-400">Email:</span>{' '}
-          <span className="text-white">{email}</span>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-zinc-400">Email</span>
+          <span className="text-sm text-zinc-200">{email}</span>
         </div>
-        <div>
-          <span className="text-gray-400">Paket:</span>{' '}
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-zinc-400">Paket</span>
           <span
-            className={`font-semibold ${
-              plan === 'PAID' ? 'text-green-400' : 'text-blue-400'
+            className={`font-semibold uppercase tracking-wide text-xs ${
+              plan === 'PAID' ? 'text-emerald-400' : 'text-blue-400'
             }`}
           >
-            {plan}
+            {plan === 'FREE' ? 'Free' : 'Pro'}
           </span>
         </div>
         {plan === 'PAID' && paidUntil && (
-          <div>
-            <span className="text-gray-400">Berlaku hingga:</span>{' '}
-            <span className="text-white">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-zinc-400">Berlaku hingga</span>
+            <span className="text-sm font-medium">
               {new Date(paidUntil).toLocaleDateString('id-ID')}
             </span>
           </div>

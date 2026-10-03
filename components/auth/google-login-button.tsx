@@ -25,7 +25,7 @@ export function GoogleLoginButton() {
   };
 
   return (
-    <Button onClick={handleLogin} disabled={loading}>
+    <Button onClick={handleLogin} disabled={loading} className="w-full">
       {loading ? 'Menghubungkan...' : 'Masuk dengan Google'}
     </Button>
   );
