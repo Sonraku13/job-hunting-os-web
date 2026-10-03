@@ -1,0 +1,56 @@
+===========================================
+JOB HUNTING OS - HISTORY & FUTURE UPDATES
+===========================================
+
+[ LOG HISTORY - COMPLETED ]
+
+1. Core & Infrastructure:
+   - Setup Next.js App Router, TailwindCSS, TypeScript.
+   - Setup Supabase Auth (Google Login), Postgres Database, & RLS.
+   - Dibuat fungsi `consume_usage` RPC untuk manajemen kuota harian (FREE/PAID).
+
+2. Fitur Scraping & Database Lowongan (`saved_jobs`):
+   - Integrasi Zapi untuk LinkedIn dan Jobstreet search.
+   - Filter ketat lowongan khusus 24 jam terakhir.
+   - Fitur "Manual Scrape" tombol di Dashboard.
+   - Fitur "Auto Scraping" jadwal jam (WIB) dikombinasikan dengan Vercel Cron (`/api/cron/scrape`).
+   - Workflow status lowongan (discover -> analyse -> apply -> refuse -> archive).
+
+3. Profil & Pengaturan User (`user_profiles`):
+   - Memecah UI menjadi dua halaman:
+     - `/profile`: Identitas diri, Ringkasan, Pengalaman, dan LLM Context (gaya bahasa AI).
+     - `/settings`: Preferensi kerja (lokasi, remote, job titles) dan jadwal cron auto-scraping (WIB ke UTC).
+   - Penggunaan operasi `.update()` dan upsert via `/api/profile/update`.
+
+4. Fitur AI (Multi-provider Fallback Engine):
+   - Engine fallback: Gemini Direct -> Zapi Copilot -> Zapi ChatEx -> Zapi ChatGPT.
+   - Anti-hallucination rules (hanya fakta, plain text tanpa markdown/simbol **).
+   - Caching output (match score, cover letter, email draft) di DB `saved_jobs` agar tidak boros kuota / double hit API.
+
+-------------------------------------------
+
+[ FUTURE UPDATES - ROADMAP & TODOs ]
+
+1. Billing & Paket Berlangganan:
+   - Buat halaman `/billing` menampilkan sisa kuota (dari tabel `usage_events`).
+   - Sediakan instruksi manual payment (transfer) bagi pengguna FREE yang mau upgrade ke PAID.
+   - (NOTE: Tidak perlu webhook payment otomatis, cukup validasi manual via DB / Admin backend sederhana atau manual query SQL).
+
+2. UI & UX Refinements:
+   - Tambahkan animasi loading state (spinner/skeleton) saat AI men-generate cover letter agar UI tidak terlihat diam.
+   - Polishing UI untuk resolusi mobile (terutama form panjang di `/profile` & grid jadwal WIB di `/settings`).
+   - Tampilkan bar indikator "Limit Harian" langsung di Header Dashboard (berdasarkan limit query `consume_usage`).
+
+3. Cron Job Optimization:
+   - Pastikan cron berjalan di production Vercel dengan menyetel ENV `CRON_SECRET`.
+   - Logging sistem: catat user mana saja yang berhasil discrape di `last_scraped_at`.
+   - Tambahkan fitur notifikasi email ringan jika ada >5 lowongan cocok ditemukan hari itu (Opsional / bisa pakai Resend API).
+
+4. Data Management:
+   - Buat fungsi bulk delete atau auto-archive untuk status 'refuse' setelah 30 hari.
+   - Tambahkan RLS (Row Level Security) ketat untuk `user_profiles` agar pengguna tidak bisa mengubah nilai `scrape_active` orang lain.
+
+===========================================
+CATATAN: 
+Tetap pertahankan konsep "Lazy Development": Pakai Stdlib & native features, jangan tambah dependencies rumit (Redux, tRPC, Prisma). Fokus ke Next.js API Routes + Supabase.
+===========================================
