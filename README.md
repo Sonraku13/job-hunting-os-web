@@ -1,0 +1,220 @@
+# Job Hunting OS - Web Application
+
+MVP SaaS shell for Job Hunting OS, providing authentication, membership management, and usage quota tracking.
+
+## Tech Stack
+
+- **Next.js 16** with App Router
+- **TypeScript** (strict mode)
+- **Tailwind CSS 4**
+- **Supabase** (Auth + Postgres)
+- **Vercel** (deployment)
+
+## Features
+
+- Google OAuth authentication via Supabase
+- FREE and PAID membership plans
+- Daily usage quota tracking (AI actions + scraping)
+- Manual billing approval workflow
+- Protected dashboard and billing pages
+
+## Prerequisites
+
+1. Node.js 18+ and npm
+2. A Supabase account (free tier works)
+3. A Google Cloud Console project for OAuth
+
+## Local Setup
+
+### 1. Clone and Install
+
+```bash
+git clone <your-repo-url>
+cd job-hunting-os-web
+npm install
+```
+
+### 2. Supabase Setup
+
+1. Create a new Supabase project at [supabase.com](https://supabase.com)
+2. Go to **SQL Editor** and run the migration in `supabase/migrations/001_initial.sql`
+3. Go to **Authentication > Providers > Google**
+   - Enable Google provider
+   - Add your Google OAuth Client ID and Client Secret (see step 3)
+4. Go to **Authentication > URL Configuration**
+   - Add callback URL: `http://localhost:3000/auth/callback`
+   - Set Site URL to: `http://localhost:3000`
+
+### 3. Google OAuth Setup
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Create or select a project
+3. Enable **Google+ API**
+4. Go to **APIs & Services > Credentials**
+5. Create **OAuth 2.0 Client ID** (Web application)
+6. Add authorized redirect URIs:
+   - `http://localhost:3000/auth/callback`
+   - `https://YOUR_SUPABASE_PROJECT.supabase.co/auth/v1/callback`
+7. Copy Client ID and Client Secret to Supabase (step 2.3)
+
+### 4. Environment Variables
+
+Copy `.env.example` to `.env.local`:
+
+```bash
+cp .env.example .env.local
+```
+
+Fill in your Supabase credentials:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_anon_key
+```
+
+Find these values in Supabase Project Settings > API.
+
+### 5. Run Development Server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000)
+
+## Testing Locally
+
+1. Sign in with Google
+2. A FREE account is created automatically
+3. Go to `/dashboard`
+4. Test quota buttons:
+   - AI actions: 3/day total (AI Extract + AI Generate combined)
+   - Scraping: 1/day (only one portal per day for FREE users)
+5. Go to `/billing` to see manual payment instructions
+
+## Manual Approval (Admin)
+
+To upgrade a user to PAID:
+
+1. Open Supabase Dashboard
+2. Go to **Table Editor > profiles**
+3. Find the user by email
+4. Edit the row:
+   - `plan`: change to `PAID`
+   - `paid_until`: set to subscription end date (e.g., `2026-11-03T00:00:00Z`)
+   - `approved_at`: set to current timestamp
+5. Save
+
+The user will see PAID status on next dashboard load.
+
+## Vercel Deployment
+
+### 1. Push to GitHub
+
+```bash
+git init
+git add .
+git commit -m "Initial MVP"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/job-hunting-os-web.git
+git push -u origin main
+```
+
+### 2. Deploy to Vercel
+
+1. Go to [vercel.com](https://vercel.com)
+2. Import your GitHub repository
+3. Add environment variables:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+4. Deploy
+
+### 3. Update Supabase Auth URLs
+
+After deployment, add your production URL to Supabase:
+
+1. Go to **Authentication > URL Configuration**
+2. Add callback URL: `https://YOUR_VERCEL_PROJECT.vercel.app/auth/callback`
+3. Update Site URL to: `https://YOUR_VERCEL_PROJECT.vercel.app`
+
+### 4. Update Google OAuth
+
+Add production redirect URI to Google Cloud Console:
+- `https://YOUR_VERCEL_PROJECT.vercel.app/auth/callback`
+
+## Project Structure
+
+```
+job-hunting-os-web/
+├── app/
+│   ├── (auth)/login/          # Login page
+│   ├── (dashboard)/           # Protected dashboard routes
+│   │   ├── dashboard/         # Main dashboard
+│   │   └── billing/           # Billing page
+│   ├── api/usage/consume/     # Usage quota API
+│   ├── auth/callback/         # OAuth callback
+│   └── page.tsx               # Home redirect
+├── components/
+│   ├── auth/                  # Authentication components
+│   ├── dashboard/             # Dashboard components
+│   └── ui/                    # Base UI components
+├── lib/
+│   ├── auth/                  # Auth helpers
+│   ├── quota/                 # Quota logic
+│   └── supabase/              # Supabase clients
+├── supabase/migrations/       # Database schema
+└── middleware.ts              # Auth middleware
+```
+
+## Business Rules
+
+### FREE Plan
+- AI quota: 3 uses/day (AI_EXTRACT + AI_GENERATE combined)
+- Scraping quota: 1 use/day
+- Only one scraping portal allowed per day
+- Auto-assigned on first login
+
+### PAID Plan
+- AI quota: 30 uses/day
+- Scraping quota: 10 uses/day
+- Multiple portals allowed per day
+- Manual approval by admin
+- Valid until `paid_until` date
+- Auto-downgrades to FREE when expired
+
+## Security Notes
+
+- Never commit `.env.local`
+- Never expose `SUPABASE_SERVICE_ROLE_KEY` (not used in this app)
+- All quota mutations go through `consume_usage` RPC
+- Users cannot write their own `plan`, `paid_until`, or `approved_at`
+
+## Development Commands
+
+```bash
+npm run dev      # Start dev server
+npm run build    # Build for production
+npm run start    # Start production server
+npm run lint     # Run ESLint
+```
+
+## Not Included in MVP
+
+This first build does NOT include:
+- Payment gateway integration
+- Google Sheets/Drive OAuth
+- Zapi or Gemini API integration
+- Actual scraping implementation
+- Email notifications
+- Admin dashboard UI
+- Webhooks or background jobs
+
+These will be added in future phases.
+
+## License
+
+Private - All rights reserved
+
+## Support
+
+For issues or questions, contact the project owner.
