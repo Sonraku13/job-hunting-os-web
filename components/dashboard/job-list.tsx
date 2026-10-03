@@ -240,74 +240,11 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
     }
   };
 
-  if (jobs.length === 0) {
-    return (
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-12 text-center">
-        <div className="mx-auto max-w-md space-y-4">
-          <svg
-            className="mx-auto h-12 w-12 text-zinc-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-            />
-          </svg>
-          <h3 className="text-base font-semibold text-zinc-100">Belum Ada Lowongan Tersimpan</h3>
-          <p className="text-xs text-zinc-400">
-            Lowongan hasil kurasi dari LinkedIn & Jobstreet akan otomatis tersusun di sini.
-          </p>
-
-          <div className="pt-2">
-            <Button
-              onClick={async () => {
-                try {
-                  const res = await fetch('/api/jobs/save', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      job_title: 'Senior Frontend Engineer',
-                      company_name: 'Tech Corp Indonesia',
-                      job_url: 'https://linkedin.com/jobs/view/123',
-                      location: 'Jakarta, Indonesia (Remote)',
-                      job_type: 'Full-time',
-                      salary_range: '15.000.000 - 25.000.000 IDR',
-                      job_description:
-                        'We are looking for a Senior Frontend Engineer to build modern, scalable web applications using React, Next.js, and TypeScript.\n\nRequirements:\n- 4+ years experience\n- Strong understanding of React ecosystem',
-                      source: 'LinkedIn',
-                    }),
-                  });
-                  const data = await res.json();
-                  if (res.ok) {
-                    setJobs([data.data]);
-                    showToast('Lowongan contoh berhasil ditambahkan!', 'success');
-                  } else {
-                    showToast(data.error || 'Gagal menambah lowongan', 'error');
-                  }
-                } catch {
-                  showToast('Gagal menghubungi server', 'error');
-                }
-              }}
-              className="font-mono text-xs"
-            >
-              + Tambah Lowongan Contoh (Tes UI)
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="space-y-4">
-        {/* Manual Scrape Buttons + Filter Bar */}
-        <div className="flex flex-wrap gap-2">
+        {/* Manual Scrape Buttons */}
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             onClick={() => handleManualScrape('linkedin')}
             disabled={scrapingPortal !== null}
@@ -326,10 +263,71 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
         </div>
 
         <div className="text-xs text-zinc-500 font-mono">
-          Pengambilan data mengambil lowongan 24 jam terakhir sesuai preferensi di Profil Anda.
+          Pengambilan data mengambil lowongan 24 jam terakhir sesuai preferensi di Pengaturan Anda.
         </div>
 
-        {/* Filter Bar & Total */}
+        {jobs.length === 0 ? (
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-12 text-center">
+            <div className="mx-auto max-w-md space-y-4">
+              <svg
+                className="mx-auto h-12 w-12 text-zinc-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                />
+              </svg>
+              <h3 className="text-base font-semibold text-zinc-100">Belum Ada Lowongan Tersimpan</h3>
+              <p className="text-xs text-zinc-400">
+                Klik tombol di atas untuk scrape lowongan baru dari LinkedIn atau Jobstreet, atau gunakan data contoh untuk tes UI.
+              </p>
+
+              <div className="pt-2">
+                <Button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('/api/jobs/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          job_title: 'Senior Frontend Engineer',
+                          company_name: 'Tech Corp Indonesia',
+                          job_url: 'https://linkedin.com/jobs/view/123',
+                          location: 'Jakarta, Indonesia (Remote)',
+                          job_type: 'Full-time',
+                          salary_range: '15.000.000 - 25.000.000 IDR',
+                          job_description:
+                            'We are looking for a Senior Frontend Engineer to build modern, scalable web applications using React, Next.js, and TypeScript.\n\nRequirements:\n- 4+ years experience\n- Strong understanding of React ecosystem',
+                          source: 'LinkedIn',
+                        }),
+                      });
+                      const data = await res.json();
+                      if (res.ok) {
+                        setJobs([data.data]);
+                        showToast('Lowongan contoh berhasil ditambahkan!', 'success');
+                      } else {
+                        showToast(data.error || 'Gagal menambah lowongan', 'error');
+                      }
+                    } catch {
+                      showToast('Gagal menghubungi server', 'error');
+                    }
+                  }}
+                  className="font-mono text-xs"
+                >
+                  + Tambah Lowongan Contoh (Tes UI)
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Filter Bar & Total */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-1.5">
             {['all', 'discover', 'analyse', 'apply', 'refuse', 'archive'].map((tab) => {
@@ -504,6 +502,8 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
             );
           })}
         </div>
+          </>
+        )}
       </div>
 
       {/* Modal Cover Letter / Email Draft */}
