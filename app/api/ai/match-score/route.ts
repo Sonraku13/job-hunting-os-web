@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { callGeminiPersonalizedCoverLetter } from '@/lib/ai/gemini';
+import { calculateMatchScore } from '@/lib/ai/llm';
 
 export async function POST(request: Request) {
   try {
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     // 1. Fetch Job Details FIRST - check cache
     const { data: job, error: jobError } = await supabase
       .from('saved_jobs')
-      .select('cover_letter')
+      .select('match_score, match_score_breakdown')
       .eq('id', jobId)
       .eq('user_id', user.id)
       .single();
@@ -32,19 +32,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Lowongan tidak ditemukan' }, { status: 404 });
     }
 
-    // 2. Return cached result if exists - NO quota consumed, NO LLM called
-    if (job.cover_letter && job.cover_letter.trim().length > 0) {
+    // 2. Return cached result if exists with valid score - NO quota consumed, NO LLM called
+    if (
+      typeof job.match_score === 'number' &&
+      job.match_score > 0 &&
+      job.match_score_breakdown &&
+      typeof job.match_score_breakdown.score === 'number'
+    ) {
       return NextResponse.json({
         success: true,
-        coverLetter: job.cover_letter,
+        matchResult: job.match_score_breakdown,
         cached: true,
         usage: null,
       });
     }
 
-    // 3. Consume Quota RPC for AI_GENERATE (only if not cached)
+    // 3. Consume Quota RPC for AI_EXTRACT (only if not cached)
     const { data: quotaData, error: quotaError } = await supabase.rpc('consume_usage', {
-      p_action: 'AI_GENERATE',
+      p_action: 'AI_EXTRACT',
       p_portal: null,
     });
 
@@ -78,8 +83,8 @@ export async function POST(request: Request) {
       .eq('user_id', user.id)
       .single();
 
-    // 5. Generate Personalized Cover Letter
-    const coverLetter = await callGeminiPersonalizedCoverLetter({
+    // 5. Calculate Match Score
+    const matchResult = await calculateMatchScore({
       jobTitle: fullJob.job_title,
       companyName: fullJob.company_name,
       jobDescription: fullJob.job_description,
@@ -87,32 +92,34 @@ export async function POST(request: Request) {
       currentRole: profile?.current_role || profile?.job_title,
       experienceYears: profile?.years_of_experience,
       summary: profile?.summary,
-      careerGoals: profile?.career_goals,
-      llmContext: profile?.llm_context,
+      skills: Array.isArray(profile?.skills) ? profile.skills : [],
     });
 
-    // 6. Simpan hasil ke database
+    // 6. Update saved_jobs in DB
     const { error: updateError } = await supabase
       .from('saved_jobs')
-      .update({ cover_letter: coverLetter })
+      .update({
+        match_score: matchResult.score,
+        match_score_breakdown: matchResult,
+      })
       .eq('id', jobId)
       .eq('user_id', user.id);
 
     if (updateError) {
-      console.error('Failed to save cover_letter:', updateError);
-      return NextResponse.json({ error: 'Gagal menyimpan cover letter ke database' }, { status: 500 });
+      console.error('Failed to save match_score:', updateError);
+      return NextResponse.json({ error: 'Gagal menyimpan match score ke database' }, { status: 500 });
     }
 
     return NextResponse.json({
       success: true,
-      coverLetter,
+      matchResult,
       usage: {
         used_today: quotaResult.used_today,
         daily_limit: quotaResult.daily_limit,
       },
     });
   } catch (error: unknown) {
-    console.error('Generate cover letter error:', error);
+    console.error('Calculate match score error:', error);
     const message = error instanceof Error ? error.message : 'Terjadi kesalahan internal';
     return NextResponse.json({ error: message }, { status: 500 });
   }

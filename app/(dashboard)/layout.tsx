@@ -34,6 +34,12 @@ export default async function DashboardLayout({
                   Profil
                 </Link>
                 <Link 
+                  href="/settings" 
+                  className="rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-zinc-800/50"
+                >
+                  Pengaturan
+                </Link>
+                <Link 
                   href="/billing" 
                   className="rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-zinc-800/50"
                 >

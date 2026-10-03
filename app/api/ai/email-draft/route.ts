@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { callGeminiPersonalizedCoverLetter } from '@/lib/ai/gemini';
+import { generateApplicationEmail } from '@/lib/ai/llm';
 
 export async function POST(request: Request) {
   try {
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     // 1. Fetch Job Details FIRST - check cache
     const { data: job, error: jobError } = await supabase
       .from('saved_jobs')
-      .select('cover_letter')
+      .select('email_draft')
       .eq('id', jobId)
       .eq('user_id', user.id)
       .single();
@@ -33,10 +33,10 @@ export async function POST(request: Request) {
     }
 
     // 2. Return cached result if exists - NO quota consumed, NO LLM called
-    if (job.cover_letter && job.cover_letter.trim().length > 0) {
+    if (job.email_draft && job.email_draft.trim().length > 0) {
       return NextResponse.json({
         success: true,
-        coverLetter: job.cover_letter,
+        emailDraft: job.email_draft,
         cached: true,
         usage: null,
       });
@@ -78,8 +78,8 @@ export async function POST(request: Request) {
       .eq('user_id', user.id)
       .single();
 
-    // 5. Generate Personalized Cover Letter
-    const coverLetter = await callGeminiPersonalizedCoverLetter({
+    // 5. Generate Personalized Email Draft
+    const emailDraft = await generateApplicationEmail({
       jobTitle: fullJob.job_title,
       companyName: fullJob.company_name,
       jobDescription: fullJob.job_description,
@@ -94,25 +94,25 @@ export async function POST(request: Request) {
     // 6. Simpan hasil ke database
     const { error: updateError } = await supabase
       .from('saved_jobs')
-      .update({ cover_letter: coverLetter })
+      .update({ email_draft: emailDraft })
       .eq('id', jobId)
       .eq('user_id', user.id);
 
     if (updateError) {
-      console.error('Failed to save cover_letter:', updateError);
-      return NextResponse.json({ error: 'Gagal menyimpan cover letter ke database' }, { status: 500 });
+      console.error('Failed to save email_draft:', updateError);
+      return NextResponse.json({ error: 'Gagal menyimpan draft email ke database' }, { status: 500 });
     }
 
     return NextResponse.json({
       success: true,
-      coverLetter,
+      emailDraft,
       usage: {
         used_today: quotaResult.used_today,
         daily_limit: quotaResult.daily_limit,
       },
     });
   } catch (error: unknown) {
-    console.error('Generate cover letter error:', error);
+    console.error('Generate email draft error:', error);
     const message = error instanceof Error ? error.message : 'Terjadi kesalahan internal';
     return NextResponse.json({ error: message }, { status: 500 });
   }

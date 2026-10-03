@@ -44,7 +44,7 @@ export default async function HomePage() {
       <section className="border-b border-[var(--border)] px-6 py-16 sm:py-24">
         <div className="mx-auto max-w-4xl">
           <p className="font-mono text-xs uppercase tracking-widest text-zinc-500 mb-6">
-            // ALAT BANTU PELACAKAN DAN KURASI KERJA
+            ALAT BANTU PELACAKAN DAN KURASI KERJA
           </p>
           <h1 className="text-3xl font-medium tracking-tight sm:text-5xl sm:leading-[1.15] text-zinc-100">
             Hentikan mengirim lamaran massal yang sia-sia.

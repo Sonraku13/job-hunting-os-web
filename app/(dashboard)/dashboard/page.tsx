@@ -2,6 +2,8 @@ import { requireUser } from '@/lib/auth/require-user';
 import { createClient } from '@/lib/supabase/server';
 import { JobList, type SavedJob } from '@/components/dashboard/job-list';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
   const user = await requireUser();
   const supabase = await createClient();

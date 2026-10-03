@@ -20,8 +20,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const stored = localStorage.getItem('theme') as Theme | null;
     if (stored) {
-      setTheme(stored);
       document.documentElement.classList.toggle('light', stored === 'light');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTheme(stored);
     }
   }, []);
 

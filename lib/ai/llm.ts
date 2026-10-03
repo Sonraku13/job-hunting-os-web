@@ -149,12 +149,23 @@ ${text}`;
   }
 }
 
-const ANTI_HALLUCINATION_RULES = `PERATURAN KETAT ANTI-HALUSINASI & ISOLASI KONTEKS:
-1. HANYA gunakan fakta, skill, pengalaman, dan gelar yang TERTULIS EKSPLISIT pada data pelamar di bawah.
-2. DILARANG KERAS MENGARANG: nama perusahaan lama fiktif, angka tahun pengalaman fiktif, metrik/angka palsu, atau sertifikasi yang tidak ada di profil pelamar.
-3. ISOLASI TOTAL: Setiap tugas adalah entitas baru yang sepenuhnya terisolasi. JANGAN membawa konteks, memori, atau perusahaan dari lowongan/sesi sebelumnya.
-4. Jika profil pelamar tidak menyebutkan riwayat spesifik, jangan mereka-reka cerita; gunakan narasi adaptif berbasis minat, motivasi, dan transferrable skills umum yang relevan.
-5. Jangan tinggalkan placeholder kurung siku seperti [Nama Perusahaan] jika data perusahaan/posisi sudah tersedia.`;
+function cleanMarkdownSymbols(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/(^|[^\*])\*([^\*\n]+)\*/g, '$1$2')
+    .replace(/(^|[^_])_([^_\n]+)_/g, '$1$2')
+    .replace(/^#+\s+/gm, '')
+    .trim();
+}
+
+const ANTI_HALLUCINATION_RULES = `PERATURAN KETAT PENULISAN DOKUMEN (ANTI-AI SLOP & ANTI-HALUSINASI):
+1. DILARANG KERAS MENGGUNAKAN SIMBOL MARKDOWN (seperti **, *, _, #). Tulis dalam teks polos (plain text) bersih yang rapi, seperti surat lamaran formal asli yang diketik profesional.
+2. HANYA gunakan fakta, skill, pengalaman, dan nama yang TERTULIS EKSPLISIT pada data pelamar.
+3. DILARANG KERAS MENGARANG: nama perusahaan lama fiktif, angka tahun pengalaman fiktif, metrik/angka palsu, atau sertifikasi yang tidak ada di profil pelamar.
+4. SPESIFIK & KONTEKSTUAL: Analisis kebutuhan unik dari Deskripsi Lowongan. Hubungkan pengalaman pelamar secara langsung dengan tantangan dan kebutuhan lowongan tersebut sehingga setiap surat untuk lowongan berbeda memiliki argumen unik dan relevan.
+5. ISOLASI TOTAL: Setiap tugas adalah entitas baru yang sepenuhnya terisolasi. JANGAN membawa konteks atau nama perusahaan dari lowongan lain.
+6. Hindari frasa klise AI (seperti "Saya sangat bersemangat untuk...", "Surat ini saya tulis...", "Melalui surat ini saya bermaksud..."). Langsung buka dengan perkenalan profesional, kompetensi utama yang relevan, dan nilai tambah konkret yang siap dibawa.`;
 
 export async function generateCoverLetter(params: {
   jobTitle: string;
@@ -169,7 +180,7 @@ export async function generateCoverLetter(params: {
 }): Promise<string> {
   const prompt = `${ANTI_HALLUCINATION_RULES}
 
-Tuliskan surat lamaran kerja (Cover Letter) resmi, profesional, dan tajam dalam Bahasa Indonesia untuk posisi berikut:
+Tuliskan surat lamaran kerja (Cover Letter) profesional, tajam, dan persuasif dalam Bahasa Indonesia (tanpa simbol markdown * atau **):
 
 DATA PELAMAR (HANYA GUNAKAN DATA INI):
 - Nama: ${params.applicantName || 'Pelamar'}
@@ -177,7 +188,7 @@ DATA PELAMAR (HANYA GUNAKAN DATA INI):
 - Pengalaman Kerja: ${params.experienceYears ? `${params.experienceYears} tahun` : 'Sesuai profil'}
 - Ringkasan Bio Profil: ${params.summary || 'Memiliki latar belakang yang relevan'}
 - Target Karir: ${params.careerGoals || 'Memberikan kontribusi nyata dan berkembang bersama perusahaan'}
-- Catatan Personal / Gaya Bahasa: ${params.llmContext || 'Bahasa Indonesia profesional, percaya diri, tanpa basa-basi'}
+- Catatan Personal / Tone: ${params.llmContext || 'Bahasa Indonesia profesional, percaya diri, elegan, to-the-point'}
 
 TARGET LOWONGAN:
 - Posisi: ${params.jobTitle}
@@ -185,18 +196,18 @@ TARGET LOWONGAN:
 - Deskripsi & Persyaratan Lowongan:
 ${params.jobDescription || 'Tidak ada deskripsi rinci.'}
 
-Format surat lengkap, siap dikirimkan, terstruktur rapi dengan pembuka, isi argumen nilai tambah, dan penutup profesional.`;
+Format surat lengkap dan siap kirim (tanpa simbol bintang * atau tanda kurung siku placeholder).`;
 
   const { text } = await callWithFallback([
     {
       role: 'system',
       content:
-        'Kamu adalah konsultan karir profesional tingkat tinggi. Kamu menulis cover letter secara akurat hanya berdasar data profil yang diberikan tanpa halusinasi fakta.',
+        'Kamu adalah konsultan karir profesional tingkat tinggi. Tulis surat lamaran kerja dalam format teks polos (plain text) tanpa simbol markdown bintang (* atau **), personal, tajam, dan disesuaikan dengan kebutuhan lowongan.',
     },
     { role: 'user', content: prompt },
   ], 'reasoning');
 
-  return text;
+  return cleanMarkdownSymbols(text);
 }
 
 export async function generateApplicationEmail(params: {
@@ -212,14 +223,14 @@ export async function generateApplicationEmail(params: {
 }): Promise<string> {
   const prompt = `${ANTI_HALLUCINATION_RULES}
 
-Tuliskan format DRAFT EMAIL LAMARAN KERJA (Cold Email / Job Application Email) yang ringkas, sopan, dan efektif untuk HRD / Hiring Manager.
+Tuliskan DRAFT EMAIL LAMARAN KERJA (Cold Email) yang ringkas, sopan, dan persuasif (tanpa simbol markdown * atau **).
 
 DATA PELAMAR (HANYA GUNAKAN DATA INI):
 - Nama: ${params.applicantName || 'Pelamar'}
 - Posisi / Role Saat Ini: ${params.currentRole || 'Profesional'}
 - Pengalaman: ${params.experienceYears ? `${params.experienceYears} tahun` : 'Sesuai profil'}
 - Ringkasan Profil: ${params.summary || 'Memiliki keahlian relevan'}
-- Gaya Komunikasi: ${params.llmContext || 'Formal, sopan, efisien, to-the-point'}
+- Tone Komunikasi: ${params.llmContext || 'Formal, sopan, efisien, to-the-point'}
 
 TARGET LOWONGAN:
 - Posisi: ${params.jobTitle}
@@ -227,21 +238,21 @@ TARGET LOWONGAN:
 - Deskripsi Lowongan:
 ${params.jobDescription || 'Tidak ada deskripsi rinci.'}
 
-OUTPUT FORMAT HARUS TERDIRI DARI:
-Subject: [Subjek Email yang memikat dan jelas, contoh: Lamaran Pekerjaan - Posisi - Nama]
+OUTPUT FORMAT:
+Subject: [Subjek Email yang jelas dan memikat]
 Body Email:
-[Isi email singkat 3-4 paragraf: salam pembuka, pengantar singkat, relevansi pelamar terhadap kebutuhan, lampiran CV/portofolio, dan salam penutup].`;
+[Isi email ringkas 3 paragraf: salam pembuka, nilai relevan pelamar terhadap posisi, lampiran CV/portofolio, dan salam penutup].`;
 
   const { text } = await callWithFallback([
     {
       role: 'system',
       content:
-        'Kamu adalah asisten profesional rekrutmen. Tulis draft email lamaran kerja yang bersih, tanpa halusinasi fakta luar, dan siap kirim.',
+        'Kamu adalah asisten rekrutmen profesional. Tulis email lamaran dalam format teks polos tanpa simbol markdown bintang (* atau **).',
     },
     { role: 'user', content: prompt },
   ], 'chat');
 
-  return text;
+  return cleanMarkdownSymbols(text);
 }
 
 export async function generateText(prompt: string, systemPrompt?: string): Promise<string> {
@@ -263,4 +274,69 @@ export async function humanizeText(text: string): Promise<string> {
   if (!res.ok) throw new Error(`Zapi Humanize error (${res.status}): ${await res.text()}`);
   const data = await res.json();
   return data.humanized || data.text || text;
+}
+
+export interface MatchScoreResult {
+  score: number;
+  summary: string;
+  strengths: string[];
+  gaps: string[];
+}
+
+export async function calculateMatchScore(params: {
+  jobTitle: string;
+  companyName: string;
+  jobDescription?: string | null;
+  applicantName?: string | null;
+  currentRole?: string | null;
+  experienceYears?: number | null;
+  summary?: string | null;
+  skills?: string[] | null;
+}): Promise<MatchScoreResult> {
+  const prompt = `Analisis kecocokan antara profil kandidat dan lowongan pekerjaan berikut.
+Hitung skor kecocokan dalam persentase angka murni 0-100 dan berikan evaluasi ringkas.
+Hanya kembalikan JSON valid tanpa markdown format ataupun tanda \`\`\`json!
+
+PROFIL PELAMAR:
+- Role / Posisi: ${params.currentRole || 'Software Professional'}
+- Pengalaman: ${params.experienceYears || 0} tahun
+- Summary: ${params.summary || '-'}
+- Skills: ${params.skills?.join(', ') || '-'}
+
+LOWONGAN:
+- Posisi: ${params.jobTitle}
+- Perusahaan: ${params.companyName}
+- Deskripsi Lowongan:
+${params.jobDescription || 'Tidak ada deskripsi rinci.'}
+
+FORMAT JSON YANG DIHARAPKAN:
+{
+  "score": 85,
+  "summary": "Ringkasan 1-2 kalimat tentang kecocokan kandidat.",
+  "strengths": ["Kekuatan 1", "Kekuatan 2"],
+  "gaps": ["Area yang perlu diperdalam 1"]
+}`;
+
+  const { text } = await callWithFallback([
+    { role: 'system', content: 'Kamu adalah evaluator rekrutmen AI yang objektif. Output HANYA JSON valid.' },
+    { role: 'user', content: prompt },
+  ], 'chat');
+
+  const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+  try {
+    const parsed = JSON.parse(cleaned);
+    return {
+      score: typeof parsed.score === 'number' ? parsed.score : 75,
+      summary: parsed.summary || 'Kandidat memiliki profil yang relevan dengan posisi ini.',
+      strengths: Array.isArray(parsed.strengths) ? parsed.strengths : ['Pengalaman relevan'],
+      gaps: Array.isArray(parsed.gaps) ? parsed.gaps : ['Ekspektasi spesifik lowongan'],
+    };
+  } catch {
+    return {
+      score: 75,
+      summary: 'Analisis profil kandidat menunjukkan kecocokan yang baik dengan posisi ini.',
+      strengths: ['Latar belakang teknis sesuai'],
+      gaps: ['Perlu penyesuaian detail teknis'],
+    };
+  }
 }

@@ -14,16 +14,38 @@ export async function PUT(request: Request) {
 
     const body = await request.json();
     
-    // Kita upsert ke user_profiles
-    const { data, error } = await supabase
+    const { data: existing } = await supabase
       .from('user_profiles')
-      .upsert({
-        user_id: user.id,
-        id: user.id,
-        ...body,
-      }, { onConflict: 'user_id' })
-      .select()
+      .select('*')
+      .eq('user_id', user.id)
       .single();
+
+    let data, error;
+    
+    if (existing) {
+      // Partial update
+      const { data: updateData, error: updateError } = await supabase
+        .from('user_profiles')
+        .update(body)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+      data = updateData;
+      error = updateError;
+    } else {
+      // Insert new
+      const { data: insertData, error: insertError } = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: user.id,
+          id: user.id,
+          ...body,
+        })
+        .select()
+        .single();
+      data = insertData;
+      error = insertError;
+    }
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
