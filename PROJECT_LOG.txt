@@ -106,14 +106,47 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
 
 [ FUTURE UPDATES - ROADMAP & TODOs ]
 
-1. Cron Job Optimization:
+# Phase 1: Quick Wins (Paling Mudah & Dampak Langsung)
+1. Print / Export PDF Native Cover Letter:
+   - Tombol "Download PDF" di modal Cover Letter menggunakan `window.print()` + CSS `@media print`.
+   - Tanpa library tambahan, instan menghasilkan PDF rapi untuk dikirim ke HRD.
+
+2. Smart Quick-Paste Job (Universal Input):
+   - Modal "+ Quick Paste" di Dashboard dengan:
+     - Input Teks/Caption (wajib) + Link Asal Trackback (opsional).
+     - Upload / Paste Gambar (JPG, PNG, WebP) -> Gemini Vision OCR.
+     - Auto-detect Email, WhatsApp, Link Form, & URL Postingan di dalam teks/gambar.
+   - Backend: 1 endpoint baru `/api/jobs/parse` memakai Gemini untuk ekstraksi data terstruktur.
+   - Otomatis simpan ke `saved_jobs` & siap generate Cover Letter/Email.
+
+3. Quick Action Buttons (1-Klik Kirim Lamaran):
+   - Di kartu lowongan: Tombol "Chat WA", "Kirim Email", "Buka Form" muncul otomatis jika kontak terdeteksi.
+   - Pre-fill pesan WA & draft Email via AI yang sudah ada.
+
+4. Mini Analytics & Motivasi:
+   - Stat cards di atas Dashboard: "Lamaran Minggu Ini", "Avg Match Score", "Lowongan Tersurvei".
+   - Query `COUNT` sederhana ke Supabase, tanpa tabel baru.
+
+# Phase 2: Productivity Boosters
+5. Bookmarklet (1-Klik Simpan dari Web Mana Saja):
+   - JS snippet di bookmark browser -> POST ke `/api/jobs/bookmarklet`.
+   - User save lowongan dari Kalibrr, Tech in Asia, Web Perusahaan, dll tanpa buka aplikasi.
+
+6. Kanban Board View (Drag & Drop):
+   - Toggle view di Dashboard: List <-> Kanban (Discover -> Analyse -> Apply -> Interview -> Offer).
+   - Library ringan `@dnd-kit` atau native HTML5 Drag & Drop API.
+
+# Phase 3: System & Data Health
+7. Cron Job Optimization:
    - Pastikan cron berjalan di production Vercel dengan menyetel ENV `CRON_SECRET`.
    - Logging sistem: catat user mana saja yang berhasil discrape di `last_scraped_at`.
-   - Tambahkan fitur notifikasi email ringan jika ada >5 lowongan cocok ditemukan hari itu (Opsional / bisa pakai Resend API).
 
-4. Data Management:
-   - Buat fungsi bulk delete atau auto-archive untuk status 'refuse' setelah 30 hari.
-   - Tambahkan RLS (Row Level Security) ketat untuk `user_profiles` agar pengguna tidak bisa mengubah nilai `scrape_active` orang lain.
+8. Data Management:
+   - Bulk delete / auto-archive status 'refuse' setelah 30 hari.
+   - RLS ketat untuk `user_profiles` (hindari user ubah `scrape_active` orang lain).
+
+9. Notifikasi Email Ringan (Opsional):
+   - Trigger via Resend API jika ada >5 lowongan cocok (Match Score tinggi) ditemukan hari itu.
 
 ===========================================
 CATATAN: 
