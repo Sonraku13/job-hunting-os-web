@@ -53,41 +53,79 @@ export async function GET(request: Request) {
         : [];
       if (rawTitles.length === 0) continue;
 
-      const query = rawTitles.map((t: string) => `"${t.trim()}"`).join(' OR ');
       const locations = rawLocations.length > 0 ? rawLocations : ['Indonesia'];
 
+      const normalizeLocation = (loc: string): string => {
+        return loc
+          .replace(/^DKI\s+/i, '')
+          .replace(/^DI\s+/i, '')
+          .replace(/^D\.I\.\s+/i, '')
+          .trim() || loc;
+      };
+
       try {
-        let collected: { title?: string; company?: string; url?: string; location?: string }[] = [];
-        for (const location of locations) {
-          const params = new URLSearchParams({
-            query,
-            location,
-            postedWithin: '24h',
-            page: '1',
-          });
+        let collected: Record<string, unknown>[] = [];
+        let callCount = 0;
 
-          // Contoh call ke LinkedIn Zapi (bisa dikembangkan ke Jobstreet)
-          const res = await fetch(`${ZAPI_BASE}/jobs:linkedin/search?${params.toString()}`, {
-            headers: { 'x-api-key': ZAPI_KEY },
-          });
+        for (const rawLocation of locations) {
+          const location = normalizeLocation(rawLocation);
+          for (const title of rawTitles) {
+            if (callCount >= 6) break;
+            if (collected.length >= 15) break;
+            const query = title.trim();
+            if (!query) continue;
+            callCount++;
 
-          if (!res.ok) continue;
-          const data = await res.json();
-          const batch = Array.isArray(data.data) ? data.data : [];
-          collected.push(...batch.map((j: { title?: string; company?: string; url?: string; location?: string }) => ({
-            ...j,
-            location: j.location || location,
-          })));
-          if (collected.length >= 15) break;
+            const params = new URLSearchParams({
+              query,
+              location,
+              postedWithin: '24h',
+              page: '1',
+            });
+
+            const res = await fetch(`${ZAPI_BASE}/jobs:linkedin/search?${params.toString()}`, {
+              headers: { 'x-api-key': ZAPI_KEY },
+            });
+
+            if (!res.ok) continue;
+            const resData = await res.json();
+            const batch = Array.isArray(resData.data)
+              ? resData.data
+              : Array.isArray(resData.jobs)
+                ? resData.jobs
+                : Array.isArray(resData)
+                  ? resData
+                  : [];
+            
+            collected.push(...batch.map((j: Record<string, unknown>) => ({
+              ...j,
+              _scraped_location: location,
+            })));
+          }
         }
-        // Insert hasil ke saved_jobs (simplifikasi)
-        const jobsToInsert = collected.slice(0, 15).map((job: { title?: string; company?: string; url?: string; location?: string }) => ({
+
+        const pick = (j: Record<string, unknown>, keys: string[]): string | null => {
+          for (const k of keys) {
+            const v = j[k];
+            if (typeof v === 'string' && v.trim()) return v.trim();
+            if (v && typeof v === 'object') {
+              const nested = (v as Record<string, unknown>)['name'];
+              if (typeof nested === 'string' && nested.trim()) return nested.trim();
+            }
+          }
+          return null;
+        };
+
+        // Insert hasil ke saved_jobs
+        const jobsToInsert = collected.slice(0, 15).map((job) => ({
           user_id: user.user_id,
-          job_title: job.title || 'Unknown',
-          company_name: job.company || 'Unknown',
-          job_url: job.url || null,
-          location: job.location || null,
+          job_title: pick(job, ['title', 'job_title', 'position', 'name']) || 'Unknown',
+          company_name: pick(job, ['company', 'company_name', 'companyName', 'employer']) || 'Unknown',
+          job_url: pick(job, ['url', 'job_url', 'link', 'apply_url', 'applyUrl']),
+          external_job_id: pick(job, ['id', 'job_id', 'external_id', 'externalId', 'jobId']),
+          location: pick(job, ['location', 'job_location', 'city', 'region']) || (job._scraped_location as string) || null,
           source: 'LinkedIn Auto',
+          status: 'discover',
         }));
 
         if (jobsToInsert.length > 0) {

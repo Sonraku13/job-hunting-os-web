@@ -59,16 +59,71 @@ export async function POST(request: Request) {
     const titles: string[] = rawTitles.length > 0 ? rawTitles : ['Software Engineer'];
     const locations: string[] = rawLocations.length > 0 ? rawLocations : ['Indonesia'];
 
-    // Build query gabungan untuk job titles: "Title1" OR "Title2" OR ...
-    const query = titles.map((t: string) => `"${t.trim()}"`).join(' OR ');
+    // Normalisasi nama lokasi agar cocok dengan ekspektasi Zapi/LinkedIn
+    // ("DKI Jakarta" -> "Jakarta", "DI Yogyakarta" -> "Yogyakarta")
+    const normalizeLocation = (loc: string): string => {
+      return loc
+        .replace(/^DKI\s+/i, '')
+        .replace(/^DI\s+/i, '')
+        .replace(/^D\.I\.\s+/i, '')
+        .trim() || loc;
+    };
 
-    let allRawJobs: any[] = [];
+    // Ambil array data dari berbagai kemungkinan bentuk respons Zapi
+    const extractJobs = (resData: unknown): Record<string, unknown>[] => {
+      if (Array.isArray(resData)) return resData as Record<string, unknown>[];
+      if (resData && typeof resData === 'object') {
+        const obj = resData as Record<string, unknown>;
+        for (const key of ['data', 'jobs', 'results', 'listings', 'items']) {
+          if (Array.isArray(obj[key])) return obj[key] as Record<string, unknown>[];
+        }
+        // Beberapa provider membungkus di data.data
+        if (obj['data'] && typeof obj['data'] === 'object') {
+          const inner = obj['data'] as Record<string, unknown>;
+          for (const key of ['jobs', 'results', 'listings', 'items']) {
+            if (Array.isArray(inner[key])) return inner[key] as Record<string, unknown>[];
+          }
+        }
+      }
+      return [];
+    };
 
-    // 3. Loop tiap lokasi (untuk menghindari query terlalu panjang & mendapatkan hasil per lokasi)
-    for (const location of locations) {
-      let rawJobs: any[] = [];
+    const pick = (j: Record<string, unknown>, keys: string[]): string | null => {
+      for (const k of keys) {
+        const v = j[k];
+        if (typeof v === 'string' && v.trim()) return v.trim();
+        if (v && typeof v === 'object') {
+          // dukung bentuk nested { name: "..." } untuk company
+          const nested = (v as Record<string, unknown>)['name'];
+          if (typeof nested === 'string' && nested.trim()) return nested.trim();
+        }
+      }
+      return null;
+    };
 
-      // 3a. Panggil API Zapi (24 jam terakhir)
+    let allRawJobs: Record<string, unknown>[] = [];
+    const perLocation: { location: string; fetched: number }[] = [];
+
+    // 3. Loop tiap kombinasi lokasi x judul (1 call per kombinasi).
+    // Zapi tidak konsisten mendukung operator OR, jadi query sederhana per judul lebih aman.
+    // ponytail: ceiling 6 Zapi calls per aksi manual; naikkan + paginasi saat kuota Zapi longgar.
+    const MAX_CALLS = 6;
+    let callCount = 0;
+
+    for (const rawLocation of locations) {
+      const location = normalizeLocation(rawLocation);
+      let fetchedForLocation = 0;
+
+      for (const rawTitle of titles) {
+        if (callCount >= MAX_CALLS) break;
+        if (allRawJobs.length >= 20) break;
+        const query = rawTitle.trim();
+        if (!query) continue;
+        callCount++;
+
+        let rawJobs: Record<string, unknown>[] = [];
+
+        // 3a. Panggil API Zapi (24 jam terakhir)
       if (portal === 'linkedin') {
         const params = new URLSearchParams({
           query,
@@ -86,18 +141,12 @@ export async function POST(request: Request) {
 
         if (!res.ok) {
           const errText = await res.text();
-          console.error(`Gagal scrape LinkedIn untuk ${location}:`, errText);
-          continue; // Lanjut ke lokasi berikutnya
+          console.error(`Gagal scrape LinkedIn untuk "${query}" @ ${location}:`, errText);
+          continue; // Lanjut ke kombinasi berikutnya
         }
 
         const resData = await res.json();
-        rawJobs = Array.isArray(resData.data)
-          ? resData.data
-          : Array.isArray(resData.jobs)
-            ? resData.jobs
-            : Array.isArray(resData)
-              ? resData
-              : [];
+        rawJobs = extractJobs(resData);
       } else {
         // Jobstreet
         const params = new URLSearchParams({
@@ -117,74 +166,92 @@ export async function POST(request: Request) {
 
         if (!res.ok) {
           const errText = await res.text();
-          console.error(`Gagal scrape Jobstreet untuk ${location}:`, errText);
+          console.error(`Gagal scrape Jobstreet untuk "${query}" @ ${location}:`, errText);
           continue;
         }
 
         const resData = await res.json();
-        rawJobs = Array.isArray(resData.data)
-          ? resData.data
-          : Array.isArray(resData.jobs)
-            ? resData.jobs
-            : Array.isArray(resData)
-              ? resData
-              : [];
+        rawJobs = extractJobs(resData);
       }
 
       // Tambahkan info lokasi asal ke setiap job
-      const jobsWithLocation = rawJobs.map((j: any) => ({
+      const jobsWithLocation = rawJobs.map((j) => ({
         ...j,
         _scraped_location: location,
+        _scraped_title: query,
       }));
 
+      fetchedForLocation += jobsWithLocation.length;
       allRawJobs.push(...jobsWithLocation);
 
       // Batasi total agar tidak melebihi kuota DB
+      if (allRawJobs.length >= 20) break;
+      }
+      perLocation.push({ location, fetched: fetchedForLocation });
       if (allRawJobs.length >= 20) break;
     }
 
     if (allRawJobs.length === 0) {
       return NextResponse.json({
         success: true,
-        message: `Tidak ditemukan lowongan baru dalam 24 jam terakhir untuk "${query}" di lokasi: ${locations.join(', ')}.`,
+        message: `Tidak ditemukan lowongan baru dalam 24 jam terakhir untuk ${titles.length} posisi di lokasi: ${locations.join(', ')}.`,
         inserted: 0,
         usage: { used_today: quotaResult.used_today, daily_limit: quotaResult.daily_limit },
       });
     }
 
     // 4. Format data lowongan
-    const jobsToInsert = allRawJobs.slice(0, 15).map((j: any) => ({
+    const jobsToInsert = allRawJobs.slice(0, 15).map((j) => ({
       user_id: user.id,
-      job_title: j.title || j.job_title || j.position || 'Lowongan Tanpa Judul',
-      company_name: j.company || j.company_name || 'Perusahaan',
-      job_url: j.url || j.job_url || j.link || null,
-      location: j.location || j._scraped_location || 'Unknown',
-      job_type: j.job_type || j.type || null,
-      salary_range: j.salary || j.salary_range || null,
-      job_description: j.description || j.job_description || j.snippet || null,
+      job_title: pick(j, ['title', 'job_title', 'position', 'name']) || 'Lowongan Tanpa Judul',
+      company_name: pick(j, ['company', 'company_name', 'companyName', 'employer']) || 'Perusahaan',
+      job_url: pick(j, ['url', 'job_url', 'link', 'apply_url', 'applyUrl']),
+      location: pick(j, ['location', 'job_location', 'city', 'region']) || j._scraped_location || 'Unknown',
+      job_type: pick(j, ['job_type', 'type', 'employment_type', 'employmentType', 'work_type']),
+      salary_range: pick(j, ['salary', 'salary_range', 'salaryRange', 'compensation']),
+      job_description: pick(j, ['description', 'job_description', 'jobDescription', 'snippet', 'summary', 'details']),
+      external_job_id: pick(j, ['id', 'job_id', 'external_id', 'externalId', 'jobId']),
       source: portal === 'linkedin' ? 'LinkedIn' : 'Jobstreet',
       status: 'discover',
     }));
 
-    // 5. Simpan ke database (abaikan lowongan jika URL sudah ada untuk user ini)
+    // 5. Simpan ke database (upsert by user_id+job_url OR user_id+external_job_id+source)
     let insertedCount = 0;
+    let skippedDuplicates = 0;
     for (const job of jobsToInsert) {
-      if (job.job_url) {
-        const { error: insertErr } = await supabase
+      const hasUniqueKey = job.job_url || job.external_job_id;
+      let upsertErr: unknown = null;
+
+      if (hasUniqueKey) {
+        const conflictTarget = job.external_job_id
+          ? 'user_id, external_job_id, source'
+          : 'user_id, job_url';
+        const { error } = await supabase
           .from('saved_jobs')
-          .insert(job);
-        if (insertErr) {
-          console.error('Insert error (URL):', insertErr);
+          .upsert(job, {
+            onConflict: conflictTarget,
+            ignoreDuplicates: true, // only insert new rows
+          });
+        upsertErr = error;
+      } else {
+        // Tanpa unique key → insert biasa
+        const { error } = await supabase.from('saved_jobs').insert(job);
+        upsertErr = error;
+      }
+
+      if (upsertErr) {
+        const errMsg = String(upsertErr);
+        if (
+          errMsg.includes('duplicate key') ||
+          errMsg.includes('unique constraint') ||
+          errMsg.includes('23505')
+        ) {
+          skippedDuplicates++;
         } else {
-          insertedCount++;
+          console.error('Insert/upsert error:', upsertErr);
         }
       } else {
-        const { error: insertErr } = await supabase.from('saved_jobs').insert(job);
-        if (insertErr) {
-          console.error('Insert error (no URL):', insertErr);
-        } else {
-          insertedCount++;
-        }
+        insertedCount++;
       }
     }
 
