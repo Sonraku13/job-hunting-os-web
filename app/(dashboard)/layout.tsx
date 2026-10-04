@@ -1,8 +1,11 @@
 import { requireUser } from '@/lib/auth/require-user';
+import { createClient } from '@/lib/supabase/server';
 import { SignOutButton } from '@/components/dashboard/sign-out-button';
 import { ToastProvider } from '@/components/ui/toast';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { NavLinks } from '@/components/dashboard/nav-links';
+import { QuotaBadge } from '@/components/dashboard/quota-badge';
+import { PlanType } from '@/lib/quota/limits';
 import Link from 'next/link';
 
 export default async function DashboardLayout({
@@ -10,7 +13,32 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireUser();
+  const user = await requireUser();
+  const supabase = await createClient();
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('plan')
+    .eq('id', user.id)
+    .single();
+
+  const today = new Date();
+  const jakartaOffset = 7 * 60;
+  const localOffset = today.getTimezoneOffset();
+  const jakartaTime = new Date(today.getTime() + (jakartaOffset + localOffset) * 60000);
+  jakartaTime.setHours(0, 0, 0, 0);
+
+  const { data: events } = await supabase
+    .from('usage_events')
+    .select('action')
+    .eq('user_id', user.id)
+    .gte('created_at', jakartaTime.toISOString());
+
+  const scrapeUsed =
+    events?.filter((e) => e.action === 'SCRAPE_LINKEDIN' || e.action === 'SCRAPE_JOBSTREET')
+      .length || 0;
+
+  const plan = (profile?.plan as PlanType) || 'FREE';
 
   return (
     <ToastProvider>
@@ -21,7 +49,8 @@ export default async function DashboardLayout({
               <Link href="/dashboard" className="text-base sm:text-lg font-semibold tracking-tight whitespace-nowrap">
                 Job Hunting OS
               </Link>
-              <div className="flex sm:hidden items-center gap-1">
+              <div className="flex sm:hidden items-center gap-2">
+                <QuotaBadge plan={plan} usedToday={scrapeUsed} />
                 <ThemeToggle />
                 <SignOutButton />
               </div>
@@ -30,7 +59,8 @@ export default async function DashboardLayout({
               <div className="min-w-0 flex-1 overflow-x-auto no-scrollbar">
                 <NavLinks />
               </div>
-              <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
+              <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+                <QuotaBadge plan={plan} usedToday={scrapeUsed} />
                 <ThemeToggle />
                 <SignOutButton />
               </div>

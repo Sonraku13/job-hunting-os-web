@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useToast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 
 export type JobStatus = 'discover' | 'analyse' | 'apply' | 'refuse' | 'archive';
 
@@ -425,9 +426,16 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       variant="ghost"
                       onClick={() => handleMatchScore(job)}
                       disabled={loadingActionId === `score-${job.id}`}
-                      className="font-mono text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/30"
+                      className="font-mono text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/30 flex items-center gap-1.5"
                     >
-                      {loadingActionId === `score-${job.id}` ? 'Skor...' : 'Match'}
+                      {loadingActionId === `score-${job.id}` ? (
+                        <>
+                          <Spinner size="sm" />
+                          Skor...
+                        </>
+                      ) : (
+                        'Match'
+                      )}
                     </Button>
 
                     {/* Action: Cover Letter */}
@@ -435,13 +443,18 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       variant="ghost"
                       onClick={() => handleCoverLetter(job)}
                       disabled={loadingActionId === `letter-${job.id}`}
-                      className="font-mono text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/30"
+                      className="font-mono text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/30 flex items-center gap-1.5"
                     >
-                      {loadingActionId === `letter-${job.id}`
-                        ? 'Menulis...'
-                        : hasLetter
-                          ? 'Surat'
-                          : 'Surat'}
+                      {loadingActionId === `letter-${job.id}` ? (
+                        <>
+                          <Spinner size="sm" />
+                          Menulis...
+                        </>
+                      ) : hasLetter ? (
+                        'Surat'
+                      ) : (
+                        'Surat'
+                      )}
                     </Button>
 
                     {/* Action: Email Draft */}
@@ -449,13 +462,18 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       variant="ghost"
                       onClick={() => handleEmailDraft(job)}
                       disabled={loadingActionId === `email-${job.id}`}
-                      className="font-mono text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-950/30"
+                      className="font-mono text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-950/30 flex items-center gap-1.5"
                     >
-                      {loadingActionId === `email-${job.id}`
-                        ? 'Draft...'
-                        : hasEmail
-                          ? 'Email'
-                          : 'Email'}
+                      {loadingActionId === `email-${job.id}` ? (
+                        <>
+                          <Spinner size="sm" />
+                          Draft...
+                        </>
+                      ) : hasEmail ? (
+                        'Email'
+                      ) : (
+                        'Email'
+                      )}
                     </Button>
 
                     {/* Job Details Expansion */}

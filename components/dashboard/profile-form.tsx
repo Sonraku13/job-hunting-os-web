@@ -81,30 +81,32 @@ export function ProfileForm({ initialProfile }: { initialProfile: UserProfileDat
       <Card>
         <h2 className="text-lg font-semibold tracking-tight mb-4">Identitas & Ringkasan</h2>
         <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
-              Nama Lengkap
-            </label>
-            <input
-              type="text"
-              value={formData.full_name}
-              onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-              placeholder="Nama lengkap Anda"
-              className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
-            />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
+                Nama Lengkap
+              </label>
+              <input
+                type="text"
+                value={formData.full_name}
+                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                placeholder="Nama lengkap Anda"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
+              />
+            </div>
 
-          <div>
-            <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
-              Job Title / Posisi Saat Ini
-            </label>
-            <input
-              type="text"
-              value={formData.job_title}
-              onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
-              placeholder="Contoh: Senior Frontend Engineer"
-              className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
-            />
+            <div>
+              <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
+                Job Title / Posisi Saat Ini
+              </label>
+              <input
+                type="text"
+                value={formData.job_title}
+                onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
+                placeholder="Contoh: Senior Frontend Engineer"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
+              />
+            </div>
           </div>
 
           <div>
@@ -116,34 +118,36 @@ export function ProfileForm({ initialProfile }: { initialProfile: UserProfileDat
               value={formData.summary}
               onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
               placeholder="Ringkasan singkat karir Anda, skill utama, dan value proposition..."
-              className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 font-sans"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500 font-sans"
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
-              Portfolio / Website
-            </label>
-            <input
-              type="url"
-              value={formData.portfolio_url}
-              onChange={(e) => setFormData({ ...formData, portfolio_url: e.target.value })}
-              placeholder="https://portfolio-anda.com atau https://github.com/username"
-              className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
-            />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
+                Portfolio / Website
+              </label>
+              <input
+                type="url"
+                value={formData.portfolio_url}
+                onChange={(e) => setFormData({ ...formData, portfolio_url: e.target.value })}
+                placeholder="https://portfolio-anda.com"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
+              />
+            </div>
 
-          <div>
-            <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
-              Ekspektasi Gaji (Teks Bebas)
-            </label>
-            <input
-              type="text"
-              value={formData.salary_range}
-              onChange={(e) => setFormData({ ...formData, salary_range: e.target.value })}
-              placeholder="Contoh: 15-25 Juta IDR / bulan, Sesuai standar industri"
-              className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
-            />
+            <div>
+              <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
+                Ekspektasi Gaji (Teks Bebas)
+              </label>
+              <input
+                type="text"
+                value={formData.salary_range}
+                onChange={(e) => setFormData({ ...formData, salary_range: e.target.value })}
+                placeholder="Contoh: 15-25 Juta IDR / bulan"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
+              />
+            </div>
           </div>
         </div>
       </Card>
@@ -163,7 +167,7 @@ export function ProfileForm({ initialProfile }: { initialProfile: UserProfileDat
                 value={formData.years_of_experience}
                 onChange={(e) => setFormData({ ...formData, years_of_experience: e.target.value })}
                 placeholder="0"
-                className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
               />
             </div>
 
@@ -176,7 +180,7 @@ export function ProfileForm({ initialProfile }: { initialProfile: UserProfileDat
                 value={formData.spoken_languages}
                 onChange={(e) => setFormData({ ...formData, spoken_languages: e.target.value })}
                 placeholder="Indonesian, English"
-                className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
               />
             </div>
           </div>
@@ -190,7 +194,7 @@ export function ProfileForm({ initialProfile }: { initialProfile: UserProfileDat
               value={formData.current_role}
               onChange={(e) => setFormData({ ...formData, current_role: e.target.value })}
               placeholder="Posisi di perusahaan saat ini atau sebelumnya"
-              className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
             />
           </div>
 
@@ -203,7 +207,7 @@ export function ProfileForm({ initialProfile }: { initialProfile: UserProfileDat
               value={formData.career_goals}
               onChange={(e) => setFormData({ ...formData, career_goals: e.target.value })}
               placeholder="Contoh: Ingin menjadi Tech Lead dalam 3 tahun ke depan, mendalami distributed systems..."
-              className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 font-sans"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500 font-sans"
             />
           </div>
         </div>
@@ -218,11 +222,11 @@ export function ProfileForm({ initialProfile }: { initialProfile: UserProfileDat
           </p>
           <div>
             <textarea
-              rows={6}
+              rows={5}
               value={formData.llm_context}
               onChange={(e) => setFormData({ ...formData, llm_context: e.target.value })}
               placeholder="Tuliskan nada bahasa (misal: profesional, percaya diri, to-the-point), keunggulan utama yang selalu ingin ditonjolkan, nilai kerja, atau instruksi khusus untuk AI..."
-              className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 font-sans leading-relaxed"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500 font-sans leading-relaxed"
             />
           </div>
         </div>
