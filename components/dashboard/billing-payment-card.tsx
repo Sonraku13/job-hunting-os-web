@@ -159,18 +159,29 @@ export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
               <div className="mx-auto w-full max-w-[240px] aspect-square rounded-lg border border-zinc-800 bg-white p-2.5 flex items-center justify-center overflow-hidden shadow-md">
                 {/* Gambar QRIS dari folder public/qris.png */}
                 <img
-                  src="/qris.png"
+                  src="/qris.webp"
                   alt="QRIS Pembayaran Job Hunting OS"
                   className="w-full h-full object-contain"
                   onError={(e) => {
-                    // Fallback jika file qris.png belum dimasukkan user
                     const target = e.currentTarget;
+                    if (target.src.endsWith('/qris.webp')) {
+                      target.src = '/qris.png';
+                      return;
+                    }
+                    if (target.src.endsWith('/qris.png')) {
+                      target.src = '/qris.jpg';
+                      return;
+                    }
+                    if (target.src.endsWith('/qris.jpg')) {
+                      target.src = '/qris.jpeg';
+                      return;
+                    }
                     target.style.display = 'none';
                     const parent = target.parentElement;
                     if (parent && !parent.querySelector('.qris-fallback')) {
                       const div = document.createElement('div');
                       div.className = 'qris-fallback text-zinc-800 text-xs p-3 text-center';
-                      div.innerHTML = '<strong>QRIS Siap</strong><br/><span style="font-size:10px; color:#555;">Simpan file QRIS Anda sebagai<br/><code>public/qris.png</code></span>';
+                      div.innerHTML = '<strong>QRIS Siap</strong><br/><span style="font-size:10px; color:#555;">Simpan file QRIS Anda di<br/><code>public/qris.webp</code> atau <code>public/qris.png</code></span>';
                       parent.appendChild(div);
                     }
                   }}
