@@ -173,10 +173,18 @@ export async function POST(request: Request) {
         const { error: insertErr } = await supabase
           .from('saved_jobs')
           .insert(job);
-        if (!insertErr) insertedCount++;
+        if (insertErr) {
+          console.error('Insert error (URL):', insertErr);
+        } else {
+          insertedCount++;
+        }
       } else {
         const { error: insertErr } = await supabase.from('saved_jobs').insert(job);
-        if (!insertErr) insertedCount++;
+        if (insertErr) {
+          console.error('Insert error (no URL):', insertErr);
+        } else {
+          insertedCount++;
+        }
       }
     }
 
