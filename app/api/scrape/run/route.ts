@@ -69,18 +69,26 @@ export async function POST(request: Request) {
         .trim() || loc;
     };
 
-    // Ambil array data dari berbagai kemungkinan bentuk respons Zapi
+    // Ambil array data dari respons Zapi.
+    // Bentuk asli (terbukti dari tes live):
+    //   { project: "jobs:linkedin:search", data: { provider, query, items: [...] } }
+    //   { project: "jobs:jobstreet:search", data: { provider, query, items: [...] } }
     const extractJobs = (resData: unknown): Record<string, unknown>[] => {
       if (Array.isArray(resData)) return resData as Record<string, unknown>[];
       if (resData && typeof resData === 'object') {
         const obj = resData as Record<string, unknown>;
+        // Jalur utama: data.items
+        const dataField = obj['data'];
+        if (dataField && typeof dataField === 'object' && !Array.isArray(dataField)) {
+          const inner = dataField as Record<string, unknown>;
+          if (Array.isArray(inner['items'])) return inner['items'] as Record<string, unknown>[];
+        }
         for (const key of ['data', 'jobs', 'results', 'listings', 'items']) {
           if (Array.isArray(obj[key])) return obj[key] as Record<string, unknown>[];
         }
-        // Beberapa provider membungkus di data.data
-        if (obj['data'] && typeof obj['data'] === 'object') {
-          const inner = obj['data'] as Record<string, unknown>;
-          for (const key of ['jobs', 'results', 'listings', 'items']) {
+        if (dataField && typeof dataField === 'object') {
+          const inner = dataField as Record<string, unknown>;
+          for (const key of ['jobs', 'results', 'listings', 'items', 'data']) {
             if (Array.isArray(inner[key])) return inner[key] as Record<string, unknown>[];
           }
         }
@@ -88,15 +96,54 @@ export async function POST(request: Request) {
       return [];
     };
 
+    const str = (v: unknown): string | null =>
+      typeof v === 'string' && v.trim() ? v.trim() : null;
+
     const pick = (j: Record<string, unknown>, keys: string[]): string | null => {
       for (const k of keys) {
         const v = j[k];
-        if (typeof v === 'string' && v.trim()) return v.trim();
+        const s = str(v);
+        if (s) return s;
         if (v && typeof v === 'object') {
-          // dukung bentuk nested { name: "..." } untuk company
+          // dukung bentuk nested { name: "..." } untuk company/location
           const nested = (v as Record<string, unknown>)['name'];
-          if (typeof nested === 'string' && nested.trim()) return nested.trim();
+          const ns = str(nested);
+          if (ns) return ns;
         }
+      }
+      return null;
+    };
+
+    // location di Zapi berbentuk objek { name, city, region, country }
+    const formatLocation = (j: Record<string, unknown>, fallback: string): string => {
+      const direct = pick(j, ['location', 'job_location']);
+      if (direct) return direct;
+      const loc = j['location'];
+      if (loc && typeof loc === 'object') {
+        const o = loc as Record<string, unknown>;
+        const parts = [str(o['city']), str(o['region']), str(o['country'])]
+          .filter(Boolean)
+          .join(', ');
+        if (parts) return parts;
+      }
+      const cityRegion = [str(j['city']), str(j['region'])].filter(Boolean).join(', ');
+      if (cityRegion) return cityRegion;
+      return fallback;
+    };
+
+    // salary di Jobstreet berbentuk objek { min, max, currency }
+    const formatSalary = (j: Record<string, unknown>): string | null => {
+      const direct = pick(j, ['salary_range', 'salaryRange', 'compensation']);
+      if (direct) return direct;
+      const s = j['salary'];
+      if (s && typeof s === 'object') {
+        const o = s as Record<string, unknown>;
+        const min = typeof o['min'] === 'number' ? o['min'].toLocaleString('id-ID') : null;
+        const max = typeof o['max'] === 'number' ? o['max'].toLocaleString('id-ID') : null;
+        const cur = str(o['currency']) || 'IDR';
+        if (min && max) return `${min} - ${max} ${cur}`;
+        if (min) return `${min} ${cur}`;
+        if (max) return `${max} ${cur}`;
       }
       return null;
     };
@@ -200,17 +247,17 @@ export async function POST(request: Request) {
       });
     }
 
-    // 4. Format data lowongan
+    // 4. Format data lowongan (mapping sesuai struktur asli Zapi hasil tes live)
     const jobsToInsert = allRawJobs.slice(0, 15).map((j) => ({
       user_id: user.id,
       job_title: pick(j, ['title', 'job_title', 'position', 'name']) || 'Lowongan Tanpa Judul',
       company_name: pick(j, ['company', 'company_name', 'companyName', 'employer']) || 'Perusahaan',
       job_url: pick(j, ['url', 'job_url', 'link', 'apply_url', 'applyUrl']),
-      location: pick(j, ['location', 'job_location', 'city', 'region']) || j._scraped_location || 'Unknown',
-      job_type: pick(j, ['job_type', 'type', 'employment_type', 'employmentType', 'work_type']),
-      salary_range: pick(j, ['salary', 'salary_range', 'salaryRange', 'compensation']),
-      job_description: pick(j, ['description', 'job_description', 'jobDescription', 'snippet', 'summary', 'details']),
-      external_job_id: pick(j, ['id', 'job_id', 'external_id', 'externalId', 'jobId']),
+      location: formatLocation(j, String(j._scraped_location || 'Unknown')),
+      job_type: pick(j, ['employmentType', 'job_type', 'type', 'employment_type', 'work_arrangement', 'workArrangement']),
+      salary_range: formatSalary(j),
+      job_description: pick(j, ['description', 'job_description', 'jobDescription', 'snippet', 'summary', 'details']) || `Lowongan ${pick(j, ['title', 'job_title']) || ''} di ${pick(j, ['company', 'company_name']) || 'perusahaan'}. Lihat detail via URL.`,
+      external_job_id: pick(j, ['jobId', 'job_id', 'external_id', 'externalId', 'id']),
       source: portal === 'linkedin' ? 'LinkedIn' : 'Jobstreet',
       status: 'discover',
     }));
