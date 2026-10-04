@@ -51,8 +51,6 @@ export const INDONESIA_ALIASES = [
   'Sumatera',
   'Kalimantan',
   'Sulawesi',
-  'Papua',
-  'Maluku',
   'Nusa Tenggara',
   'Remote Indonesia',
 ];
@@ -79,13 +77,21 @@ export const OVERSEAS_COUNTRIES = [
 ];
 
 // Gabungan untuk dropdown multi-select
-export const ALL_LOCATION_OPTIONS = [
+const rawLocationOptions = [
   { label: '🇮🇩 Indonesia (Semua Provinsi)', value: 'Indonesia', group: 'indonesia' },
   ...INDONESIAN_PROVINCES.map(p => ({ label: `🇮🇩 ${p}`, value: p, group: 'indonesia' })),
   ...INDONESIA_ALIASES.map(a => ({ label: `🇮🇩 ${a}`, value: a, group: 'indonesia' })),
   { label: '🌍 Luar Negeri (Negara)', value: 'Overseas', group: 'overseas', disabled: true },
   ...OVERSEAS_COUNTRIES.map(c => ({ label: `🌍 ${c}`, value: c, group: 'overseas' })),
 ];
+
+// Pastikan setiap value unik untuk key React
+const seenValues = new Set<string>();
+export const ALL_LOCATION_OPTIONS = rawLocationOptions.filter(opt => {
+  if (seenValues.has(opt.value)) return false;
+  seenValues.add(opt.value);
+  return true;
+});
 
 // Helper untuk ambil value array dari string koma (format penyimpanan DB)
 export function parseLocations(str: string): string[] {

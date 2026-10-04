@@ -15,25 +15,25 @@ export default async function DashboardLayout({
   return (
     <ToastProvider>
       <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] transition-colors">
-        <header className="sticky top-0 z-50 mx-auto w-full max-w-7xl border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl transition-colors">
-          <div className="flex h-16 sm:h-20 flex-wrap items-center justify-between px-4 sm:px-6 lg:px-8 gap-4 py-2 sm:py-0">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 overflow-hidden w-full sm:w-auto">
-              <div className="flex items-center justify-between w-full sm:w-auto">
-                <Link href="/dashboard" className="text-base sm:text-lg font-semibold tracking-tight whitespace-nowrap">
-                  Job Hunting OS
-                </Link>
-                <div className="flex sm:hidden items-center gap-2">
-                  <ThemeToggle />
-                  <SignOutButton />
-                </div>
-              </div>
-              <div className="overflow-x-auto pb-1 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
-                <NavLinks />
+        <header className="sticky top-0 z-50 w-full border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl transition-colors">
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-3 space-y-3 sm:space-y-0 sm:py-0 sm:min-h-16 sm:flex sm:items-center sm:justify-between sm:gap-6">
+            <div className="flex items-center justify-between gap-3">
+              <Link href="/dashboard" className="text-base sm:text-lg font-semibold tracking-tight whitespace-nowrap">
+                Job Hunting OS
+              </Link>
+              <div className="flex sm:hidden items-center gap-1">
+                <ThemeToggle />
+                <SignOutButton />
               </div>
             </div>
-            <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
-              <ThemeToggle />
-              <SignOutButton />
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1 overflow-x-auto no-scrollbar">
+                <NavLinks />
+              </div>
+              <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
+                <ThemeToggle />
+                <SignOutButton />
+              </div>
             </div>
           </div>
         </header>
