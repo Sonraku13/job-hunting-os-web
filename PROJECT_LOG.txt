@@ -39,22 +39,14 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
    - Perbaikan error React key duplikat ("Papua" & "Maluku") pada daftar opsi lokasi di `/settings`.
    - Layout responsif penuh untuk layar mobile hingga desktop (navbar horizontal scrollable, layout header dua baris di HP).
    - Penyelarasan variabel CSS tema gelap & terang (`var(--background)`, `var(--card)`, `var(--accent)`) pada input form dan kontainer.
+   - Indikator kuota scraping harian langsung di Header (`QuotaBadge`).
+   - Loading spinner terintegrasi pada tombol AI Generate (Match Score, Cover Letter, Email).
 
 -------------------------------------------
 
 [ FUTURE UPDATES - ROADMAP & TODOs ]
 
-1. Billing & Paket Berlangganan:
-   - Buat halaman `/billing` menampilkan sisa kuota (dari tabel `usage_events`).
-   - Sediakan instruksi manual payment (transfer) bagi pengguna FREE yang mau upgrade ke PAID.
-   - (NOTE: Tidak perlu webhook payment otomatis, cukup validasi manual via DB / Admin backend sederhana atau manual query SQL).
-
-2. UI & UX Refinements:
-   - Tambahkan animasi loading state (spinner/skeleton) saat AI men-generate cover letter agar UI tidak terlihat diam.
-   - Polishing UI untuk resolusi mobile (terutama form panjang di `/profile` & grid jadwal WIB di `/settings`).
-   - Tampilkan bar indikator "Limit Harian" langsung di Header Dashboard (berdasarkan limit query `consume_usage`).
-
-3. Cron Job Optimization:
+1. Cron Job Optimization:
    - Pastikan cron berjalan di production Vercel dengan menyetel ENV `CRON_SECRET`.
    - Logging sistem: catat user mana saja yang berhasil discrape di `last_scraped_at`.
    - Tambahkan fitur notifikasi email ringan jika ada >5 lowongan cocok ditemukan hari itu (Opsional / bisa pakai Resend API).
