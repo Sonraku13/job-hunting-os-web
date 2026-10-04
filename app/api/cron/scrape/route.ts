@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     // 1. Cari user yang jadwalnya cocok dengan jam & hari ini
     const { data: users, error } = await supabase
       .from('user_profiles')
-      .select('user_id, target_job_titles, preferred_locations')
+      .select('user_id, target_job_titles, target_locations')
       .eq('scrape_active', true)
       .contains('scrape_days', [currentDay])
       .contains('scrape_hours', [currentHour]);
@@ -43,48 +43,64 @@ export async function GET(request: Request) {
 
     // 2. Loop scrape untuk tiap user
     for (const user of users) {
-      if (!user.target_job_titles?.[0]) continue;
-      
-      const query = user.target_job_titles[0];
-      const location = user.preferred_locations?.[0] || 'Indonesia';
+      const rawTitles: string[] = Array.isArray(user.target_job_titles)
+        ? user.target_job_titles.filter(Boolean)
+        : [];
+      const rawLocations: string[] = Array.isArray(
+        (user as { target_locations?: unknown }).target_locations
+      )
+        ? ((user as { target_locations: string[] }).target_locations.filter(Boolean))
+        : [];
+      if (rawTitles.length === 0) continue;
+
+      const query = rawTitles.map((t: string) => `"${t.trim()}"`).join(' OR ');
+      const locations = rawLocations.length > 0 ? rawLocations : ['Indonesia'];
 
       try {
-        const params = new URLSearchParams({
-          query,
-          location,
-          postedWithin: '24h',
-          page: '1',
-        });
+        let collected: { title?: string; company?: string; url?: string; location?: string }[] = [];
+        for (const location of locations) {
+          const params = new URLSearchParams({
+            query,
+            location,
+            postedWithin: '24h',
+            page: '1',
+          });
 
-        // Contoh call ke LinkedIn Zapi (bisa dikembangkan ke Jobstreet)
-        const res = await fetch(`${ZAPI_BASE}/jobs:linkedin/search?${params.toString()}`, {
-          headers: { 'x-api-key': ZAPI_KEY },
-        });
+          // Contoh call ke LinkedIn Zapi (bisa dikembangkan ke Jobstreet)
+          const res = await fetch(`${ZAPI_BASE}/jobs:linkedin/search?${params.toString()}`, {
+            headers: { 'x-api-key': ZAPI_KEY },
+          });
 
-        if (res.ok) {
+          if (!res.ok) continue;
           const data = await res.json();
-          // Insert hasil ke saved_jobs (simplifikasi)
-          const jobsToInsert = (data.data || []).slice(0, 5).map((job: any) => ({
-            user_id: user.user_id,
-            job_title: job.title || 'Unknown',
-            company_name: job.company || 'Unknown',
-            job_url: job.url || null,
-            location: job.location || null,
-            source: 'LinkedIn Auto',
-          }));
-
-          if (jobsToInsert.length > 0) {
-            await supabase.from('saved_jobs').insert(jobsToInsert);
-          }
-
-          // Update last_scraped_at
-          await supabase
-            .from('user_profiles')
-            .update({ last_scraped_at: new Date().toISOString() })
-            .eq('user_id', user.user_id);
-            
-          results.push({ user_id: user.user_id, status: 'success', count: jobsToInsert.length });
+          const batch = Array.isArray(data.data) ? data.data : [];
+          collected.push(...batch.map((j: { title?: string; company?: string; url?: string; location?: string }) => ({
+            ...j,
+            location: j.location || location,
+          })));
+          if (collected.length >= 15) break;
         }
+        // Insert hasil ke saved_jobs (simplifikasi)
+        const jobsToInsert = collected.slice(0, 15).map((job: { title?: string; company?: string; url?: string; location?: string }) => ({
+          user_id: user.user_id,
+          job_title: job.title || 'Unknown',
+          company_name: job.company || 'Unknown',
+          job_url: job.url || null,
+          location: job.location || null,
+          source: 'LinkedIn Auto',
+        }));
+
+        if (jobsToInsert.length > 0) {
+          await supabase.from('saved_jobs').insert(jobsToInsert);
+        }
+
+        // Update last_scraped_at
+        await supabase
+          .from('user_profiles')
+          .update({ last_scraped_at: new Date().toISOString() })
+          .eq('user_id', user.user_id);
+          
+        results.push({ user_id: user.user_id, status: 'success', count: jobsToInsert.length });
       } catch (err) {
         results.push({ user_id: user.user_id, status: 'error' });
       }

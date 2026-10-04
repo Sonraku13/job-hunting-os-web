@@ -15,6 +15,9 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
    - Fitur "Manual Scrape" tombol di Dashboard.
    - Fitur "Auto Scraping" jadwal jam (WIB) dikombinasikan dengan Vercel Cron (`/api/cron/scrape`).
    - Workflow status lowongan (discover -> analyse -> apply -> refuse -> archive).
+   - Multi-role & Multi-location scraping: pencarian berbasis OR query untuk banyak target posisi sekaligus (misal Graphic Designer, Video Editor, dsb).
+   - Preset daftar lokasi 38 Provinsi di Indonesia & Negara Populer luar negeri dengan multi-select UI di `/settings`.
+   - Engine iterasi per-lokasi otomatis di `/api/scrape/run` dan cron `/api/cron/scrape`.
 
 3. Profil & Pengaturan User (`user_profiles`):
    - Memecah UI menjadi dua halaman:

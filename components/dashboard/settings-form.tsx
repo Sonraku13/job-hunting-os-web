@@ -4,6 +4,11 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { 
+  ALL_LOCATION_OPTIONS, 
+  parseLocations, 
+  formatLocations 
+} from '@/lib/constants/locations';
 
 interface UserSettingsData {
   target_job_titles?: string[] | null;
@@ -46,9 +51,17 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
   const [selectedDays, setSelectedDays] = useState<number[]>(initialSettings.scrape_days || [1, 2, 3, 4, 5]);
   const [selectedWibHours, setSelectedWibHours] = useState<number[]>(initialWibHours);
 
+  // Parse initial locations dari string koma ke array
+  const initialLocations = parseLocations(
+    (initialSettings.target_locations || ['Indonesia']).join(', ')
+  );
+
+  const [selectedLocations, setSelectedLocations] = useState<string[]>(initialLocations);
+  const [locationSearch, setLocationSearch] = useState('');
+
   const [formData, setFormData] = useState({
     target_job_titles: (initialSettings.target_job_titles || []).join(', '),
-    target_locations: (initialSettings.target_locations || ['Indonesia']).join(', '),
+    target_locations: formatLocations(initialLocations),
     target_classifications: (initialSettings.target_classifications || []).join(', '),
     target_employment_types: (initialSettings.target_employment_types || []).join(', '),
     target_work_arrangements: (initialSettings.target_work_arrangements || []).join(', '),
@@ -74,6 +87,20 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
     );
   };
 
+  const toggleLocation = (loc: string) => {
+    setSelectedLocations((prev) => {
+      const updated = prev.includes(loc)
+        ? prev.filter((l: string) => l !== loc)
+        : [...prev, loc];
+      setFormData((fPrev) => ({ ...fPrev, target_locations: formatLocations(updated) }));
+      return updated;
+    });
+  };
+
+  const filteredOptions = ALL_LOCATION_OPTIONS.filter(opt => 
+    !opt.disabled && opt.label.toLowerCase().includes(locationSearch.toLowerCase())
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -83,9 +110,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
         target_job_titles: formData.target_job_titles
           ? formData.target_job_titles.split(',').map((s) => s.trim()).filter(Boolean)
           : [],
-        target_locations: formData.target_locations
-          ? formData.target_locations.split(',').map((s) => s.trim()).filter(Boolean)
-          : [],
+        target_locations: selectedLocations, // Array langsung
         target_classifications: formData.target_classifications
           ? formData.target_classifications.split(',').map((s) => s.trim()).filter(Boolean)
           : [],
@@ -140,22 +165,67 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
               type="text"
               value={formData.target_job_titles}
               onChange={(e) => setFormData({ ...formData, target_job_titles: e.target.value })}
-              placeholder="Full Stack Engineer, Frontend Developer, React Specialist"
+              placeholder="Graphic Designer, Video Editor, Motion Graphic Artist, Videographer, Content Creator"
               className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
             />
           </div>
 
           <div>
             <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
-              Target Lokasi (pisahkan dengan koma)
+              Target Lokasi (pilih dari daftar)
             </label>
-            <input
-              type="text"
-              value={formData.target_locations}
-              onChange={(e) => setFormData({ ...formData, target_locations: e.target.value })}
-              placeholder="Indonesia, Jakarta, Remote, Bandung"
-              className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
-            />
+            <div className="space-y-2">
+              {/* Search box */}
+              <input
+                type="text"
+                value={locationSearch}
+                onChange={(e) => setLocationSearch(e.target.value)}
+                placeholder="Cari provinsi / negara..."
+                className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+              />
+              
+              {/* Selected chips */}
+              {selectedLocations.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedLocations.map((loc) => (
+                    <span key={loc} className="inline-flex items-center gap-1 rounded bg-emerald-950/80 border border-emerald-700 px-2.5 py-1 text-xs text-emerald-300">
+                      {loc}
+                      <button
+                        type="button"
+                        onClick={() => toggleLocation(loc)}
+                        className="ml-1 hover:text-emerald-100"
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Dropdown options */}
+              <div className="max-h-60 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-950 p-2">
+                {filteredOptions.map((opt) => (
+                  <label
+                    key={opt.value}
+                    className={`flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer rounded hover:bg-zinc-800 ${
+                      selectedLocations.includes(opt.value) ? 'text-emerald-300' : 'text-zinc-300'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedLocations.includes(opt.value)}
+                      onChange={() => toggleLocation(opt.value)}
+                      className="w-4 h-4 rounded border-zinc-700 text-emerald-500 focus:ring-emerald-500"
+                    />
+                    <span>{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+              
+              <p className="text-xs text-zinc-500">
+                {selectedLocations.length} lokasi dipilih. Pilih beberapa provinsi/negara untuk memperluas jangkauan scraping.
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
