@@ -64,7 +64,7 @@ export async function GET(request: Request) {
       };
 
       try {
-        let collected: Record<string, unknown>[] = [];
+        const collected: Record<string, unknown>[] = [];
         let callCount = 0;
 
         for (const rawLocation of locations) {

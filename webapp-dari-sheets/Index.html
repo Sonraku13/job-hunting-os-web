@@ -1,0 +1,1310 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<base target="_top">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job Hunting OS</title>
+<style>
+:root{font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:#e1e6ed;background:#10151c;color-scheme:dark;scrollbar-color:#344150 #151c26;scrollbar-width:thin}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;overflow-x:hidden}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}
+a{color:#a8bedf}
+.shell{max-width:1180px;margin:auto;padding:0 24px}
+header{border-bottom:1px solid #2b3541;background:#151c26}
+header .shell{min-height:70px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.brand{font-size:16px;font-weight:650;letter-spacing:-.025em}
+.sub,.muted{color:#9da9b9}
+.sub{font-size:12px}
+.controls,.settings,.toolbar,.row-actions,.status-controls{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+button,.link-btn{background:#222e3b;color:#e2e8f0;border:1px solid #394758;border-radius:7px;padding:8px 11px;text-decoration:none;display:inline-block;font-size:12px}
+button:hover,.link-btn:hover{background:#304052}
+button.primary{background:#dce7f7;border-color:#dce7f7;color:#172333;font-weight:600}
+button.primary:hover{background:#c9d9f0}
+button.danger{color:#f7b0b0;border-color:#865859}
+.panel{border:1px solid #2c3948;background:#171f29;border-radius:9px;padding:17px;margin-top:18px}
+h1,h2,h3,p{margin-top:0}
+h2{font-size:17px;margin-bottom:4px}
+h3{font-size:14px}
+.settings{justify-content:space-between}
+.settings-fields{display:flex;gap:12px;flex-wrap:wrap}
+.settings-fields>div{min-width:160px}
+label{display:block;font-size:12px;color:#a9b7c8;margin:0 0 5px}
+input,select,textarea{background:#121a23;color:#e1e6ed;border:1px solid #374556;border-radius:7px;padding:8px 10px;max-width:100%}
+textarea{width:100%;min-height:115px;resize:vertical;line-height:1.55}
+.manual-fields{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));gap:12px;margin:12px 0}
+.manual-fields input{width:100%}
+.manual-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+.toolbar{margin:22px 0 13px}
+.toolbar input[type="search"]{min-width:210px;flex:1}
+.toolbar select{min-width:135px}
+.summary{display:flex;gap:18px;flex-wrap:wrap;color:#a9b7c8;margin-top:14px;font-size:12px}
+.summary strong{color:#e5eaf0}
+.notice{min-height:24px;margin:12px 0;font-size:12px;color:#a3d5b5}
+.notice.error{color:#f4aca8}
+.table-wrap{overflow:auto;border:1px solid #2b3846;border-radius:9px}
+.table{width:100%;min-width:820px;border-collapse:collapse;text-align:left}
+th{color:#a9b7c8;font-size:11px;letter-spacing:.02em;font-weight:600;background:#1a2430}
+th,td{padding:13px 12px;border-bottom:1px solid #273441;vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#18232d}
+.role{font-weight:600}
+.secondary{font-size:12px;color:#9eacbb}
+.company{font-size:12px;color:#bbc8da}
+.score{font-weight:600;color:#b5dbc3}
+.tag{display:inline-block;border:1px solid #405065;border-radius:5px;padding:2px 6px;font-size:11px;color:#cbd6e2}
+.empty{text-align:center;padding:35px;color:#9eacbb}
+.board{display:grid;grid-template-columns:repeat(3,minmax(190px,1fr));gap:11px}
+.column{background:#171f29;border:1px solid #2b3846;border-radius:9px;padding:12px}
+.column h3{font-size:12px;color:#bcc8d7}
+.item{border:1px solid #354252;border-radius:7px;padding:10px;margin-top:8px;cursor:pointer}
+.item:hover{border-color:#849bb8}
+.pick-job{width:16px;height:16px;margin:0;accent-color:#a8bedf;vertical-align:middle}
+.pick-label{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.hide{display:none!important}
+.modal{position:fixed;inset:0;background:#050a10e8;display:flex;align-items:center;justify-content:center;padding:16px;z-index:5}
+.dialog{background:#19232e;border:1px solid #415065;border-radius:10px;max-height:92vh;overflow:auto;width:min(760px,100%);padding:21px}
+.dialog-head{display:flex;justify-content:space-between;gap:12px;align-items:start}
+.dialog-head h2{margin:4px 0}
+.dialog h3{margin:21px 0 8px}
+.description{background:#111923;border:1px solid #303d4b;border-radius:7px;padding:12px;max-height:180px;overflow:auto;white-space:pre-wrap;font-size:12px;line-height:1.6}
+.draft{margin-top:12px}
+.draft-head{display:flex;justify-content:space-between;align-items:center}
+.draft textarea{background:#111923}
+.modal-meta{margin:13px 0;display:flex;gap:12px;flex-wrap:wrap;font-size:12px}
+.status-controls{margin:13px 0}
+.status-controls button{padding:6px 9px}
+.table-wrap,.dialog,.description,.draft textarea,.column{scrollbar-width:thin;scrollbar-color:#354457 transparent}
+.table-wrap::-webkit-scrollbar,.dialog::-webkit-scrollbar,.description::-webkit-scrollbar,.draft textarea::-webkit-scrollbar,.column::-webkit-scrollbar{width:7px;height:7px}
+.table-wrap::-webkit-scrollbar-track,.dialog::-webkit-scrollbar-track,.description::-webkit-scrollbar-track,.draft textarea::-webkit-scrollbar-track,.column::-webkit-scrollbar-track{background:transparent}
+.table-wrap::-webkit-scrollbar-thumb,.dialog::-webkit-scrollbar-thumb,.description::-webkit-scrollbar-thumb,.draft textarea::-webkit-scrollbar-thumb,.column::-webkit-scrollbar-thumb{background:#354457;border:2px solid transparent;background-clip:padding-box;border-radius:999px}
+.table-wrap::-webkit-scrollbar-thumb:hover,.dialog::-webkit-scrollbar-thumb:hover,.description::-webkit-scrollbar-thumb:hover,.draft textarea::-webkit-scrollbar-thumb:hover,.column::-webkit-scrollbar-thumb:hover{background:#596f88}
+@media(max-width:800px){
+  header .shell{align-items:start;flex-direction:column;padding-top:14px;padding-bottom:14px}
+  .board{grid-template-columns:repeat(2,minmax(180px,1fr))}
+}
+@media(max-width:560px){
+  .shell{padding:0 14px}
+  .settings-fields>div,.settings-fields select{width:100%}
+  .settings-fields{width:100%}
+  .manual-fields{grid-template-columns:1fr}
+  .toolbar select,.toolbar input[type="search"]{width:100%}
+  .board{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="shell">
+    <div>
+      <div class="brand">Job Hunting OS</div>
+      <div class="sub">Lowongan dan lamaran</div>
+    </div>
+    <div class="controls">
+  <button id="open-manual-post" type="button"
+          aria-controls="manual-post-panel"
+          aria-expanded="false">
+    + Tambah manual
+  </button>
+  <button id="sync-linkedin" type="button">Sync LinkedIn</button>
+      <button id="sync-jobstreet" type="button">Sync Jobstreet</button>
+      <button id="refresh-btn" type="button">Refresh</button>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <section class="panel settings">
+    <div class="settings-fields">
+      <div>
+        <label for="location">Target lokasi</label>
+        <select id="location">
+          <option>Jakarta</option>
+          <option>Tangerang</option>
+          <option>Yogyakarta</option>
+          <option>Surabaya</option>
+          <option>Malaysia</option>
+          <option>Singapore</option>
+        </select>
+      </div>
+      <div>
+        <label for="frequency">Jadwal scraper</label>
+        <select id="frequency">
+          <option value="MANUAL">Manual</option>
+          <option value="HOURLY">Setiap jam</option>
+          <option value="DAILY">Setiap hari</option>
+        </select>
+      </div>
+    </div>
+    <button id="save-settings" type="button">Simpan pengaturan</button>
+  </section>
+
+  <section id="manual-post-panel" class="panel hide">
+  <div class="dialog-head">
+    <h2>Tambah postingan manual</h2>
+    <button id="close-manual-post" type="button"
+            aria-label="Tutup input manual">Tutup</button>
+  </div>
+    <p class="secondary">
+      Tempel link dan isi postingan. AI mengekstrak field dari teks yang Anda tempel;
+      periksa sebelum menyimpan.
+    </p>
+
+    <form id="manual-post-form">
+      <label for="manual-post-url">Link postingan</label>
+      <input id="manual-post-url" type="url" required
+             placeholder="https://..."
+             style="width:100%;margin-bottom:12px">
+
+      <label for="manual-post-text">Detail postingan</label>
+      <textarea id="manual-post-text" required maxlength="45000"
+                placeholder="Tempel seluruh isi postingan di sini"></textarea>
+
+      <div class="manual-actions">
+        <button id="extract-manual-post" type="button">Ekstrak dengan AI</button>
+      </div>
+
+      <div id="manual-extracted-fields" class="hide" style="margin-top:16px">
+        <p class="secondary">
+          Hasil AI bisa keliru. Koreksi field berikut; posisi dan perusahaan wajib diisi.
+        </p>
+
+        <div class="manual-fields">
+          <div>
+            <label for="manual-position">Posisi</label>
+            <input id="manual-position" type="text" required maxlength="300">
+          </div>
+          <div>
+            <label for="manual-company">Perusahaan</label>
+            <input id="manual-company" type="text" required maxlength="300">
+          </div>
+          <div>
+            <label for="manual-location">Lokasi</label>
+            <input id="manual-location" type="text" maxlength="300">
+          </div>
+          <div>
+            <label for="manual-employment-type">Employment type</label>
+            <input id="manual-employment-type" type="text" maxlength="300"
+                   placeholder="Full-time / Contract / Internship">
+          </div>
+          <div>
+            <label for="manual-work-arrangement">Pengaturan kerja</label>
+            <input id="manual-work-arrangement" type="text" maxlength="300"
+                   placeholder="WFO / Hybrid / Remote">
+          </div>
+          <div>
+            <label for="manual-salary">Gaji</label>
+            <input id="manual-salary" type="text" maxlength="300">
+          </div>
+          <div>
+            <label for="manual-apply-email">Email lamaran</label>
+            <input id="manual-apply-email" type="email" maxlength="300">
+          </div>
+        </div>
+
+        <label for="manual-notes">Catatan tambahan</label>
+        <textarea id="manual-notes" maxlength="1000"
+                  style="min-height:75px"></textarea>
+
+        <div class="manual-actions">
+          <button id="save-manual-post" class="primary" type="submit">
+            Simpan hasil ke JOBS
+          </button>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <div id="notice" class="notice" role="status" aria-live="polite"></div>
+
+  <div class="summary">
+    <span><strong id="shown">0</strong> ditampilkan</span>
+    <span><strong id="high">0</strong> match ≥ 70%</span>
+    <span><strong id="draft-count">0</strong> surat siap</span>
+    <span><strong id="applied-count">0</strong> dilamar</span>
+  </div>
+
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="Cari posisi, perusahaan, lokasi"
+           aria-label="Cari lowongan">
+    <select id="source-filter" aria-label="Filter sumber">
+      <option value="ALL">Semua sumber</option>
+    </select>
+    <select id="status-filter" aria-label="Filter status">
+      <option value="ALL">Semua status</option>
+      <option>DISCOVERED</option>
+      <option>ANALYZED</option>
+      <option>APPLIED</option>
+      <option>INTERVIEW</option>
+      <option>OFFER</option>
+      <option>REJECTED</option>
+    </select>
+    <select id="score-filter" aria-label="Filter skor">
+      <option value="ALL">Semua skor</option>
+      <option value="70">≥ 70%</option>
+      <option value="90">≥ 90%</option>
+      <option value="NONE">Belum dianalisis</option>
+    </select>
+    <select id="sort-order" aria-label="Urutkan waktu">
+      <option value="NEW">Terbaru</option>
+      <option value="OLD">Terlama</option>
+    </select>
+    <div class="controls">
+      <button id="list-btn" class="primary" type="button">List</button>
+      <button id="board-btn" type="button">Kanban</button>
+      <button id="delete-selected" class="danger hide" type="button">
+        Hapus <span id="selected-count">0</span> terpilih
+      </button>
+    </div>
+  </div>
+
+  <p id="limit-info" class="secondary"></p>
+  <div id="loading" class="empty">Memuat data...</div>
+
+  <div id="content" class="hide">
+    <div id="list" class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>
+              <label class="pick-label">
+                <input id="select-visible" class="pick-job" type="checkbox"
+                       aria-label="Pilih semua job pada filter saat ini">
+                Pilih
+              </label>
+            </th>
+            <th>Masuk</th>
+            <th>Lowongan</th>
+            <th>Lokasi / gaji</th>
+            <th>Skor</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="jobs-body"></tbody>
+      </table>
+    </div>
+    <div id="board" class="board hide"></div>
+  </div>
+</main>
+
+<div id="modal" class="modal hide" role="dialog" aria-modal="true"
+     aria-labelledby="modal-title">
+  <div class="dialog">
+    <div class="dialog-head">
+      <div>
+        <div id="modal-source" class="secondary"></div>
+        <h2 id="modal-title"></h2>
+        <div id="modal-company" class="company"></div>
+      </div>
+      <button id="close-modal" type="button" aria-label="Tutup">Tutup</button>
+    </div>
+
+    <div id="modal-info" class="modal-meta muted"></div>
+
+    <div class="row-actions">
+      <button id="analyze-btn" class="primary" type="button">
+        Generate skor & draft
+      </button>
+      <a id="job-url" class="link-btn hide" target="_blank"
+         rel="noopener noreferrer">Buka lowongan</a>
+    </div>
+
+    <p class="secondary" style="margin-top:10px">
+      Generate memperbarui skor, surat, dan email. Tidak mengirim lamaran.
+    </p>
+
+    <div class="modal-meta">
+      <span>Skor: <strong id="modal-score" class="score">—</strong></span>
+      <span>Status: <span id="modal-status" class="tag"></span></span>
+    </div>
+
+    <div class="status-controls">
+      <button id="apply-btn" class="hide" type="button"
+              data-status="APPLIED">Tandai dilamar</button>
+      <button id="interview-btn" class="hide" type="button"
+              data-status="INTERVIEW">Tandai wawancara</button>
+      <button id="offer-btn" class="hide" type="button"
+              data-status="OFFER">Tandai penawaran</button>
+      <button id="reject-btn" class="danger hide" type="button"
+              data-status="REJECTED">Tandai ditolak</button>
+    </div>
+
+    <h3>Deskripsi</h3>
+    <div id="modal-desc" class="description"></div>
+
+    <div class="draft">
+      <div class="draft-head">
+        <h3>Cover letter</h3>
+        <button id="copy-cl" type="button">Salin</button>
+      </div>
+      <textarea id="modal-cl" readonly
+                placeholder="Belum ada cover letter."></textarea>
+    </div>
+
+    <div class="draft">
+      <div class="draft-head">
+        <h3>Email pengantar</h3>
+        <button id="copy-email" type="button">Salin</button>
+      </div>
+      <textarea id="modal-email" readonly
+                placeholder="Belum ada email pengantar."></textarea>
+    </div>
+
+    <p id="modal-applied-date" class="secondary"></p>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const byId = id => document.getElementById(id);
+const asText = value => String(value == null ? '' : value);
+const escapeHtml = value =>
+  asText(value).replace(/[&<>"']/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[character]));
+
+let dashboard = {
+  jobs: [],
+  applications: {},
+  settings: {},
+  totalJobs: 0,
+  shownJobs: 0
+};
+
+let activeJobId = null;
+let activeView = 'list';
+let detailToken = 0;
+let loadToken = 0;
+let busy = false;
+let manualExtractedFor = '';
+
+const selectedJobIds = new Set();
+
+function notify(message, isError = false) {
+  const box = byId('notice');
+  box.textContent = message || '';
+  box.classList.toggle('error', isError);
+}
+
+function rpc(method, ...args) {
+  return new Promise((resolve, reject) => {
+    if (
+      typeof google === 'undefined' ||
+      !google.script ||
+      !google.script.run
+    ) {
+      reject(new Error('google.script.run tidak tersedia.'));
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(reject)[method](...args);
+  });
+}
+
+function errorText(error) {
+  return error && error.message ? error.message : asText(error);
+}
+
+function findJob(id) {
+  return (dashboard.jobs || []).find(job => job.id === id);
+}
+
+function findApplication(id) {
+  return (dashboard.applications || {})[id] || {};
+}
+
+function jobStatus(job) {
+  return asText(
+    findApplication(job.id).status ||
+    job.status ||
+    'DISCOVERED'
+  ).toUpperCase();
+}
+
+function jobScore(job) {
+  return job.score == null ? '—' : job.score + '%';
+}
+
+function manualInputSignature() {
+  return JSON.stringify({
+    url: byId('manual-post-url').value.trim(),
+    text: byId('manual-post-text').value.trim()
+  });
+}
+
+function invalidateManualExtraction() {
+  manualExtractedFor = '';
+  byId('manual-extracted-fields').classList.add('hide');
+}
+
+async function extractManualPostUI() {
+  if (busy) return;
+
+  const urlInput = byId('manual-post-url');
+  const textInput = byId('manual-post-text');
+
+  if (!urlInput.reportValidity() || !textInput.reportValidity()) return;
+
+  const payload = {
+    url: urlInput.value.trim(),
+    text: textInput.value.trim()
+  };
+
+  if (!payload.text) {
+    notify('Detail postingan tidak boleh hanya berisi spasi.', true);
+    return;
+  }
+
+  const button = byId('extract-manual-post');
+  const signature = manualInputSignature();
+
+  busy = true;
+  button.disabled = true;
+  button.textContent = 'Mengekstrak...';
+  notify('AI sedang membaca detail postingan.');
+
+  try {
+    const response = await rpc('extractManualPostWeb', payload);
+
+    if (!response || !response.success || !response.extracted) {
+      throw new Error(
+        response && response.message || 'Ekstraksi AI gagal.'
+      );
+    }
+
+    if (signature !== manualInputSignature()) {
+      throw new Error(
+        'Link atau detail berubah saat ekstraksi. Klik Ekstrak lagi.'
+      );
+    }
+
+    const data = response.extracted;
+    const fieldMap = {
+      'manual-position': data.position,
+      'manual-company': data.company,
+      'manual-location': data.location,
+      'manual-employment-type': data.employment_type,
+      'manual-work-arrangement': data.work_arrangement,
+      'manual-salary': data.salary,
+      'manual-apply-email': data.apply_email,
+      'manual-notes': data.notes
+    };
+
+    Object.entries(fieldMap).forEach(([id, value]) => {
+      byId(id).value = value || '';
+    });
+
+    manualExtractedFor = signature;
+    byId('manual-extracted-fields').classList.remove('hide');
+
+    notify(
+      'Ekstraksi selesai' +
+      (response.provider ? ' via ' + response.provider : '') +
+      '. Periksa hasil sebelum menyimpan.'
+    );
+  } catch (error) {
+    invalidateManualExtraction();
+    notify('Ekstraksi gagal: ' + errorText(error), true);
+  } finally {
+    busy = false;
+    button.disabled = false;
+    button.textContent = 'Ekstrak dengan AI';
+  }
+}
+
+async function saveManualPostUI(event) {
+  event.preventDefault();
+
+  if (busy) return;
+
+  if (
+    !manualExtractedFor ||
+    manualExtractedFor !== manualInputSignature()
+  ) {
+    notify(
+      'Link atau detail berubah. Jalankan ekstraksi ulang sebelum menyimpan.',
+      true
+    );
+    return;
+  }
+
+  const payload = {
+    url: byId('manual-post-url').value.trim(),
+    text: byId('manual-post-text').value.trim(),
+    extracted: {
+      position: byId('manual-position').value.trim(),
+      company: byId('manual-company').value.trim(),
+      location: byId('manual-location').value.trim(),
+      employment_type: byId('manual-employment-type').value.trim(),
+      work_arrangement: byId('manual-work-arrangement').value.trim(),
+      salary: byId('manual-salary').value.trim(),
+      apply_email: byId('manual-apply-email').value.trim(),
+      notes: byId('manual-notes').value.trim()
+    }
+  };
+
+  if (!payload.extracted.position || !payload.extracted.company) {
+    notify('Posisi dan perusahaan wajib diisi.', true);
+    return;
+  }
+
+  const button = byId('save-manual-post');
+  busy = true;
+  button.disabled = true;
+  button.textContent = 'Menyimpan...';
+  notify('Menyimpan hasil ekstraksi. Jangan klik ulang.');
+
+  try {
+    const result = await rpc('saveManualPostWeb', payload);
+
+    if (!result || !result.success) {
+      throw new Error(
+        result && result.message || 'Gagal menyimpan postingan.'
+      );
+    }
+
+    byId('manual-post-form').reset();
+    invalidateManualExtraction();
+    notify(result.message || 'Lowongan berhasil disimpan.');
+    await loadJobsDashboard(true);
+  } catch (error) {
+    notify('Gagal menyimpan: ' + errorText(error), true);
+  } finally {
+    busy = false;
+    button.disabled = false;
+    button.textContent = 'Simpan hasil ke JOBS';
+  }
+}
+
+function updateSourceOptions() {
+  const select = byId('source-filter');
+  const previousValue = select.value;
+
+  const sources = [
+    ...new Set(
+      (dashboard.jobs || [])
+        .map(job => asText(job.source))
+        .filter(Boolean)
+    )
+  ].sort((a, b) => a.localeCompare(b, 'id'));
+
+  select.innerHTML =
+    '<option value="ALL">Semua sumber</option>' +
+    sources.map(value =>
+      '<option value="' + escapeHtml(value) + '">' +
+      escapeHtml(value) +
+      '</option>'
+    ).join('');
+
+  select.value = sources.includes(previousValue)
+    ? previousValue
+    : 'ALL';
+}
+
+function filteredJobs() {
+  const query = byId('search')
+    .value.toLocaleLowerCase('id')
+    .trim();
+
+  const source = byId('source-filter').value;
+  const status = byId('status-filter').value;
+  const min = byId('score-filter').value;
+
+  const indexed = (dashboard.jobs || [])
+    .map((job, index) => ({ job, index }))
+    .filter(({ job }) => {
+      if (
+        query &&
+        ![job.title, job.company, job.location].some(value =>
+          asText(value).toLocaleLowerCase('id').includes(query)
+        )
+      ) return false;
+
+      if (source !== 'ALL' && job.source !== source) return false;
+      if (status !== 'ALL' && jobStatus(job) !== status) return false;
+
+      if (min === 'NONE') return job.score == null;
+
+      if (min !== 'ALL') {
+        return job.score != null &&
+          Number(job.score) >= Number(min);
+      }
+
+      return true;
+    });
+
+  indexed.sort((a, b) =>
+    byId('sort-order').value === 'NEW'
+      ? a.index - b.index
+      : b.index - a.index
+  );
+
+  return indexed.map(item => item.job);
+}
+
+function updateSelectionUI() {
+  const count = byId('selected-count');
+  const button = byId('delete-selected');
+  const selectVisible = byId('select-visible');
+
+  if (!count || !button) return;
+
+  count.textContent = selectedJobIds.size;
+  button.classList.toggle('hide', selectedJobIds.size === 0);
+
+  if (!selectVisible) return;
+
+  const visibleIds = filteredJobs().map(job => job.id);
+
+  selectVisible.checked =
+    visibleIds.length > 0 &&
+    visibleIds.every(id => selectedJobIds.has(id));
+
+  selectVisible.indeterminate =
+    visibleIds.some(id => selectedJobIds.has(id)) &&
+    !selectVisible.checked;
+}
+
+function renderDashboard() {
+  const all = dashboard.jobs || [];
+  const filtered = filteredJobs();
+
+  byId('shown').textContent = filtered.length;
+
+  byId('high').textContent = all.filter(job =>
+    job.score != null && job.score >= 70
+  ).length;
+
+  byId('draft-count').textContent = all.filter(job =>
+    findApplication(job.id).has_cover_letter
+  ).length;
+
+  byId('applied-count').textContent = all.filter(job =>
+    ['APPLIED', 'INTERVIEW', 'OFFER'].includes(jobStatus(job))
+  ).length;
+
+  byId('limit-info').textContent =
+    dashboard.totalJobs > dashboard.shownJobs
+      ? 'Filter dan urutan berlaku untuk ' +
+        dashboard.shownJobs +
+        ' job terbaru dari ' +
+        dashboard.totalJobs +
+        '. Statistik hanya dari yang dimuat.'
+      : 'Filter dan urutan berlaku untuk ' +
+        all.length +
+        ' lowongan yang dimuat.';
+
+  if (activeView === 'list') renderList(filtered);
+  else renderBoard(filtered);
+
+  updateSelectionUI();
+}
+
+function renderList(rows) {
+  byId('jobs-body').innerHTML = rows.length
+    ? rows.map(job =>
+      '<tr data-open="' + escapeHtml(job.id) +
+      '" tabindex="0" role="button">' +
+      '<td><input class="pick-job" type="checkbox" data-select="' +
+      escapeHtml(job.id) +
+      '" aria-label="Pilih ' + escapeHtml(job.title) + '" ' +
+      (selectedJobIds.has(job.id) ? 'checked' : '') +
+      '></td>' +
+      '<td><span class="secondary">' +
+      escapeHtml(job.created_at || '—') +
+      '</span><div class="secondary">' +
+      escapeHtml(job.source || '') +
+      '</div></td>' +
+      '<td><div class="role">' +
+      escapeHtml(job.title) +
+      '</div><div class="company">' +
+      escapeHtml(job.company) +
+      '</div></td>' +
+      '<td>' +
+      escapeHtml(job.location || '—') +
+      '<div class="secondary">' +
+      escapeHtml(job.salary || 'Gaji tidak dicantumkan') +
+      '</div></td>' +
+      '<td class="score">' +
+      escapeHtml(jobScore(job)) +
+      '</td><td><span class="tag">' +
+      escapeHtml(jobStatus(job)) +
+      '</span></td>' +
+      '<td><button type="button">Detail</button></td></tr>'
+    ).join('')
+    : '<tr><td colspan="7" class="empty">' +
+      'Tidak ada lowongan untuk filter ini.</td></tr>';
+}
+
+function renderBoard(rows) {
+  byId('board').innerHTML = [
+    'DISCOVERED',
+    'ANALYZED',
+    'APPLIED',
+    'INTERVIEW',
+    'OFFER',
+    'REJECTED'
+  ].map(status => {
+    const group = rows.filter(job => jobStatus(job) === status);
+
+    return '<section class="column"><h3>' +
+      status + ' · ' + group.length + '</h3>' +
+      group.map(job =>
+        '<div class="item" tabindex="0" role="button" data-open="' +
+        escapeHtml(job.id) + '">' +
+        '<label class="pick-label">' +
+        '<input class="pick-job" type="checkbox" data-select="' +
+        escapeHtml(job.id) + '" aria-label="Pilih ' +
+        escapeHtml(job.title) + '" ' +
+        (selectedJobIds.has(job.id) ? 'checked' : '') +
+        '> Pilih</label>' +
+        '<div class="secondary">' +
+        escapeHtml(job.created_at || '—') +
+        '</div><div class="role">' +
+        escapeHtml(job.title) +
+        '</div><div class="company">' +
+        escapeHtml(job.company) +
+        '</div><div class="score secondary">' +
+        escapeHtml(jobScore(job)) +
+        '</div></div>'
+      ).join('') +
+      '</section>';
+  }).join('');
+}
+
+function setView(next) {
+  activeView = next;
+
+  byId('list').classList.toggle('hide', next !== 'list');
+  byId('board').classList.toggle('hide', next !== 'board');
+  byId('list-btn').classList.toggle('primary', next === 'list');
+  byId('board-btn').classList.toggle('primary', next === 'board');
+
+  renderDashboard();
+}
+
+function updateStatusButtons(status) {
+  byId('apply-btn').classList.toggle(
+    'hide',
+    !['DISCOVERED', 'ANALYZED'].includes(status)
+  );
+
+  byId('interview-btn').classList.toggle(
+    'hide',
+    status !== 'APPLIED'
+  );
+
+  byId('offer-btn').classList.toggle(
+    'hide',
+    status !== 'INTERVIEW'
+  );
+
+  byId('reject-btn').classList.toggle(
+    'hide',
+    ![
+      'DISCOVERED',
+      'ANALYZED',
+      'APPLIED',
+      'INTERVIEW',
+      'OFFER'
+    ].includes(status)
+  );
+}
+
+async function openJobModal(id) {
+  const job = findJob(id);
+
+  if (!job) {
+    notify('Lowongan tidak ada di daftar yang dimuat.', true);
+    return;
+  }
+
+  activeJobId = id;
+  const token = ++detailToken;
+
+  byId('modal').classList.remove('hide');
+  byId('modal-title').textContent = job.title || 'Tanpa judul';
+  byId('modal-company').textContent = job.company || '';
+  byId('modal-source').textContent = job.source || '';
+
+  byId('modal-info').textContent = [
+    job.created_at,
+    job.location,
+    job.salary
+  ].filter(Boolean).join(' · ');
+
+  byId('modal-score').textContent = jobScore(job);
+  byId('modal-status').textContent = jobStatus(job);
+  updateStatusButtons(jobStatus(job));
+
+  byId('modal-desc').textContent = 'Memuat deskripsi...';
+  byId('modal-cl').value = '';
+  byId('modal-email').value = '';
+  byId('modal-applied-date').textContent = '';
+
+  const url = asText(job.url);
+
+  byId('job-url').classList.toggle(
+    'hide',
+    !/^https?:\/\//i.test(url)
+  );
+
+  if (/^https?:\/\//i.test(url)) byId('job-url').href = url;
+
+  try {
+    const detail = await rpc('getJobDetailWeb', id);
+
+    if (activeJobId !== id || token !== detailToken) return;
+
+    byId('modal-desc').textContent =
+      detail.description || 'Tidak ada deskripsi tersimpan.';
+
+    byId('modal-score').textContent =
+      detail.match_score || jobScore(job);
+
+    byId('modal-cl').value = detail.cover_letter || '';
+    byId('modal-email').value = detail.email || '';
+
+    byId('modal-applied-date').textContent =
+      detail.applied_date
+        ? 'Tanggal melamar: ' + detail.applied_date
+        : '';
+
+    byId('modal-status').textContent =
+      detail.status || jobStatus(job);
+
+    updateStatusButtons(detail.status || jobStatus(job));
+  } catch (error) {
+    if (activeJobId === id && token === detailToken) {
+      byId('modal-desc').textContent =
+        job.description_preview || 'Detail tidak dapat dimuat.';
+
+      notify(
+        'Gagal membaca detail: ' + errorText(error),
+        true
+      );
+    }
+  }
+}
+
+function closeModal() {
+  activeJobId = null;
+  detailToken++;
+  byId('modal').classList.add('hide');
+}
+
+async function loadJobsDashboard(silent = false) {
+  const token = ++loadToken;
+
+  if (!silent) {
+    byId('loading').classList.remove('hide');
+    byId('content').classList.add('hide');
+  }
+
+  try {
+    const data = await rpc('getDashboardData');
+
+    if (token !== loadToken) return;
+
+    if (!data || !Array.isArray(data.jobs)) {
+      throw new Error('Format respons dashboard tidak valid.');
+    }
+
+    dashboard = data;
+
+    const available = new Set(data.jobs.map(job => job.id));
+
+    Array.from(selectedJobIds).forEach(id => {
+      if (!available.has(id)) selectedJobIds.delete(id);
+    });
+
+    byId('location').value =
+      data.settings && data.settings.location || 'Jakarta';
+
+    byId('frequency').value =
+      data.settings && data.settings.frequency || 'MANUAL';
+
+    updateSourceOptions();
+    renderDashboard();
+
+    byId('loading').classList.add('hide');
+    byId('content').classList.remove('hide');
+
+    if (activeJobId) await openJobModal(activeJobId);
+  } catch (error) {
+    if (token !== loadToken) return;
+
+    console.error('DASHBOARD LOAD:', error);
+
+    notify('Gagal memuat: ' + errorText(error), true);
+    byId('loading').classList.add('hide');
+    byId('content').classList.remove('hide');
+  }
+}
+
+async function submitAction(button, method, args, question) {
+  if (busy) return;
+  if (question && !confirm(question)) return;
+
+  busy = true;
+  button.disabled = true;
+
+  const label = button.textContent;
+  button.textContent = 'Memproses...';
+
+  notify('Menunggu server. Jangan klik ulang.');
+
+  try {
+    const result = await rpc(method, ...args);
+
+    if (!result || !result.success) {
+      throw new Error(
+        result && (result.message || result.error) ||
+        'Proses gagal.'
+      );
+    }
+
+    notify(result.message || 'Selesai.');
+    await loadJobsDashboard(true);
+  } catch (error) {
+    notify(errorText(error), true);
+  } finally {
+    button.disabled = false;
+    button.textContent = label;
+    busy = false;
+  }
+}
+
+async function analyzeActiveJob() {
+  if (!activeJobId || busy) return;
+
+  const id = activeJobId;
+  const button = byId('analyze-btn');
+  const label = button.textContent;
+
+  busy = true;
+  button.disabled = true;
+  button.textContent = 'Sedang menganalisis...';
+
+  notify('AI sedang membuat skor dan draft. Tunggu respons server.');
+
+  try {
+    const result = await rpc('triggerSingleAiMatchWeb', id);
+
+    if (!result || !result.success) {
+      throw new Error(
+        result && (result.message || result.error) ||
+        'Analisis gagal.'
+      );
+    }
+
+    notify('Skor dan draft tersimpan.');
+    await loadJobsDashboard(true);
+  } catch (error) {
+    notify(errorText(error), true);
+  } finally {
+    busy = false;
+    button.disabled = false;
+    button.textContent = label;
+  }
+}
+
+async function deleteSelectedJobsUI() {
+  if (busy || !selectedJobIds.size) return;
+
+  const ids = Array.from(selectedJobIds);
+  const button = byId('delete-selected');
+
+  if (!button) {
+    notify('Tombol hapus tidak ditemukan.', true);
+    return;
+  }
+
+  busy = true;
+  button.disabled = true;
+
+  const old = button.textContent;
+  button.textContent = 'Memeriksa...';
+
+  try {
+    const preview = await rpc('getDeleteJobsPreviewWeb', ids);
+
+    if (
+      !preview ||
+      !Array.isArray(preview.missing) ||
+      preview.missing.length ||
+      preview.jobsCount !== ids.length
+    ) {
+      throw new Error(
+        'Daftar job berubah. Refresh lalu pilih ulang sebelum menghapus.'
+      );
+    }
+
+    const examples = preview.jobs
+      .slice(0, 8)
+      .map(job =>
+        job.id + ' — ' + job.title + ' / ' + job.company
+      );
+
+    const message =
+      'Hapus PERMANEN ' +
+      preview.jobsCount +
+      ' job dari JOBS dan ' +
+      preview.applicationsCount +
+      ' application terkait dari APPLICATIONS?\n\n' +
+      examples.join('\n') +
+      (ids.length > 8
+        ? '\n... dan ' + (ids.length - 8) + ' job lain.'
+        : '') +
+      '\n\nTindakan ini tidak dapat dibatalkan.';
+
+    if (!confirm(message)) return;
+
+    button.textContent = 'Menghapus...';
+
+    const result = await rpc('deleteSelectedJobsWeb', ids);
+
+    if (!result || !result.success) {
+      throw new Error(
+        result && result.message || 'Penghapusan gagal.'
+      );
+    }
+
+    ids.forEach(id => selectedJobIds.delete(id));
+
+    if (activeJobId && ids.includes(activeJobId)) {
+      closeModal();
+    }
+
+    notify(result.message);
+    await loadJobsDashboard(true);
+  } catch (error) {
+    notify(errorText(error), true);
+  } finally {
+    busy = false;
+    button.disabled = false;
+    button.textContent = old;
+    updateSelectionUI();
+  }
+}
+
+async function copyDraft(id) {
+  const value = byId(id).value;
+
+  if (!value) {
+    notify('Draft masih kosong.', true);
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(value);
+    notify('Teks disalin.');
+  } catch (error) {
+    byId(id).focus();
+    byId(id).select();
+    notify('Tekan Ctrl+C / Cmd+C untuk menyalin teks.');
+  }
+}
+
+function initDashboard() {
+  byId('search').addEventListener('input', renderDashboard);
+
+  [
+    'source-filter',
+    'status-filter',
+    'score-filter',
+    'sort-order'
+  ].forEach(id =>
+    byId(id).addEventListener('change', renderDashboard)
+  );
+
+  byId('manual-post-form')
+    .addEventListener('submit', saveManualPostUI);
+
+  byId('extract-manual-post')
+    .addEventListener('click', extractManualPostUI);
+
+  byId('manual-post-url')
+    .addEventListener('input', invalidateManualExtraction);
+
+  byId('manual-post-text')
+    .addEventListener('input', invalidateManualExtraction);
+
+  byId('list-btn').onclick = () => setView('list');
+  byId('board-btn').onclick = () => setView('board');
+  byId('refresh-btn').onclick = () => loadJobsDashboard();
+
+  byId('sync-linkedin').onclick = event =>
+    submitAction(
+      event.currentTarget,
+      'triggerLinkedInScraperWeb',
+      [],
+      null
+    );
+
+  byId('sync-jobstreet').onclick = event =>
+    submitAction(
+      event.currentTarget,
+      'triggerJobstreetScraperWeb',
+      [],
+      null
+    );
+
+  byId('save-settings').onclick = event =>
+    submitAction(
+      event.currentTarget,
+      'saveSettingsWeb',
+      [
+        byId('location').value,
+        byId('frequency').value
+      ],
+      'Simpan pengaturan scraper?'
+    );
+
+  const deleteButton = byId('delete-selected');
+
+  if (deleteButton) {
+    deleteButton.onclick = deleteSelectedJobsUI;
+  }
+
+  const selectVisible = byId('select-visible');
+
+  if (selectVisible) {
+    selectVisible.onchange = event => {
+      filteredJobs().forEach(job =>
+        event.target.checked
+          ? selectedJobIds.add(job.id)
+          : selectedJobIds.delete(job.id)
+      );
+
+      renderDashboard();
+    };
+  }
+
+  document.addEventListener('change', event => {
+    const checkbox = event.target.closest('[data-select]');
+
+    if (!checkbox) return;
+
+    checkbox.checked
+      ? selectedJobIds.add(checkbox.dataset.select)
+      : selectedJobIds.delete(checkbox.dataset.select);
+
+    updateSelectionUI();
+  });
+
+  byId('close-modal').onclick = closeModal;
+
+  byId('modal').onclick = event => {
+    if (event.target === byId('modal')) closeModal();
+  };
+
+  byId('analyze-btn').onclick = analyzeActiveJob;
+
+  [
+    'apply-btn',
+    'interview-btn',
+    'offer-btn',
+    'reject-btn'
+  ].forEach(id => {
+    byId(id).onclick = event => {
+      const button = event.currentTarget;
+      const status = button.dataset.status;
+      const jobId = activeJobId;
+
+      submitAction(
+        button,
+        'updateJobStatus',
+        [jobId, status],
+        status === 'APPLIED'
+          ? 'Konfirmasi: lamaran benar-benar sudah dikirim?'
+          : 'Ubah status ' + jobId + ' menjadi ' + status + '?'
+      );
+    };
+  });
+
+  byId('copy-cl').onclick = () => copyDraft('modal-cl');
+  byId('copy-email').onclick = () => copyDraft('modal-email');
+
+  document.addEventListener('click', event => {
+    if (event.target.closest('[data-select]')) return;
+
+    const row = event.target.closest('[data-open]');
+
+    if (row) openJobModal(row.dataset.open);
+  });
+
+  document.addEventListener('keydown', event => {
+    if (
+      event.key === 'Escape' &&
+      !byId('modal').classList.contains('hide')
+    ) {
+      closeModal();
+    }
+
+    if (
+      (event.key === 'Enter' || event.key === ' ') &&
+      event.target.matches('[data-open][role="button"]')
+    ) {
+      event.preventDefault();
+      openJobModal(event.target.dataset.open);
+    }
+  });
+
+    const manualPanel = byId('manual-post-panel');
+  const manualOpenButton = byId('open-manual-post');
+
+  function setManualPanelOpen(isOpen) {
+    manualPanel.classList.toggle('hide', !isOpen);
+    manualOpenButton.setAttribute('aria-expanded', String(isOpen));
+
+    if (isOpen) {
+      manualPanel.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+      byId('manual-post-url').focus();
+    } else {
+      manualOpenButton.focus();
+    }
+  }
+
+  manualOpenButton.addEventListener('click', () => {
+    setManualPanelOpen(
+      manualPanel.classList.contains('hide')
+    );
+  });
+
+  byId('close-manual-post').addEventListener('click', () => {
+    setManualPanelOpen(false);
+  });
+
+  loadJobsDashboard();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener(
+    'DOMContentLoaded',
+    initDashboard,
+    { once: true }
+  );
+} else {
+  initDashboard();
+}
+</script>
+</body>
+</html>

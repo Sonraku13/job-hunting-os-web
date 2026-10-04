@@ -148,7 +148,7 @@ export async function POST(request: Request) {
       return null;
     };
 
-    let allRawJobs: Record<string, unknown>[] = [];
+    const allRawJobs: Record<string, unknown>[] = [];
     const perLocation: { location: string; fetched: number }[] = [];
 
     // 3. Loop tiap kombinasi lokasi x judul (1 call per kombinasi).
@@ -177,6 +177,7 @@ export async function POST(request: Request) {
           location,
           postedWithin: '24h',
           page: '1',
+          limit: '20',
         });
         if (profile?.linkedin_geo_id) {
           params.append('geoId', profile.linkedin_geo_id);
@@ -195,11 +196,11 @@ export async function POST(request: Request) {
         const resData = await res.json();
         rawJobs = extractJobs(resData);
       } else {
-        // Jobstreet
+        // Jobstreet: gunakan endpoint recent-jobs sesuai webapp sheet
         const params = new URLSearchParams({
           query,
           location,
-          postedWithinDays: '1',
+          withinDays: '1',
           page: '1',
           limit: '20',
         });
@@ -207,9 +208,16 @@ export async function POST(request: Request) {
           params.append('locationId', profile.jobstreet_location_id);
         }
 
-        const res = await fetch(`${ZAPI_BASE}/jobs:jobstreet/search?${params.toString()}`, {
+        let res = await fetch(`${ZAPI_BASE}/jobs:jobstreet/recent-jobs?${params.toString()}`, {
           headers: { 'x-api-key': ZAPI_KEY },
         });
+
+        // Fallback ke /search jika /recent-jobs tidak ok
+        if (!res.ok) {
+          res = await fetch(`${ZAPI_BASE}/jobs:jobstreet/search?${params.toString()}`, {
+            headers: { 'x-api-key': ZAPI_KEY },
+          });
+        }
 
         if (!res.ok) {
           const errText = await res.text();
@@ -248,64 +256,95 @@ export async function POST(request: Request) {
     }
 
     // 4. Format data lowongan (mapping sesuai struktur asli Zapi hasil tes live)
-    const jobsToInsert = allRawJobs.slice(0, 15).map((j) => ({
-      user_id: user.id,
-      job_title: pick(j, ['title', 'job_title', 'position', 'name']) || 'Lowongan Tanpa Judul',
-      company_name: pick(j, ['company', 'company_name', 'companyName', 'employer']) || 'Perusahaan',
-      job_url: pick(j, ['url', 'job_url', 'link', 'apply_url', 'applyUrl']),
-      location: formatLocation(j, String(j._scraped_location || 'Unknown')),
-      job_type: pick(j, ['employmentType', 'job_type', 'type', 'employment_type', 'work_arrangement', 'workArrangement']),
-      salary_range: formatSalary(j),
-      job_description: pick(j, ['description', 'job_description', 'jobDescription', 'snippet', 'summary', 'details']) || `Lowongan ${pick(j, ['title', 'job_title']) || ''} di ${pick(j, ['company', 'company_name']) || 'perusahaan'}. Lihat detail via URL.`,
-      external_job_id: pick(j, ['jobId', 'job_id', 'external_id', 'externalId', 'id']),
-      source: portal === 'linkedin' ? 'LinkedIn' : 'Jobstreet',
-      status: 'discover',
-    }));
+    const jobsToInsert = allRawJobs.slice(0, 15).map((j) => {
+      const externalId = pick(j, ['jobId', 'job_id', 'external_id', 'externalId', 'id']);
+      let jobUrl = pick(j, ['url', 'job_url', 'link', 'apply_url', 'applyUrl']);
+      
+      // Pastikan job_url selalu terisi agar constraint unique (user_id, job_url) terpenuhi
+      if (!jobUrl && externalId) {
+        jobUrl = portal === 'linkedin'
+          ? `https://www.linkedin.com/jobs/view/${externalId}`
+          : `https://id.jobstreet.com/id/job/${externalId}`;
+      }
 
-    // 5. Simpan ke database (upsert by user_id+job_url OR user_id+external_job_id+source)
+      return {
+        user_id: user.id,
+        job_title: pick(j, ['title', 'job_title', 'position', 'name']) || 'Lowongan Tanpa Judul',
+        company_name: pick(j, ['company', 'company_name', 'companyName', 'employer']) || 'Perusahaan',
+        job_url: jobUrl,
+        location: formatLocation(j, String(j._scraped_location || 'Unknown')),
+        job_type: pick(j, ['employmentType', 'job_type', 'type', 'employment_type', 'work_arrangement', 'workArrangement']),
+        salary_range: formatSalary(j),
+        job_description: pick(j, ['description', 'job_description', 'jobDescription', 'snippet', 'summary', 'details']) || `Lowongan ${pick(j, ['title', 'job_title']) || ''} di ${pick(j, ['company', 'company_name']) || 'perusahaan'}. Lihat detail via URL.`,
+        external_job_id: externalId,
+        source: portal === 'linkedin' ? 'LinkedIn' : 'Jobstreet',
+        status: 'discover',
+      };
+    });
+
+    // 5. Simpan ke database dengan onConflict: 'user_id, job_url' (sesuai constraint saved_jobs_user_id_key)
     let insertedCount = 0;
     let skippedDuplicates = 0;
-    for (const job of jobsToInsert) {
-      const hasUniqueKey = job.job_url || job.external_job_id;
-      let upsertErr: unknown = null;
+    const insertErrors: string[] = [];
 
-      if (hasUniqueKey) {
-        const conflictTarget = job.external_job_id
-          ? 'user_id, external_job_id, source'
-          : 'user_id, job_url';
-        const { error } = await supabase
+    for (const job of jobsToInsert) {
+      if (job.job_url) {
+        const { data, error } = await supabase
           .from('saved_jobs')
           .upsert(job, {
-            onConflict: conflictTarget,
-            ignoreDuplicates: true, // only insert new rows
-          });
-        upsertErr = error;
-      } else {
-        // Tanpa unique key → insert biasa
-        const { error } = await supabase.from('saved_jobs').insert(job);
-        upsertErr = error;
-      }
+            onConflict: 'user_id, job_url',
+            ignoreDuplicates: true,
+          })
+          .select('id');
 
-      if (upsertErr) {
-        const errMsg = String(upsertErr);
-        if (
-          errMsg.includes('duplicate key') ||
-          errMsg.includes('unique constraint') ||
-          errMsg.includes('23505')
-        ) {
-          skippedDuplicates++;
+        if (error) {
+          console.error('Upsert saved_jobs error:', error);
+          insertErrors.push(error.message);
+        } else if (data && data.length > 0) {
+          insertedCount++;
         } else {
-          console.error('Insert/upsert error:', upsertErr);
+          skippedDuplicates++;
         }
       } else {
-        insertedCount++;
+        const { data, error } = await supabase
+          .from('saved_jobs')
+          .insert(job)
+          .select('id');
+
+        if (error) {
+          console.error('Insert saved_jobs error:', error);
+          insertErrors.push(error.message);
+        } else if (data && data.length > 0) {
+          insertedCount++;
+        }
       }
+    }
+
+    if (insertedCount === 0 && skippedDuplicates > 0) {
+      return NextResponse.json({
+        success: true,
+        message: `Ditemukan ${skippedDuplicates} lowongan, namun semuanya sudah pernah tersimpan sebelumnya di database Anda.`,
+        inserted: 0,
+        skipped: skippedDuplicates,
+        usage: { used_today: quotaResult.used_today, daily_limit: quotaResult.daily_limit },
+      });
+    }
+
+    if (insertedCount === 0 && insertErrors.length > 0) {
+      return NextResponse.json(
+        {
+          error: `Gagal menyimpan lowongan ke database: ${insertErrors[0]}`,
+          details: insertErrors,
+        },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
       success: true,
-      message: `Berhasil mengambil ${insertedCount} lowongan baru (${portal.toUpperCase()}) dari ${locations.length} lokasi dalam 24 jam terakhir!`,
+      message: `Berhasil mengambil & menyimpan ${insertedCount} lowongan baru (${portal.toUpperCase()})!`,
       inserted: insertedCount,
+      skipped: skippedDuplicates,
       usage: { used_today: quotaResult.used_today, daily_limit: quotaResult.daily_limit },
     });
   } catch (error: unknown) {
