@@ -19,7 +19,7 @@ export default async function BillingPage() {
   }
 
   const plan: PlanType = profile.plan as PlanType;
-  const limits = QUOTA_LIMITS[plan];
+  const limits = QUOTA_LIMITS[plan] || QUOTA_LIMITS.FREE;
 
   const today = new Date();
   const jakartaOffset = 7 * 60;
