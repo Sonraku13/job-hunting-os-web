@@ -87,8 +87,15 @@ export default async function BillingPage() {
         </div>
       </Card>
 
-      {plan === 'FREE' && (
+      {plan === 'FREE' ? (
         <BillingPaymentCard userEmail={user.email || ''} />
+      ) : (
+        <>
+          <BillingPaymentCard userEmail={user.email || ''} />
+          <p className="text-xs text-zinc-500 font-mono text-center">
+            Anda saat ini memakai paket {planLabel} — tampilan pembayaran di atas hanya untuk pratinjau / upgrade user FREE.
+          </p>
+        </>
       )}
     </div>
   );
