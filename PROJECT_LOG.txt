@@ -34,6 +34,12 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
    - Anti-hallucination rules (hanya fakta, plain text tanpa markdown/simbol **).
    - Caching output (match score, cover letter, email draft) di DB `saved_jobs` agar tidak boros kuota / double hit API.
 
+5. UI & UX Refinements (Tampilan, Tema & Responsivitas):
+   - Dukungan multi-format gambar QRIS di halaman billing (`qris.webp`, `qris.png`, `qris.jpg`).
+   - Perbaikan error React key duplikat ("Papua" & "Maluku") pada daftar opsi lokasi di `/settings`.
+   - Layout responsif penuh untuk layar mobile hingga desktop (navbar horizontal scrollable, layout header dua baris di HP).
+   - Penyelarasan variabel CSS tema gelap & terang (`var(--background)`, `var(--card)`, `var(--accent)`) pada input form dan kontainer.
+
 -------------------------------------------
 
 [ FUTURE UPDATES - ROADMAP & TODOs ]
