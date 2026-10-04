@@ -10,16 +10,19 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
    - Dibuat fungsi `consume_usage` RPC untuk manajemen kuota harian (FREE/PAID).
 
 2. Fitur Scraping & Database Lowongan (`saved_jobs`):
-   - Integrasi Zapi untuk LinkedIn dan Jobstreet search.
+   - Integrasi Zapi untuk LinkedIn dan Jobstreet search (menggunakan `/jobs:jobstreet/recent-jobs` sesuai spesifikasi AppsScript).
    - Filter ketat lowongan khusus 24 jam terakhir.
    - Fitur "Manual Scrape" tombol di Dashboard.
+   - Perbaikan kegagalan simpan PostgreSQL constraint 42P10 dengan penyelarasan `onConflict: 'user_id, job_url'` dan fallback canonical URL.
    - Fitur "Auto Scraping" jadwal jam (WIB) dikombinasikan dengan Vercel Cron (`/api/cron/scrape`).
    - Workflow status lowongan (discover -> analyse -> apply -> refuse -> archive).
    - Multi-role & Multi-location scraping: pencarian berbasis OR query untuk banyak target posisi sekaligus (misal Graphic Designer, Video Editor, dsb).
    - Preset daftar lokasi 38 Provinsi di Indonesia & Negara Populer luar negeri dengan multi-select UI di `/settings`.
    - Engine iterasi per-lokasi otomatis di `/api/scrape/run` dan cron `/api/cron/scrape`.
 
-3. Profil & Pengaturan User (`user_profiles`):
+3. Profil, Billing & Pengaturan User (`user_profiles`, `profiles`):
+   - Dukungan role `ADMIN` dengan kuota unlimited di fungsi database `consume_usage` & `QUOTA_LIMITS`.
+   - Halaman `/billing` dengan statistik penggunaan kuota harian & informasi paket (FREE, PAID, ADMIN).
    - Memecah UI menjadi dua halaman:
      - `/profile`: Identitas diri, Ringkasan, Pengalaman, dan LLM Context (gaya bahasa AI).
      - `/settings`: Preferensi kerja (lokasi, remote, job titles) dan jadwal cron auto-scraping (WIB ke UTC).
