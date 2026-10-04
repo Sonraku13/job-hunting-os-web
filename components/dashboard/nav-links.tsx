@@ -2,15 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useLanguage } from '@/lib/i18n/context';
 
 export function NavLinks() {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   const links = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/profile', label: 'Profil' },
-    { href: '/settings', label: 'Pengaturan' },
-    { href: '/billing', label: 'Billing' },
+    { href: '/dashboard', label: t('nav_dashboard') },
+    { href: '/profile', label: t('nav_profile') },
+    { href: '/settings', label: t('nav_settings') },
+    { href: '/billing', label: t('nav_billing') },
   ];
 
   return (

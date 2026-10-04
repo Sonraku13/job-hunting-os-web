@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { SignOutButton } from '@/components/dashboard/sign-out-button';
 import { ToastProvider } from '@/components/ui/toast';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { LanguageToggle } from '@/components/ui/language-toggle';
 import { NavLinks } from '@/components/dashboard/nav-links';
 import { QuotaBadge } from '@/components/dashboard/quota-badge';
 import { PlanType } from '@/lib/quota/limits';
@@ -51,6 +52,7 @@ export default async function DashboardLayout({
               </Link>
               <div className="flex sm:hidden items-center gap-2">
                 <QuotaBadge plan={plan} usedToday={scrapeUsed} />
+                <LanguageToggle />
                 <ThemeToggle />
                 <SignOutButton />
               </div>

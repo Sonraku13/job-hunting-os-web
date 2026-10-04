@@ -42,6 +42,66 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
    - Indikator kuota scraping harian langsung di Header (`QuotaBadge`).
    - Loading spinner terintegrasi pada tombol AI Generate (Match Score, Cover Letter, Email).
 
+6. Multilingual Support (Indonesian / English) — 2026-10-05:
+   - Menambahkan `LanguageProvider` berbasis `useSyncExternalStore` untuk menghindari hydration mismatch (SSR-safe).
+   - Memperluas `lib/i18n/translations.ts` dengan 100+ key untuk 2 locale (id/en) mencakup:
+     - Navigasi, Dashboard, Job List, Modal, Profil, Settings, Billing, Auth, Toast, Error pages.
+   - Mengganti seluruh hardcoded Indonesian text di 18 komponen/halaman dengan `t('key')` via `useLanguage()` hook:
+     - `components/dashboard/job-list.tsx`, `components/dashboard/profile-form.tsx`
+     - `components/dashboard/settings-form.tsx`, `components/dashboard/nav-links.tsx`
+     - `components/dashboard/sign-out-button.tsx`, `components/dashboard/job-list.tsx`
+     - `app/(dashboard)/dashboard/page.tsx`, `app/(dashboard)/profile/page.tsx`
+     - `app/(dashboard)/settings/page.tsx`, `components/ui/language-toggle.tsx`
+     - Baru: `components/dashboard/dashboard-header.tsx`, `components/dashboard/profile-header.tsx`
+     - Baru: `components/dashboard/settings-header.tsx`, `components/dashboard/display-settings-card.tsx`
+   - Language toggle (ID/EN) di Navbar & Settings bekerja seamless tanpa reload.
+
+7. Security & Code Quality Fixes:
+   - Fix lint errors: `useSyncExternalStore` ganti `useEffect` setState di `LanguageProvider` & `LanguageToggle`.
+   - Fix TypeScript errors: tambah key `dash_match_score_title`, `dash_match_gap_title`, `prof_saving` ke `TranslationKey` union.
+   - `npm run lint` passed (hanya warnings pre-existing di file legacy `webapp-dari-sheets`).
+   - `npm run build` passed (production build successful).
+
+---
+
+1. Core & Infrastructure:
+   - Setup Next.js App Router, TailwindCSS, TypeScript.
+   - Setup Supabase Auth (Google Login), Postgres Database, & RLS.
+   - Dibuat fungsi `consume_usage` RPC untuk manajemen kuota harian (FREE/PAID).
+
+2. Fitur Scraping & Database Lowongan (`saved_jobs`):
+   - Integrasi Zapi untuk LinkedIn dan Jobstreet search (menggunakan `/jobs:jobstreet/recent-jobs` sesuai spesifikasi AppsScript).
+   - Filter ketat lowongan khusus 24 jam terakhir.
+   - Fitur "Manual Scrape" tombol di Dashboard.
+   - Perbaikan kegagalan simpan PostgreSQL constraint 42P10 dengan penyelarasan `onConflict: 'user_id, job_url'` dan fallback canonical URL.
+   - Fitur "Auto Scraping" jadwal jam (WIB) dikombinasikan dengan Vercel Cron (`/api/cron/scrape`).
+   - Workflow status lowongan (discover -> analyse -> apply -> refuse -> archive).
+   - Multi-role & Multi-location scraping: pencarian berbasis OR query untuk banyak target posisi sekaligus (misal Graphic Designer, Video Editor, dsb).
+   - Preset daftar lokasi 38 Provinsi di Indonesia & Negara Populer luar negeri dengan multi-select UI di `/settings`.
+   - Engine iterasi per-lokasi otomatis di `/api/scrape/run` dan cron `/api/cron/scrape`.
+
+3. Profil, Billing & Pengaturan User (`user_profiles`, `profiles`):
+   - Dukungan role `ADMIN` dengan kuota unlimited di fungsi database `consume_usage` & `QUOTA_LIMITS`.
+   - Halaman `/billing` lengkap dengan statistik kuota, paket Rp 25.000/bulan, instruksi Transfer BCA (`1040669015` a/n YUSUF WIBISONO) & QRIS.
+   - Tombol konfirmasi otomatis ke WhatsApp Admin (`089617581900`) dengan template email akun & bukti transfer.
+   - Memecah UI menjadi dua halaman:
+     - `/profile`: Identitas diri, Ringkasan, Pengalaman, dan LLM Context (gaya bahasa AI).
+     - `/settings`: Preferensi kerja (lokasi, remote, job titles) dan jadwal cron auto-scraping (WIB ke UTC).
+   - Penggunaan operasi `.update()` dan upsert via `/api/profile/update`.
+
+4. Fitur AI (Multi-provider Fallback Engine):
+   - Engine fallback: Gemini Direct -> Zapi Copilot -> Zapi ChatEx -> Zapi ChatGPT.
+   - Anti-hallucination rules (hanya fakta, plain text tanpa markdown/simbol **).
+   - Caching output (match score, cover letter, email draft) di DB `saved_jobs` agar tidak boros kuota / double hit API.
+
+5. UI & UX Refinements (Tampilan, Tema & Responsivitas):
+   - Dukungan multi-format gambar QRIS di halaman billing (`qris.webp`, `qris.png`, `qris.jpg`).
+   - Perbaikan error React key duplikat ("Papua" & "Maluku") pada daftar opsi lokasi di `/settings`.
+   - Layout responsif penuh untuk layar mobile hingga desktop (navbar horizontal scrollable, layout header dua baris di HP).
+   - Penyelarasan variabel CSS tema gelap & terang (`var(--background)`, `var(--card)`, `var(--accent)`) pada input form dan kontainer.
+   - Indikator kuota scraping harian langsung di Header (`QuotaBadge`).
+   - Loading spinner terintegrasi pada tombol AI Generate (Match Score, Cover Letter, Email).
+
 -------------------------------------------
 
 [ FUTURE UPDATES - ROADMAP & TODOs ]

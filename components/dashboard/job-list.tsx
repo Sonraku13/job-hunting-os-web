@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { useLanguage } from '@/lib/i18n/context';
 
 export type JobStatus = 'discover' | 'analyse' | 'apply' | 'refuse' | 'archive';
 
@@ -41,6 +42,7 @@ const STATUS_CONFIG: Record<JobStatus, { label: string; badgeClass: string }> = 
 };
 
 export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
+  const { t } = useLanguage();
   const [jobs, setJobs] = useState<SavedJob[]>(initialJobs);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -251,7 +253,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
             disabled={scrapingPortal !== null}
             className="font-mono text-xs"
           >
-            {scrapingPortal === 'linkedin' ? '⏳ Scraping LinkedIn...' : '🔍 Cari Lowongan LinkedIn (24 jam)'}
+            {scrapingPortal === 'linkedin' ? t('dash_scraping_linkedin') : t('dash_scrape_linkedin')}
           </Button>
           <Button
             onClick={() => handleManualScrape('jobstreet')}
@@ -259,12 +261,12 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
             variant="outline"
             className="font-mono text-xs"
           >
-            {scrapingPortal === 'jobstreet' ? '⏳ Scraping Jobstreet...' : '🔍 Cari Lowongan Jobstreet (24 jam)'}
+            {scrapingPortal === 'jobstreet' ? t('dash_scraping_jobstreet') : t('dash_scrape_jobstreet')}
           </Button>
         </div>
 
         <div className="text-xs text-zinc-500 font-mono">
-          Pengambilan data mengambil lowongan 24 jam terakhir sesuai preferensi di Pengaturan Anda.
+          {t('dash_scrape_info')}
         </div>
 
         {jobs.length === 0 ? (
@@ -284,9 +286,9 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                   d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
                 />
               </svg>
-              <h3 className="text-base font-semibold text-zinc-100">Belum Ada Lowongan Tersimpan</h3>
+              <h3 className="text-base font-semibold text-[var(--foreground)]">{t('dash_empty_title')}</h3>
               <p className="text-xs text-zinc-400">
-                Klik tombol di atas untuk scrape lowongan baru dari LinkedIn atau Jobstreet, atau gunakan data contoh untuk tes UI.
+                {t('dash_empty_desc')}
               </p>
 
               <div className="pt-2">
@@ -321,7 +323,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                   }}
                   className="font-mono text-xs"
                 >
-                  + Tambah Lowongan Contoh (Tes UI)
+                  {t('dash_add_dummy')}
                 </Button>
               </div>
             </div>
@@ -346,7 +348,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       : 'border-transparent text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'
                   }`}
                 >
-                  {tab === 'all' ? 'Semua' : STATUS_CONFIG[tab as JobStatus]?.label || tab}{' '}
+                  {tab === 'all' ? t('dash_tab_all') : t(`dash_tab_${tab as JobStatus}`)}{' '}
                   <span className="text-[10px] text-zinc-500">({count})</span>
                 </button>
               );
@@ -354,7 +356,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
           </div>
 
           <div className="font-mono text-xs text-zinc-500">
-            DITAMPILKAN: {filteredJobs.length} DARI {jobs.length}
+            {t('dash_shown')} {filteredJobs.length} {t('dash_from')} {jobs.length}
           </div>
         </div>
 
@@ -369,12 +371,12 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
             const matchScore = scoreById[job.id]?.score ?? job.match_score;
 
             return (
-              <div key={job.id} className="p-5 transition-colors hover:bg-zinc-900/30">
+              <div key={job.id} className="p-5 transition-colors hover:bg-zinc-100/70 dark:hover:bg-zinc-900/30">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-1 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base font-semibold text-zinc-100">{job.job_title}</h3>
-                      <span className="rounded bg-zinc-800 px-2 py-0.5 font-mono text-[10px] text-zinc-400 uppercase">
+                      <h3 className="text-base font-semibold text-[var(--card-foreground)]">{job.job_title}</h3>
+                      <span className="rounded bg-[var(--muted)] px-2 py-0.5 font-mono text-[10px] text-zinc-500 uppercase">
                         {job.source}
                       </span>
                       {typeof matchScore === 'number' && (
@@ -394,7 +396,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       )}
                     </div>
 
-                    <p className="text-sm text-zinc-300 font-medium">{job.company_name}</p>
+                    <p className="text-sm text-[var(--card-foreground)] opacity-90 font-medium">{job.company_name}</p>
 
                     <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-zinc-500 pt-1">
                       {job.location && <span>📍 {job.location}</span>}
@@ -431,10 +433,10 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       {loadingActionId === `score-${job.id}` ? (
                         <>
                           <Spinner size="sm" />
-                          Skor...
+                          {t('dash_loading_score')}
                         </>
                       ) : (
-                        'Match'
+                        t('dash_action_match')
                       )}
                     </Button>
 
@@ -448,12 +450,10 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       {loadingActionId === `letter-${job.id}` ? (
                         <>
                           <Spinner size="sm" />
-                          Menulis...
+                          {t('dash_loading_write')}
                         </>
-                      ) : hasLetter ? (
-                        'Surat'
                       ) : (
-                        'Surat'
+                        t('dash_action_letter')
                       )}
                     </Button>
 
@@ -467,12 +467,10 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       {loadingActionId === `email-${job.id}` ? (
                         <>
                           <Spinner size="sm" />
-                          Draft...
+                          {t('dash_loading_draft')}
                         </>
-                      ) : hasEmail ? (
-                        'Email'
                       ) : (
-                        'Email'
+                        t('dash_action_email')
                       )}
                     </Button>
 
@@ -483,7 +481,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                         onClick={() => setExpandedId(isExpanded ? null : job.id)}
                         className="font-mono text-xs text-zinc-400"
                       >
-                        {isExpanded ? 'Tutup' : 'Rincian'}
+                        {isExpanded ? t('dash_action_close') : t('dash_action_details')}
                       </Button>
                     )}
 
@@ -506,13 +504,13 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       disabled={deletingId === job.id}
                       className="font-mono text-xs text-red-400 hover:text-red-300 hover:bg-red-950/30"
                     >
-                      {deletingId === job.id ? '...' : 'Hapus'}
+                      {deletingId === job.id ? '...' : t('dash_action_delete')}
                     </Button>
                   </div>
                 </div>
 
                 {isExpanded && job.job_description && (
-                  <div className="mt-4 rounded-lg bg-zinc-950 border border-zinc-800 p-4 font-sans text-xs leading-relaxed text-zinc-300 whitespace-pre-wrap">
+                  <div className="mt-4 rounded-lg bg-[var(--muted)] border border-[var(--border)] p-4 font-sans text-xs leading-relaxed text-[var(--card-foreground)] whitespace-pre-wrap">
                     {job.job_description}
                   </div>
                 )}
@@ -529,25 +527,25 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setModalData(null)}>
           <div className="w-full max-w-2xl max-h-[80vh] overflow-auto rounded-xl bg-[var(--card)] border border-[var(--border)] p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
-              <h3 className="text-lg font-semibold text-zinc-100">{modalData.title}</h3>
+              <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{modalData.title}</h3>
               <Button variant="ghost" onClick={() => setModalData(null)} className="text-zinc-400 font-mono text-xs">
                 ✕
               </Button>
             </div>
-            <div className="font-sans text-sm leading-relaxed text-zinc-200 whitespace-pre-wrap">
+            <div className="font-sans text-sm leading-relaxed text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap">
               {modalData.content}
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setModalData(null)} className="font-mono text-xs">Tutup</Button>
+              <Button variant="outline" onClick={() => setModalData(null)} className="font-mono text-xs">{t('dash_action_close')}</Button>
               <Button
                 variant="default"
                 onClick={() => {
                   navigator.clipboard.writeText(modalData.content);
-                  showToast('Teks berhasil disalin ke clipboard', 'success');
+                  showToast(t('dash_copy_success'), 'success');
                 }}
                 className="font-mono text-xs"
               >
-                Salin
+                {t('dash_copy')}
               </Button>
             </div>
           </div>
@@ -560,8 +558,8 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
           <div className="w-full max-w-md rounded-xl bg-[var(--card)] border border-[var(--border)] p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-base font-semibold text-zinc-100">{scoreModal.job.job_title}</h3>
-                <p className="text-xs text-zinc-400">{scoreModal.job.company_name}</p>
+                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{scoreModal.job.job_title}</h3>
+                <p className="text-xs text-zinc-600 dark:text-zinc-400">{scoreModal.job.company_name}</p>
               </div>
               <span
                 className={`rounded border px-2.5 py-1 font-mono text-xs font-bold ${
@@ -576,12 +574,12 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
               </span>
             </div>
 
-            <p className="text-xs text-zinc-300 mb-4">{scoreModal.result.summary}</p>
+            <p className="text-xs text-zinc-700 dark:text-zinc-300 mb-4">{scoreModal.result.summary}</p>
 
             <div className="space-y-3 font-sans text-xs">
               <div>
-                <span className="font-semibold text-emerald-400 block mb-1">Kekuatan & Kesesuaian:</span>
-                <ul className="list-disc list-inside space-y-0.5 text-zinc-300">
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400 block mb-1">{t('dash_match_score_title')}</span>
+                <ul className="list-disc list-inside space-y-0.5 text-zinc-700 dark:text-zinc-300">
                   {(scoreModal.result.strengths || []).map((str, idx) => (
                     <li key={idx}>{str}</li>
                   ))}
@@ -589,8 +587,8 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
               </div>
 
               <div>
-                <span className="font-semibold text-amber-400 block mb-1">Area Pengembangan / Gap:</span>
-                <ul className="list-disc list-inside space-y-0.5 text-zinc-400">
+                <span className="font-semibold text-amber-600 dark:text-amber-400 block mb-1">{t('dash_match_gap_title')}</span>
+                <ul className="list-disc list-inside space-y-0.5 text-zinc-600 dark:text-zinc-400">
                   {(scoreModal.result.gaps || []).map((gap, idx) => (
                     <li key={idx}>{gap}</li>
                   ))}
@@ -600,7 +598,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
 
             <div className="mt-6 flex justify-end">
               <Button variant="outline" onClick={() => setScoreModal(null)} className="font-mono text-xs">
-                Tutup
+                {t('dash_action_close')}
               </Button>
             </div>
           </div>

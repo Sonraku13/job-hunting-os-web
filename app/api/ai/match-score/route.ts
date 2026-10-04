@@ -92,7 +92,7 @@ export async function POST(request: Request) {
       currentRole: profile?.current_role || profile?.job_title,
       experienceYears: profile?.years_of_experience,
       summary: profile?.summary,
-      skills: Array.isArray(profile?.skills) ? profile.skills : [],
+      skills: profile?.skills && Array.isArray(profile.skills) ? profile.skills : [],
     });
 
     // 6. Update saved_jobs in DB

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useLanguage } from '@/lib/i18n/context';
 import { 
   ALL_LOCATION_OPTIONS, 
   parseLocations, 
@@ -45,6 +46,7 @@ function wibToUtc(wibHour: number): number {
 }
 
 export function SettingsForm({ initialSettings }: { initialSettings: UserSettingsData }) {
+  const { t, language } = useLanguage();
   const initialWibHours = (initialSettings.scrape_hours || [2]).map(utcToWib);
 
   const [scrapeActive, setScrapeActive] = useState<boolean>(Boolean(initialSettings.scrape_active));
@@ -140,12 +142,12 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
       const data = await res.json();
 
       if (res.ok) {
-        showToast('Pengaturan pencarian & jadwal berhasil disimpan', 'success');
+        showToast(t('set_settings_saved'), 'success');
       } else {
-        showToast(data.error || 'Gagal menyimpan pengaturan', 'error');
+        showToast(data.error || (language === 'id' ? 'Gagal menyimpan pengaturan' : 'Failed to save settings'), 'error');
       }
     } catch {
-      showToast('Gagal menghubungi server', 'error');
+      showToast(language === 'id' ? 'Gagal menghubungi server' : 'Failed to reach server', 'error');
     } finally {
       setSaving(false);
     }
@@ -155,24 +157,26 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* 1. Preferensi Target Pencarian */}
       <Card>
-        <h2 className="text-lg font-semibold tracking-tight mb-4">Target Posisi & Lokasi Pencarian</h2>
+        <h2 className="text-lg font-semibold tracking-tight mb-4 text-[var(--card-foreground)]">
+          {language === 'id' ? 'Target Posisi & Lokasi Pencarian' : 'Target Position & Search Locations'}
+        </h2>
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
-              Target Posisi / Job Titles (pisahkan dengan koma)
+              {t('set_search_target_positions')}
             </label>
             <input
               type="text"
               value={formData.target_job_titles}
               onChange={(e) => setFormData({ ...formData, target_job_titles: e.target.value })}
-              placeholder="Graphic Designer, Video Editor, Motion Graphic Artist, Videographer, Content Creator"
+              placeholder={t('set_search_target_positions_placeholder')}
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-[var(--muted)] focus:outline-none focus:border-zinc-500"
             />
           </div>
 
           <div>
             <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
-              Target Lokasi (pilih dari daftar)
+              {t('set_search_target_locations')}
             </label>
             <div className="space-y-2">
               {/* Search box */}
@@ -180,8 +184,8 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
                 type="text"
                 value={locationSearch}
                 onChange={(e) => setLocationSearch(e.target.value)}
-                placeholder="Cari provinsi / negara..."
-                className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+                placeholder={language === 'id' ? 'Cari provinsi / negara...' : 'Search province / country...'}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
               />
               
               {/* Selected chips */}
@@ -203,12 +207,12 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
               )}
 
               {/* Dropdown options */}
-              <div className="max-h-60 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-950 p-2">
+              <div className="max-h-60 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--card)] p-2">
                 {filteredOptions.map((opt) => (
                   <label
                     key={opt.value}
-                    className={`flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer rounded hover:bg-zinc-800 ${
-                      selectedLocations.includes(opt.value) ? 'text-emerald-300' : 'text-zinc-300'
+                    className={`flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer rounded hover:bg-[var(--muted)] ${
+                      selectedLocations.includes(opt.value) ? 'text-emerald-500 font-medium' : 'text-[var(--card-foreground)]'
                     }`}
                   >
                     <input
@@ -223,7 +227,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
               </div>
               
               <p className="text-xs text-zinc-500">
-                {selectedLocations.length} lokasi dipilih. Pilih beberapa provinsi/negara untuk memperluas jangkauan scraping.
+                {t('set_search_target_locations_desc').replace('{count}', String(selectedLocations.length))}
               </p>
             </div>
           </div>
@@ -231,27 +235,27 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
-                Klasifikasi Pekerjaan (pisahkan koma)
+                {t('set_search_classifications')}
               </label>
               <input
                 type="text"
                 value={formData.target_classifications}
                 onChange={(e) => setFormData({ ...formData, target_classifications: e.target.value })}
-                placeholder="IT, Software Development, Engineering, Data"
-                className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+                placeholder={t('set_search_classifications_placeholder')}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
               />
             </div>
 
             <div>
               <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
-                Tipe Pekerjaan (pisahkan koma)
+                {t('set_employment_types')}
               </label>
               <input
                 type="text"
                 value={formData.target_employment_types}
                 onChange={(e) => setFormData({ ...formData, target_employment_types: e.target.value })}
-                placeholder="Full-time, Contract, Part-time, Internship"
-                className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+                placeholder={t('set_employment_types_placeholder')}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
               />
             </div>
           </div>
@@ -259,20 +263,20 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
-                Arsitektur Kerja (pisahkan koma)
+                {t('set_work_arrangements')}
               </label>
               <input
                 type="text"
                 value={formData.target_work_arrangements}
                 onChange={(e) => setFormData({ ...formData, target_work_arrangements: e.target.value })}
-                placeholder="Remote, Hybrid, Onsite"
-                className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+                placeholder={t('set_work_arrangements_placeholder')}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
               />
             </div>
 
             <div>
               <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
-                Preferensi Kerja Remote
+                {language === 'id' ? 'Preferensi Kerja Remote' : 'Remote Work Preference'}
               </label>
               <div className="flex items-center gap-3 pt-2">
                 <input
@@ -282,8 +286,8 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
                   onChange={(e) => setFormData({ ...formData, remote_only: e.target.checked })}
                   className="w-4 h-4 rounded border-zinc-700 text-emerald-500 focus:ring-emerald-500"
                 />
-                <label htmlFor="remote_only" className="text-sm text-zinc-300 cursor-pointer">
-                  Hanya cari lowongan Remote
+                <label htmlFor="remote_only" className="text-sm text-[var(--card-foreground)] cursor-pointer">
+                  {t('set_remote_only_label')}
                 </label>
               </div>
             </div>
@@ -292,26 +296,26 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
-                LinkedIn Geo ID (Opsional)
+                {t('set_linkedin_geo_id')}
               </label>
               <input
                 type="text"
                 value={formData.linkedin_geo_id}
                 onChange={(e) => setFormData({ ...formData, linkedin_geo_id: e.target.value })}
-                placeholder="102478259"
-                className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+                placeholder={t('set_linkedin_geo_id_placeholder')}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
               />
             </div>
             <div>
               <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
-                Jobstreet Location ID (Opsional)
+                {t('set_jobstreet_loc_id')}
               </label>
               <input
                 type="text"
                 value={formData.jobstreet_location_id}
                 onChange={(e) => setFormData({ ...formData, jobstreet_location_id: e.target.value })}
-                placeholder="1"
-                className="w-full rounded-lg border border-[var(--border)] bg-zinc-950 px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+                placeholder={t('set_jobstreet_loc_id_placeholder')}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
               />
             </div>
           </div>
@@ -322,8 +326,8 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
       <Card>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">Jadwal Auto Scraping Otomatis</h2>
-            <p className="text-xs text-zinc-400">Pilih hari dan jam pencarian otomatis lowongan 24 jam terakhir</p>
+            <h2 className="text-lg font-semibold tracking-tight text-[var(--card-foreground)]">{t('set_schedule_title')}</h2>
+            <p className="text-xs text-zinc-400">{t('set_schedule_title_desc')}</p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
@@ -332,30 +336,30 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
               onChange={(e) => setScrapeActive(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+            <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
           </label>
         </div>
 
         {scrapeActive && (
-          <div className="space-y-5 pt-2 border-t border-zinc-800">
+          <div className="space-y-5 pt-2 border-t border-[var(--border)]">
             {/* Pilihan Hari */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-mono text-zinc-400 uppercase">Pilih Hari Aktif:</label>
+                <label className="text-xs font-mono text-zinc-400 uppercase">{t('set_schedule_days_label')}</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setSelectedDays([1, 2, 3, 4, 5])}
                     className="text-[10px] font-mono text-emerald-400 hover:underline"
                   >
-                    Senin–Jumat
+                    {t('set_schedule_days_all_label')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setSelectedDays([1, 2, 3, 4, 5, 6, 7])}
                     className="text-[10px] font-mono text-emerald-400 hover:underline"
                   >
-                    Setiap Hari
+                    {t('set_schedule_days_every_label')}
                   </button>
                 </div>
               </div>
@@ -363,6 +367,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
               <div className="flex flex-wrap gap-2">
                 {DAYS_LIST.map((day) => {
                   const isSelected = selectedDays.includes(day.id);
+                  const dayName = language === 'en' ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][day.id - 1] : day.name;
                   return (
                     <button
                       key={day.id}
@@ -370,11 +375,11 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
                       onClick={() => toggleDay(day.id)}
                       className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                         isSelected
-                          ? 'border-emerald-700 bg-emerald-950/80 text-emerald-300'
-                          : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:bg-zinc-800'
+                          ? 'border-emerald-700 bg-emerald-950/80 text-emerald-300 font-semibold'
+                          : 'border-[var(--border)] bg-[var(--muted)] text-[var(--card-foreground)] opacity-70 hover:opacity-100'
                       }`}
                     >
-                      {day.name}
+                      {dayName}
                     </button>
                   );
                 })}
@@ -384,21 +389,21 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
             {/* Pilihan Jam WIB */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-mono text-zinc-400 uppercase">Pilih Jam Eksekusi (WIB):</label>
+                <label className="text-xs font-mono text-zinc-400 uppercase">{t('set_schedule_hours_label')}</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setSelectedWibHours([9, 15, 21])}
                     className="text-[10px] font-mono text-emerald-400 hover:underline"
                   >
-                    Pagi, Siang & Malam (09, 15, 21)
+                    {t('set_schedule_hours_preset_label')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setSelectedWibHours([9])}
                     className="text-[10px] font-mono text-emerald-400 hover:underline"
                   >
-                    09:00 Pagi
+                    {t('set_schedule_hours_simple_label')}
                   </button>
                 </div>
               </div>
@@ -416,7 +421,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
                       className={`rounded-md border py-1.5 text-center font-mono text-xs transition-colors ${
                         isSelected
                           ? 'border-emerald-700 bg-emerald-950/80 text-emerald-300 font-bold'
-                          : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:bg-zinc-800'
+                          : 'border-[var(--border)] bg-[var(--muted)] text-[var(--card-foreground)] opacity-70 hover:opacity-100'
                       }`}
                     >
                       {formattedHour}
@@ -431,7 +436,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
 
       <div className="flex justify-end">
         <Button type="submit" disabled={saving} className="font-mono text-xs px-6 py-2.5">
-          {saving ? 'Menyimpan...' : 'Simpan Pengaturan'}
+          {saving ? t('set_schedule_save_saving') : t('set_schedule_save_label')}
         </Button>
       </div>
     </form>

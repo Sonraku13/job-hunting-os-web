@@ -1,9 +1,11 @@
 import { requireUser } from '@/lib/auth/require-user';
 import { createClient } from '@/lib/supabase/server';
 import { SettingsForm } from '@/components/dashboard/settings-form';
+import { SettingsHeader } from '@/components/dashboard/settings-header';
+import { DisplaySettingsCard } from '@/components/dashboard/display-settings-card';
 
 export const metadata = {
-  title: 'Pengaturan Pencarian | Job Hunting OS',
+  title: 'Pengaturan | Job Hunting OS',
 };
 
 export default async function SettingsPage() {
@@ -17,14 +19,9 @@ export default async function SettingsPage() {
     .single();
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Pengaturan Pencarian & Scraping</h1>
-        <p className="mt-1 text-sm text-zinc-400">
-          Atur kriteria lowongan incaran Anda dan jadwal otomatisasi pengambilan lowongan baru.
-        </p>
-      </div>
-
+    <div className="max-w-4xl space-y-6">
+      <SettingsHeader />
+      <DisplaySettingsCard />
       <SettingsForm initialSettings={userProfile || {}} />
     </div>
   );

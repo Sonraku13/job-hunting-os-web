@@ -86,9 +86,13 @@ export async function POST(request: Request) {
       applicantName: profile?.full_name || user.user_metadata?.full_name || 'Pelamar',
       currentRole: profile?.current_role || profile?.job_title,
       experienceYears: profile?.years_of_experience,
+      skills: profile?.skills && Array.isArray(profile.skills) ? profile.skills : null,
       summary: profile?.summary,
       careerGoals: profile?.career_goals,
       llmContext: profile?.llm_context,
+      phone: profile?.phone_number,
+      email: profile?.email_address || user.email,
+      preferredLanguage: profile?.ui_preferred_language || 'Indonesian',
     });
 
     // 6. Simpan hasil ke database

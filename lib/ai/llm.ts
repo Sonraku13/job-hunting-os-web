@@ -153,7 +153,7 @@ function cleanMarkdownSymbols(text: string): string {
   return text
     .replace(/\*\*(.*?)\*\*/g, '$1')
     .replace(/__(.*?)__/g, '$1')
-    .replace(/(^|[^\*])\*([^\*\n]+)\*/g, '$1$2')
+    .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1$2')
     .replace(/(^|[^_])_([^_\n]+)_/g, '$1$2')
     .replace(/^#+\s+/gm, '')
     .trim();
@@ -163,32 +163,56 @@ const ANTI_HALLUCINATION_RULES = `PERATURAN KETAT PENULISAN DOKUMEN (ANTI-AI SLO
 1. DILARANG KERAS MENGGUNAKAN SIMBOL MARKDOWN (seperti **, *, _, #). Tulis dalam teks polos (plain text) bersih yang rapi, seperti surat lamaran formal asli yang diketik profesional.
 2. HANYA gunakan fakta, skill, pengalaman, dan nama yang TERTULIS EKSPLISIT pada data pelamar.
 3. DILARANG KERAS MENGARANG: nama perusahaan lama fiktif, angka tahun pengalaman fiktif, metrik/angka palsu, atau sertifikasi yang tidak ada di profil pelamar.
-4. SPESIFIK & KONTEKSTUAL: Analisis kebutuhan unik dari Deskripsi Lowongan. Hubungkan pengalaman pelamar secara langsung dengan tantangan dan kebutuhan lowongan tersebut sehingga setiap surat untuk lowongan berbeda memiliki argumen unik dan relevan.
-5. ISOLASI TOTAL: Setiap tugas adalah entitas baru yang sepenuhnya terisolasi. JANGAN membawa konteks atau nama perusahaan dari lowongan lain.
-6. Hindari frasa klise AI (seperti "Saya sangat bersemangat untuk...", "Surat ini saya tulis...", "Melalui surat ini saya bermaksud..."). Langsung buka dengan perkenalan profesional, kompetensi utama yang relevan, dan nilai tambah konkret yang siap dibawa.`;
+4. TANGGAL HARI INI: Gunakan tanggal yang diberikan di prompt untuk penulisan tanggal surat. JANGAN mengarang atau menggunakan tahun yang salah (seperti 2025 jika tanggal saat ini adalah 2026).
+5. SPESIFIK & KONTEKSTUAL: Analisis kebutuhan unik dari Deskripsi Lowongan. Hubungkan pengalaman pelamar secara langsung dengan tantangan dan kebutuhan lowongan tersebut.
+6. ISOLASI TOTAL: Setiap tugas adalah entitas baru yang sepenuhnya terisolasi. JANGAN membawa konteks atau nama perusahaan dari lowongan lain.
+7. Hindari frasa klise AI. Langsung buka dengan perkenalan profesional, kompetensi utama yang relevan, dan nilai tambah konkret.`;
 
-export async function generateCoverLetter(params: {
+export interface GenerateCoverLetterParams {
   jobTitle: string;
   companyName: string;
   jobDescription?: string | null;
   applicantName?: string | null;
   currentRole?: string | null;
   experienceYears?: number | null;
+  skills?: string[] | null;
   summary?: string | null;
   careerGoals?: string | null;
   llmContext?: string | null;
-}): Promise<string> {
+  phone?: string | null;
+  email?: string | null;
+  preferredLanguage?: 'Indonesian' | 'English' | string | null;
+}
+
+export async function generateCoverLetter(params: GenerateCoverLetterParams): Promise<string> {
+  const isEnglish = params.preferredLanguage === 'English';
+  const now = new Date();
+  const formattedDate = now.toLocaleDateString(isEnglish ? 'en-US' : 'id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const langInstruction = isEnglish
+    ? 'Write a professional Cover Letter in ENGLISH. High level, persuasive, clean plain text without markdown symbols.'
+    : 'Tuliskan surat lamaran kerja (Cover Letter) profesional, tajam, dan persuasif dalam BAHASA INDONESIA (tanpa simbol markdown * atau **).';
+
   const prompt = `${ANTI_HALLUCINATION_RULES}
 
-Tuliskan surat lamaran kerja (Cover Letter) profesional, tajam, dan persuasif dalam Bahasa Indonesia (tanpa simbol markdown * atau **):
+${langInstruction}
+
+TANGGAL SEKARANG: ${formattedDate}
 
 DATA PELAMAR (HANYA GUNAKAN DATA INI):
 - Nama: ${params.applicantName || 'Pelamar'}
+- Kontak No. HP/WA: ${params.phone || 'Tidak dicantumkan'}
+- Email: ${params.email || 'Tidak dicantumkan'}
 - Posisi / Role Saat Ini: ${params.currentRole || 'Profesional'}
 - Pengalaman Kerja: ${params.experienceYears ? `${params.experienceYears} tahun` : 'Sesuai profil'}
+- Skills Utama: ${Array.isArray(params.skills) && params.skills.length > 0 ? params.skills.join(', ') : 'Sesuai profil'}
 - Ringkasan Bio Profil: ${params.summary || 'Memiliki latar belakang yang relevan'}
 - Target Karir: ${params.careerGoals || 'Memberikan kontribusi nyata dan berkembang bersama perusahaan'}
-- Catatan Personal / Tone: ${params.llmContext || 'Bahasa Indonesia profesional, percaya diri, elegan, to-the-point'}
+- Catatan Personal / Tone: ${params.llmContext || 'Profesional, percaya diri, elegan, to-the-point'}
 
 TARGET LOWONGAN:
 - Posisi: ${params.jobTitle}
@@ -196,7 +220,7 @@ TARGET LOWONGAN:
 - Deskripsi & Persyaratan Lowongan:
 ${params.jobDescription || 'Tidak ada deskripsi rinci.'}
 
-Format surat lengkap dan siap kirim (tanpa simbol bintang * atau tanda kurung siku placeholder).`;
+Wajib sertakan tanggal (${formattedDate}) dan kontak pelamar (HP & Email) pada header/footer surat lamaran dengan format yang rapi dan profesional.`;
 
   const { text } = await callWithFallback([
     {
@@ -210,25 +234,48 @@ Format surat lengkap dan siap kirim (tanpa simbol bintang * atau tanda kurung si
   return cleanMarkdownSymbols(text);
 }
 
-export async function generateApplicationEmail(params: {
+export interface GenerateApplicationEmailParams {
   jobTitle: string;
   companyName: string;
   jobDescription?: string | null;
   applicantName?: string | null;
   currentRole?: string | null;
   experienceYears?: number | null;
+  skills?: string[] | null;
   summary?: string | null;
   careerGoals?: string | null;
   llmContext?: string | null;
-}): Promise<string> {
+  phone?: string | null;
+  email?: string | null;
+  preferredLanguage?: 'Indonesian' | 'English' | string | null;
+}
+
+export async function generateApplicationEmail(params: GenerateApplicationEmailParams): Promise<string> {
+  const isEnglish = params.preferredLanguage === 'English';
+  const now = new Date();
+  const formattedDate = now.toLocaleDateString(isEnglish ? 'en-US' : 'id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const langInstruction = isEnglish
+    ? 'Write a cold job application email draft in ENGLISH. Concise, polite, persuasive.'
+    : 'Tuliskan DRAFT EMAIL LAMARAN KERJA (Cold Email) yang ringkas, sopan, dan persuasif dalam BAHASA INDONESIA.';
+
   const prompt = `${ANTI_HALLUCINATION_RULES}
 
-Tuliskan DRAFT EMAIL LAMARAN KERJA (Cold Email) yang ringkas, sopan, dan persuasif (tanpa simbol markdown * atau **).
+${langInstruction}
+
+TANGGAL SEKARANG: ${formattedDate}
 
 DATA PELAMAR (HANYA GUNAKAN DATA INI):
 - Nama: ${params.applicantName || 'Pelamar'}
+- Kontak No. HP/WA: ${params.phone || 'Tidak dicantumkan'}
+- Email: ${params.email || 'Tidak dicantumkan'}
 - Posisi / Role Saat Ini: ${params.currentRole || 'Profesional'}
 - Pengalaman: ${params.experienceYears ? `${params.experienceYears} tahun` : 'Sesuai profil'}
+- Skills: ${Array.isArray(params.skills) && params.skills.length > 0 ? params.skills.join(', ') : 'Sesuai profil'}
 - Ringkasan Profil: ${params.summary || 'Memiliki keahlian relevan'}
 - Tone Komunikasi: ${params.llmContext || 'Formal, sopan, efisien, to-the-point'}
 
@@ -241,7 +288,7 @@ ${params.jobDescription || 'Tidak ada deskripsi rinci.'}
 OUTPUT FORMAT:
 Subject: [Subjek Email yang jelas dan memikat]
 Body Email:
-[Isi email ringkas 3 paragraf: salam pembuka, nilai relevan pelamar terhadap posisi, lampiran CV/portofolio, dan salam penutup].`;
+[Isi email ringkas: salam pembuka, nilai relevan pelamar terhadap posisi, kontak HP/email & lampiran CV, dan salam penutup].`;
 
   const { text } = await callWithFallback([
     {
