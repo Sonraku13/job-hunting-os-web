@@ -22,7 +22,8 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
 
 3. Profil, Billing & Pengaturan User (`user_profiles`, `profiles`):
    - Dukungan role `ADMIN` dengan kuota unlimited di fungsi database `consume_usage` & `QUOTA_LIMITS`.
-   - Halaman `/billing` dengan statistik penggunaan kuota harian & informasi paket (FREE, PAID, ADMIN).
+   - Halaman `/billing` lengkap dengan statistik kuota, paket Rp 25.000/bulan, instruksi Transfer BCA (`1040669015` a/n YUSUF WIBISONO) & QRIS.
+   - Tombol konfirmasi otomatis ke WhatsApp Admin (`089617581900`) dengan template email akun & bukti transfer.
    - Memecah UI menjadi dua halaman:
      - `/profile`: Identitas diri, Ringkasan, Pengalaman, dan LLM Context (gaya bahasa AI).
      - `/settings`: Preferensi kerja (lokasi, remote, job titles) dan jadwal cron auto-scraping (WIB ke UTC).
