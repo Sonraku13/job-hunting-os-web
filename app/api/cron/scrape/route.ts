@@ -116,6 +116,14 @@ export async function GET(request: Request) {
           return null;
         };
 
+        const cleanRawDescription = (text: string): string => {
+          if (!text) return '';
+          return text
+            .replace(/<[^>]*>?/gm, '')
+            .replace(/\n\s*\n/g, '\n\n')
+            .trim();
+        };
+
         // Insert hasil ke saved_jobs
         const jobsToInsert = collected.slice(0, 15).map((job) => ({
           user_id: user.user_id,
@@ -124,6 +132,7 @@ export async function GET(request: Request) {
           job_url: pick(job, ['url', 'job_url', 'link', 'apply_url', 'applyUrl']),
           external_job_id: pick(job, ['id', 'job_id', 'external_id', 'externalId', 'jobId']),
           location: pick(job, ['location', 'job_location', 'city', 'region']) || (job._scraped_location as string) || null,
+          job_description: cleanRawDescription(pick(job, ['description', 'job_description', 'jobDescription', 'snippet', 'summary', 'details']) || `Lowongan di ${pick(job, ['company', 'company_name']) || 'perusahaan'}. Lihat detail via URL.`),
           source: 'LinkedIn Auto',
           status: 'discover',
         }));

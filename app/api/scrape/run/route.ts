@@ -4,6 +4,14 @@ import { NextResponse } from 'next/server';
 const ZAPI_KEY = process.env.ZAPI_API_KEY || '';
 const ZAPI_BASE = 'https://api.zapi.ink/v1';
 
+function cleanRawDescription(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/<[^>]*>?/gm, '') // Hapus tag HTML jika ada
+    .replace(/\n\s*\n/g, '\n\n') // Rapikan baris kosong berlebih
+    .trim();
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
@@ -275,7 +283,7 @@ export async function POST(request: Request) {
         location: formatLocation(j, String(j._scraped_location || 'Unknown')),
         job_type: pick(j, ['employmentType', 'job_type', 'type', 'employment_type', 'work_arrangement', 'workArrangement']),
         salary_range: formatSalary(j),
-        job_description: pick(j, ['description', 'job_description', 'jobDescription', 'snippet', 'summary', 'details']) || `Lowongan ${pick(j, ['title', 'job_title']) || ''} di ${pick(j, ['company', 'company_name']) || 'perusahaan'}. Lihat detail via URL.`,
+        job_description: cleanRawDescription(pick(j, ['description', 'job_description', 'jobDescription', 'snippet', 'summary', 'details']) || `Lowongan ${pick(j, ['title', 'job_title']) || ''} di ${pick(j, ['company', 'company_name']) || 'perusahaan'}. Lihat detail via URL.`),
         external_job_id: externalId,
         source: portal === 'linkedin' ? 'LinkedIn' : 'Jobstreet',
         status: 'discover',

@@ -16,6 +16,7 @@ export interface MatchScoreBreakdown {
 }
 
 export interface SavedJob {
+  description_cleaned?: string | null;
   id: string;
   job_title: string;
   company_name: string;
@@ -77,6 +78,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
 
   const [modalData, setModalData] = useState<{ title: string; content: string } | null>(null);
   const [scoreModal, setScoreModal] = useState<{ job: SavedJob; result: MatchScoreBreakdown } | null>(null);
+  const [jobDetailModal, setJobDetailModal] = useState<{ job: SavedJob } | null>(null);
   const { showToast } = useToast();
 
   const handleStatusChange = async (jobId: string, newStatus: JobStatus) => {
@@ -210,6 +212,10 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const handleOpenJobDetail = (job: SavedJob) => {
+    setJobDetailModal({ job });
   };
 
   const filteredJobs = jobs.filter((job) => {
@@ -414,7 +420,11 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
             const matchScore = scoreById[job.id]?.score ?? job.match_score;
 
             return (
-              <div key={job.id} className="p-5 transition-colors hover:bg-zinc-100/70 dark:hover:bg-zinc-900/30">
+              <div
+                key={job.id}
+                onClick={() => handleOpenJobDetail(job)}
+                className="p-5 transition-colors hover:bg-zinc-100/70 dark:hover:bg-zinc-900/30 cursor-pointer"
+              >
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-1 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -449,7 +459,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                   </div>
 
                   {/* Actions & Status Dropdown */}
-                  <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto">
+                  <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto" onClick={(e) => e.stopPropagation()}>
                     {/* Status Dropdown */}
                     <div className="relative inline-block">
                       <select
@@ -469,7 +479,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                     {/* Action: Match Score (Analyse) */}
                     <Button
                       variant="ghost"
-                      onClick={() => handleMatchScore(job)}
+                      onClick={(e) => { e.stopPropagation(); handleMatchScore(job); }}
                       disabled={loadingActionId === `score-${job.id}`}
                       className="font-mono text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/30 flex items-center gap-1.5"
                     >
@@ -486,7 +496,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                     {/* Action: Cover Letter */}
                     <Button
                       variant="ghost"
-                      onClick={() => handleCoverLetter(job)}
+                      onClick={(e) => { e.stopPropagation(); handleCoverLetter(job); }}
                       disabled={loadingActionId === `letter-${job.id}`}
                       className="font-mono text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/30 flex items-center gap-1.5"
                     >
@@ -503,7 +513,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                     {/* Action: Email Draft */}
                     <Button
                       variant="ghost"
-                      onClick={() => handleEmailDraft(job)}
+                      onClick={(e) => { e.stopPropagation(); handleEmailDraft(job); }}
                       disabled={loadingActionId === `email-${job.id}`}
                       className="font-mono text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-950/30 flex items-center gap-1.5"
                     >
@@ -517,23 +527,13 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       )}
                     </Button>
 
-                    {/* Job Details Expansion */}
-                    {job.job_description && (
-                      <Button
-                        variant="ghost"
-                        onClick={() => setExpandedId(isExpanded ? null : job.id)}
-                        className="font-mono text-xs text-zinc-400"
-                      >
-                        {isExpanded ? t('dash_action_close') : t('dash_action_details')}
-                      </Button>
-                    )}
-
                     {/* URL Link */}
                     {job.job_url && (
                       <a
                         href={job.job_url}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
                         className="inline-flex items-center rounded border border-zinc-700 bg-zinc-800/80 px-2.5 py-1.5 font-mono text-xs text-zinc-200 transition-colors hover:bg-zinc-700"
                       >
                         URL
@@ -543,7 +543,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                     {/* Delete Button */}
                     <Button
                       variant="ghost"
-                      onClick={() => handleDelete(job.id)}
+                      onClick={(e) => { e.stopPropagation(); handleDelete(job.id); }}
                       disabled={deletingId === job.id}
                       className="font-mono text-xs text-red-400 hover:text-red-300 hover:bg-red-950/30"
                     >
@@ -551,12 +551,6 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                     </Button>
                   </div>
                 </div>
-
-                {isExpanded && job.job_description && (
-                  <div className="mt-4 rounded-lg bg-[var(--muted)] border border-[var(--border)] p-4 font-sans text-xs leading-relaxed text-[var(--card-foreground)] whitespace-pre-wrap">
-                    {job.job_description}
-                  </div>
-                )}
               </div>
             );
           })}
@@ -648,6 +642,71 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
 
             <div className="mt-6 flex justify-end">
               <Button variant="outline" onClick={() => setScoreModal(null)} className="font-mono text-xs">
+                {t('dash_action_close')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Detail Lowongan */}
+      {jobDetailModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+          onClick={() => setJobDetailModal(null)}
+        >
+          <div
+            className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-xl bg-[var(--card)] border border-[var(--border)] p-6 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between pb-4 border-b border-[var(--border)]">
+              <div>
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                  {jobDetailModal.job.job_title}
+                </h3>
+                <p className="text-sm font-medium text-emerald-500">
+                  {jobDetailModal.job.company_name}
+                </p>
+                <div className="flex flex-wrap gap-3 font-mono text-xs text-zinc-500 pt-2">
+                  {jobDetailModal.job.location && <span>📍 {jobDetailModal.job.location}</span>}
+                  {jobDetailModal.job.salary_range && <span>💰 {jobDetailModal.job.salary_range}</span>}
+                  {jobDetailModal.job.job_type && <span>💼 {jobDetailModal.job.job_type}</span>}
+                  <span className="rounded bg-[var(--muted)] px-2 py-0.5 text-[10px] text-zinc-400 uppercase">
+                    {jobDetailModal.job.source}
+                  </span>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                onClick={() => setJobDetailModal(null)}
+                className="text-zinc-400 font-mono text-xs"
+              >
+                ✕
+              </Button>
+            </div>
+
+            <div className="my-4 flex-1 overflow-y-auto pr-1 font-sans text-xs leading-relaxed text-[var(--card-foreground)] space-y-3 whitespace-pre-wrap">
+              {jobDetailModal.job.job_description || 'Deskripsi pekerjaan tidak tersedia.'}
+            </div>
+
+            <div className="pt-4 border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap gap-2">
+                {jobDetailModal.job.job_url && (
+                  <a
+                    href={jobDetailModal.job.job_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center rounded border border-zinc-700 bg-zinc-800/80 px-3 py-1.5 font-mono text-xs text-zinc-200 transition-colors hover:bg-zinc-700"
+                  >
+                    Buka URL Portal
+                  </a>
+                )}
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setJobDetailModal(null)}
+                className="font-mono text-xs"
+              >
                 {t('dash_action_close')}
               </Button>
             </div>

@@ -386,50 +386,11 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
               </div>
             </div>
 
-            {/* Pilihan Jam WIB */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-mono text-zinc-400 uppercase">{t('set_schedule_hours_label')}</label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedWibHours([9, 15, 21])}
-                    className="text-[10px] font-mono text-emerald-400 hover:underline"
-                  >
-                    {t('set_schedule_hours_preset_label')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedWibHours([9])}
-                    className="text-[10px] font-mono text-emerald-400 hover:underline"
-                  >
-                    {t('set_schedule_hours_simple_label')}
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                {Array.from({ length: 24 }).map((_, hour) => {
-                  const isSelected = selectedWibHours.includes(hour);
-                  const formattedHour = `${hour.toString().padStart(2, '0')}:00 WIB`;
-
-                  return (
-                    <button
-                      key={hour}
-                      type="button"
-                      onClick={() => toggleHour(hour)}
-                      className={`rounded-md border py-1.5 text-center font-mono text-xs transition-colors ${
-                        isSelected
-                          ? 'border-emerald-700 bg-emerald-950/80 text-emerald-300 font-bold'
-                          : 'border-[var(--border)] bg-[var(--muted)] text-[var(--card-foreground)] opacity-70 hover:opacity-100'
-                      }`}
-                    >
-                      {formattedHour}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <p className="text-xs text-zinc-500 font-mono">
+              {language === 'id'
+                ? 'ℹ️ Auto-scrape dijalankan otomatis 1 kali sehari di pagi hari.'
+                : 'ℹ️ Auto-scrape runs automatically once daily in the morning.'}
+            </p>
           </div>
         )}
       </Card>
