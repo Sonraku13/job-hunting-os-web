@@ -181,6 +181,7 @@ export interface GenerateCoverLetterParams {
   llmContext?: string | null;
   phone?: string | null;
   email?: string | null;
+  portfolio_url?: string | null;
   preferredLanguage?: 'Indonesian' | 'English' | string | null;
 }
 
@@ -194,8 +195,8 @@ export async function generateCoverLetter(params: GenerateCoverLetterParams): Pr
   });
 
   const langInstruction = isEnglish
-    ? 'Write a professional Cover Letter in ENGLISH. High level, persuasive, clean plain text without markdown symbols.'
-    : 'Tuliskan surat lamaran kerja (Cover Letter) profesional, tajam, dan persuasif dalam BAHASA INDONESIA (tanpa simbol markdown * atau **).';
+    ? 'Write a professional Cover Letter in ENGLISH. Keep it strictly concise to 1-2 paragraphs only. High level, persuasive, clean plain text without markdown symbols.'
+    : 'Tuliskan surat lamaran kerja (Cover Letter) profesional yang SANGAT RINGKAS DAN PADAT (hanya 1-2 paragraf saja). Tulis dalam BAHASA INDONESIA (tanpa simbol markdown * atau **).';
 
   const prompt = `${ANTI_HALLUCINATION_RULES}
 
@@ -207,6 +208,7 @@ DATA PELAMAR (HANYA GUNAKAN DATA INI):
 - Nama: ${params.applicantName || 'Pelamar'}
 - Kontak No. HP/WA: ${params.phone || 'Tidak dicantumkan'}
 - Email: ${params.email || 'Tidak dicantumkan'}
+- Link Portfolio: ${params.portfolio_url || 'Tidak ada'}
 - Posisi / Role Saat Ini: ${params.currentRole || 'Profesional'}
 - Pengalaman Kerja: ${params.experienceYears ? `${params.experienceYears} tahun` : 'Sesuai profil'}
 - Skills Utama: ${Array.isArray(params.skills) && params.skills.length > 0 ? params.skills.join(', ') : 'Sesuai profil'}
@@ -220,7 +222,10 @@ TARGET LOWONGAN:
 - Deskripsi & Persyaratan Lowongan:
 ${params.jobDescription || 'Tidak ada deskripsi rinci.'}
 
-Wajib sertakan tanggal (${formattedDate}) dan kontak pelamar (HP & Email) pada header/footer surat lamaran dengan format yang rapi dan profesional.`;
+ATURAN TAMBAHAN:
+1. Batasi panjang teks utama surat hanya 1-2 paragraf padat. Jangan bertele-tele.
+2. WAJIB CANTUMKAN Link Portfolio pelamar (jika ada) di dalam surat secara natural.
+3. Wajib sertakan tanggal (${formattedDate}) dan kontak pelamar (HP & Email) pada header/footer surat lamaran dengan format yang rapi dan profesional.`;
 
   const { text } = await callWithFallback([
     {
@@ -247,6 +252,7 @@ export interface GenerateApplicationEmailParams {
   llmContext?: string | null;
   phone?: string | null;
   email?: string | null;
+  portfolio_url?: string | null;
   preferredLanguage?: 'Indonesian' | 'English' | string | null;
 }
 
@@ -260,8 +266,8 @@ export async function generateApplicationEmail(params: GenerateApplicationEmailP
   });
 
   const langInstruction = isEnglish
-    ? 'Write a cold job application email draft in ENGLISH. Concise, polite, persuasive.'
-    : 'Tuliskan DRAFT EMAIL LAMARAN KERJA (Cold Email) yang ringkas, sopan, dan persuasif dalam BAHASA INDONESIA.';
+    ? 'Write a cold job application email draft in ENGLISH. Strictly concise to 1-2 short paragraphs. Polite, persuasive.'
+    : 'Tuliskan DRAFT EMAIL LAMARAN KERJA (Cold Email) yang SANGAT RINGKAS (1-2 paragraf saja), sopan, dan persuasif dalam BAHASA INDONESIA.';
 
   const prompt = `${ANTI_HALLUCINATION_RULES}
 
@@ -273,8 +279,9 @@ DATA PELAMAR (HANYA GUNAKAN DATA INI):
 - Nama: ${params.applicantName || 'Pelamar'}
 - Kontak No. HP/WA: ${params.phone || 'Tidak dicantumkan'}
 - Email: ${params.email || 'Tidak dicantumkan'}
+- Link Portfolio: ${params.portfolio_url || 'Tidak ada'}
 - Posisi / Role Saat Ini: ${params.currentRole || 'Profesional'}
-- Pengalaman: ${params.experienceYears ? `${params.experienceYears} tahun` : 'Sesuai profil'}
+- Pengalaman: ${params.experienceYears ? `${params.experienceYears} length` : 'Sesuai profil'}
 - Skills: ${Array.isArray(params.skills) && params.skills.length > 0 ? params.skills.join(', ') : 'Sesuai profil'}
 - Ringkasan Profil: ${params.summary || 'Memiliki keahlian relevan'}
 - Tone Komunikasi: ${params.llmContext || 'Formal, sopan, efisien, to-the-point'}
@@ -288,7 +295,7 @@ ${params.jobDescription || 'Tidak ada deskripsi rinci.'}
 OUTPUT FORMAT:
 Subject: [Subjek Email yang jelas dan memikat]
 Body Email:
-[Isi email ringkas: salam pembuka, nilai relevan pelamar terhadap posisi, kontak HP/email & lampiran CV, dan salam penutup].`;
+[Isi email ringkas (1-2 paragraf max): salam pembuka, nilai relevan pelamar terhadap posisi, dan SELALU cantumkan Link Portfolio jika ada, kontak HP/email & lampiran CV, serta salam penutup].`;
 
   const { text } = await callWithFallback([
     {

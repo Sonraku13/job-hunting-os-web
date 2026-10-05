@@ -92,6 +92,7 @@ export async function POST(request: Request) {
       llmContext: profile?.llm_context,
       phone: profile?.phone_number,
       email: profile?.email_address || user.email,
+      portfolio_url: profile?.portfolio_url,
       preferredLanguage: profile?.ui_preferred_language || 'Indonesian',
     });
 
