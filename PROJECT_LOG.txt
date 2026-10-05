@@ -111,6 +111,11 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
      - Selalu menyertakan link portfolio dari profil pengguna.
    - Print / Export PDF Native Cover Letter / Email (window.print).
    - Mini Analytics & Motivasi Dashboard (Stats Cards: Lamaran, Match Score, Lowongan).
+   - Interactive Job Detail Modal & Raw Description Cleaning (2026-10-06):
+     - Membuka modal detail popup full saat kartu lowongan diklik.
+     - Melakukan sanitisasi/pembersihan teks HTML & whitespace dari ZAPI (`cleanRawDescription`).
+     - Menyimpan & menampilkan deskripsi lengkap tanpa membebankan storage DB/Supabase.
+     - Menyederhanakan form pengaturan jadwal di `/settings` (menghapus UI jam spesifik & menambah catatan informatif).
 
 -------------------------------------------
 
