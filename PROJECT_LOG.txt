@@ -104,22 +104,20 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
 
 -------------------------------------------
 
-8. Planned & In-Progress Priority Fixes (2026-10-05):
+8. Planned & In-Progress Priority Fixes (2026-10-05) - COMPLETED:
    - Fix Auto-Scraper Schedule: Audit `vercel.json`, `CRON_SECRET`, dan konversi WIB/UTC di `/api/cron/scrape` agar scraping terjadwal aktif berjalan.
    - Refine AI Generation Prompt (Cover Letter & Email):
      - Output ringkas padat 1-2 paragraf.
      - Selalu menyertakan link portfolio dari profil pengguna.
+   - Print / Export PDF Native Cover Letter / Email (window.print).
+   - Mini Analytics & Motivasi Dashboard (Stats Cards: Lamaran, Match Score, Lowongan).
 
 -------------------------------------------
 
 [ FUTURE UPDATES - ROADMAP & TODOs ]
 
 # Phase 1: Quick Wins (Paling Mudah & Dampak Langsung)
-1. Print / Export PDF Native Cover Letter:
-   - Tombol "Download PDF" di modal Cover Letter menggunakan `window.print()` + CSS `@media print`.
-   - Tanpa library tambahan, instan menghasilkan PDF rapi untuk dikirim ke HRD.
-
-2. Smart Quick-Paste Job (Universal Input):
+1. Smart Quick-Paste Job (Universal Input):
    - Modal "+ Quick Paste" di Dashboard dengan:
      - Input Teks/Caption (wajib) + Link Asal Trackback (opsional).
      - Upload / Paste Gambar (JPG, PNG, WebP) -> Gemini Vision OCR.
@@ -127,11 +125,9 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
    - Backend: 1 endpoint baru `/api/jobs/parse` memakai Gemini untuk ekstraksi data terstruktur.
    - Otomatis simpan ke `saved_jobs` & siap generate Cover Letter/Email.
 
-3. Quick Action Buttons (1-Klik Kirim Lamaran):
+2. Quick Action Buttons (1-Klik Kirim Lamaran):
    - Di kartu lowongan: Tombol "Chat WA", "Kirim Email", "Buka Form" muncul otomatis jika kontak terdeteksi.
    - Pre-fill pesan WA & draft Email via AI yang sudah ada.
-
-4. Mini Analytics & Motivasi:
    - Stat cards di atas Dashboard: "Lamaran Minggu Ini", "Avg Match Score", "Lowongan Tersurvei".
    - Query `COUNT` sederhana ke Supabase, tanpa tabel baru.
 

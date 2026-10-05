@@ -243,6 +243,49 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
     }
   };
 
+  const handlePrint = (title: string, content: string) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${title}</title>
+          <style>
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+              padding: 40px; 
+              line-height: 1.6; 
+              color: #111; 
+              max-width: 800px; 
+              margin: 0 auto; 
+              white-space: pre-wrap; 
+              font-size: 14px; 
+            }
+            h2 { 
+              margin-bottom: 20px; 
+              font-size: 18px; 
+              border-bottom: 1px solid #ccc; 
+              padding-bottom: 8px; 
+            }
+            @media print { body { padding: 0; } }
+          </style>
+        </head>
+        <body>
+          <h2>${title}</h2>
+          <div>${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.close();
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   return (
     <>
       <div className="space-y-4">
@@ -537,6 +580,13 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
             </div>
             <div className="mt-4 flex justify-end gap-2">
               <Button variant="outline" onClick={() => setModalData(null)} className="font-mono text-xs">{t('dash_action_close')}</Button>
+              <Button
+                variant="outline"
+                onClick={() => handlePrint(modalData.title, modalData.content)}
+                className="font-mono text-xs"
+              >
+                {t('dash_print_pdf')}
+              </Button>
               <Button
                 variant="default"
                 onClick={() => {
