@@ -105,7 +105,7 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
 -------------------------------------------
 
 8. Planned & In-Progress Priority Fixes (2026-10-05) - COMPLETED:
-   - Fix Auto-Scraper Schedule: Audit `vercel.json`, `CRON_SECRET`, dan konversi WIB/UTC di `/api/cron/scrape` agar scraping terjadwal aktif berjalan.
+   - Fix Auto-Scraper Schedule: Disesuaikan dengan batas Vercel Hobby Plan (1x/hari jam 01:00 UTC / 08:00 WIB di `vercel.json` dan hapus filter jam spesifik di `/api/cron/scrape`).
    - Refine AI Generation Prompt (Cover Letter & Email):
      - Output ringkas padat 1-2 paragraf.
      - Selalu menyertakan link portfolio dari profil pengguna.

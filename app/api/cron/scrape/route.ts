@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-// Route ini dipanggil oleh Vercel Cron setiap jam
+// Route ini dipanggil oleh Vercel Cron sekali sehari (Hobby Plan limitation)
 export const dynamic = 'force-dynamic';
 
 const ZAPI_KEY = process.env.ZAPI_API_KEY || '';
@@ -27,13 +27,13 @@ export async function GET(request: Request) {
   const currentHour = now.getUTCHours(); // Asumsi server UTC, sesuaikan dengan timezone target jika perlu
 
   try {
-    // 1. Cari user yang jadwalnya cocok dengan jam & hari ini
+    // 1. Cari user yang jadwalnya cocok dengan hari ini
+    // Karena Vercel Hobby hanya bisa 1x sehari, kita abaikan filter scrape_hours
     const { data: users, error } = await supabase
       .from('user_profiles')
       .select('user_id, target_job_titles, target_locations')
       .eq('scrape_active', true)
-      .contains('scrape_days', [currentDay])
-      .contains('scrape_hours', [currentHour]);
+      .contains('scrape_days', [currentDay]);
 
     if (error || !users || users.length === 0) {
       return NextResponse.json({ message: 'Tidak ada jadwal scraping saat ini' });
