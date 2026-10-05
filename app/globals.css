@@ -3,25 +3,25 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #090a0f;
-  --foreground: #f1f3f5;
-  --card: #111318;
-  --card-foreground: #f1f3f5;
-  --card-muted: #94a3b8;
-  --border: #22252e;
-  --muted: #181b22;
-  --accent: #22252e;
+  --background: #FFFFFF;
+  --foreground: #0C0B1E;
+  --card: #FFFFFF;
+  --card-foreground: #0C0B1E;
+  --card-muted: #F1F0FF;
+  --border: #C1EF7B;
+  --muted: #F1F0FF;
+  --accent: #C1EF7B;
 }
 
 :root.light {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --card-muted: #475569;
-  --border: #cbd5e1;
-  --muted: #f1f5f9;
-  --accent: #e2e8f0;
+  --background: #FFFFFF;
+  --foreground: #0C0B1E;
+  --card: #FFFFFF;
+  --card-foreground: #0C0B1E;
+  --card-muted: #F1F0FF;
+  --border: #C1EF7B;
+  --muted: #F1F0FF;
+  --accent: #C1EF7B;
 }
 
 @theme inline {
@@ -31,13 +31,24 @@
   --color-card-foreground: var(--card-foreground);
   --color-border: var(--border);
   --color-muted: var(--muted);
-  --font-sans: var(--font-geist-sans);
+  --color-accent: var(--accent);
+  
+  /* Pepelsbey design calls for sharp 2px corners */
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+  --radius-3xl: 2px;
+
+  --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-geist-mono);
+  --font-display: "Neue Machina", var(--font-inter), sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
   transition: background-color 0.2s ease, color 0.2s ease;
 }

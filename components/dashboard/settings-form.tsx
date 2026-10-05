@@ -192,12 +192,12 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
               {selectedLocations.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {selectedLocations.map((loc) => (
-                    <span key={loc} className="inline-flex items-center gap-1 rounded bg-emerald-950/80 border border-emerald-700 px-2.5 py-1 text-xs text-emerald-300">
+                    <span key={loc} className="inline-flex items-center gap-1 rounded-sm bg-[#C1EF7B] border border-[#a5df48] px-2.5 py-1 text-xs text-[#0C0B1E] font-medium">
                       {loc}
                       <button
                         type="button"
                         onClick={() => toggleLocation(loc)}
-                        className="ml-1 hover:text-emerald-100"
+                        className="ml-1 hover:opacity-75"
                       >
                         ✕
                       </button>
@@ -207,19 +207,19 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
               )}
 
               {/* Dropdown options */}
-              <div className="max-h-60 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--card)] p-2">
+              <div className="max-h-60 overflow-y-auto rounded-sm border border-[var(--border)] bg-[var(--card)] p-2">
                 {filteredOptions.map((opt) => (
                   <label
                     key={opt.value}
-                    className={`flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer rounded hover:bg-[var(--muted)] ${
-                      selectedLocations.includes(opt.value) ? 'text-emerald-500 font-medium' : 'text-[var(--card-foreground)]'
+                    className={`flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer rounded-sm hover:bg-[var(--muted)] ${
+                      selectedLocations.includes(opt.value) ? 'text-[#0C0B1E] font-semibold bg-[#F1F0FF]' : 'text-[var(--card-foreground)]'
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={selectedLocations.includes(opt.value)}
                       onChange={() => toggleLocation(opt.value)}
-                      className="w-4 h-4 rounded border-zinc-700 text-emerald-500 focus:ring-emerald-500"
+                      className="w-4 h-4 rounded-sm border-zinc-300 text-[#0C0B1E] focus:ring-[#C1EF7B]"
                     />
                     <span>{opt.label}</span>
                   </label>
@@ -336,7 +336,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
               onChange={(e) => setScrapeActive(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+            <div className="w-11 h-6 bg-zinc-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-[#0C0B1E] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#C1EF7B]"></div>
           </label>
         </div>
 
@@ -350,14 +350,14 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
                   <button
                     type="button"
                     onClick={() => setSelectedDays([1, 2, 3, 4, 5])}
-                    className="text-[10px] font-mono text-emerald-400 hover:underline"
+                    className="text-[10px] font-mono text-[#0C0B1E] hover:underline"
                   >
                     {t('set_schedule_days_all_label')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setSelectedDays([1, 2, 3, 4, 5, 6, 7])}
-                    className="text-[10px] font-mono text-emerald-400 hover:underline"
+                    className="text-[10px] font-mono text-[#0C0B1E] hover:underline"
                   >
                     {t('set_schedule_days_every_label')}
                   </button>
@@ -373,9 +373,9 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
                       key={day.id}
                       type="button"
                       onClick={() => toggleDay(day.id)}
-                      className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                      className={`rounded-sm border px-3 py-1.5 text-xs font-medium transition-colors ${
                         isSelected
-                          ? 'border-emerald-700 bg-emerald-950/80 text-emerald-300 font-semibold'
+                          ? 'border-[#a5df48] bg-[#C1EF7B] text-[#0C0B1E] font-semibold'
                           : 'border-[var(--border)] bg-[var(--muted)] text-[var(--card-foreground)] opacity-70 hover:opacity-100'
                       }`}
                     >

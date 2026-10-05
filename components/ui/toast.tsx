@@ -38,10 +38,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           <div
             key={toast.id}
             className={cn(
-              'animate-in fade-in slide-in-from-top-5 duration-300 pointer-events-auto rounded border px-4 py-3 shadow-lg font-mono text-xs',
-              toast.type === 'success' && 'bg-emerald-950/90 border-emerald-900 text-emerald-400',
-              toast.type === 'error' && 'bg-red-950/90 border-red-900 text-red-400',
-              toast.type === 'info' && 'bg-zinc-900/90 border-zinc-800 text-zinc-300'
+              'animate-in fade-in slide-in-from-top-5 duration-200 pointer-events-auto rounded-sm border px-4 py-3 shadow-sm font-mono text-xs',
+              toast.type === 'success' && 'bg-[#0C0B1E]/95 border-[#C1EF7B] text-[#C1EF7B]',
+              toast.type === 'error' && 'bg-red-950/95 border-red-900 text-red-400',
+              toast.type === 'info' && 'bg-[#0C0B1E]/95 border-zinc-800 text-[#F1F0FF]'
             )}
           >
             {toast.message}

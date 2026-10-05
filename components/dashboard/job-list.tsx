@@ -35,11 +35,11 @@ export interface SavedJob {
 }
 
 const STATUS_CONFIG: Record<JobStatus, { label: string; badgeClass: string }> = {
-  discover: { label: 'Discover', badgeClass: 'bg-zinc-800 text-zinc-300 border-zinc-700' },
-  analyse: { label: 'Analyse', badgeClass: 'bg-indigo-950/60 text-indigo-300 border-indigo-800' },
-  apply: { label: 'Apply', badgeClass: 'bg-emerald-950/60 text-emerald-300 border-emerald-800' },
-  refuse: { label: 'Refuse', badgeClass: 'bg-rose-950/60 text-rose-300 border-rose-800' },
-  archive: { label: 'Archive', badgeClass: 'bg-zinc-900 text-zinc-500 border-zinc-800' },
+  discover: { label: 'Discover', badgeClass: 'bg-[#F1F0FF] text-[#0C0B1E] border-[#C1EF7B]' },
+  analyse: { label: 'Analyse', badgeClass: 'bg-indigo-50 text-indigo-900 border-indigo-200' },
+  apply: { label: 'Apply', badgeClass: 'bg-[#C1EF7B] text-[#0C0B1E] border-[#a5df48] font-bold' },
+  refuse: { label: 'Refuse', badgeClass: 'bg-rose-50 text-rose-800 border-rose-200' },
+  archive: { label: 'Archive', badgeClass: 'bg-zinc-100 text-zinc-500 border-zinc-200' },
 };
 
 export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
@@ -498,7 +498,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       variant="ghost"
                       onClick={(e) => { e.stopPropagation(); handleCoverLetter(job); }}
                       disabled={loadingActionId === `letter-${job.id}`}
-                      className="font-mono text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/30 flex items-center gap-1.5"
+                      className="font-mono text-xs text-[#C1EF7B] hover:text-[#b0e865] hover:bg-[#F1F0FF] flex items-center gap-1.5"
                     >
                       {loadingActionId === `letter-${job.id}` ? (
                         <>

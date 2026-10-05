@@ -34,19 +34,19 @@ export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
   const waLink = `https://wa.me/6289617581900?text=${waMessage}`;
 
   return (
-    <Card className="border-emerald-900/50 bg-gradient-to-b from-zinc-950 to-zinc-900/80">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-zinc-800 pb-5">
+    <Card className="border-[var(--border)] bg-[var(--card)]">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-[var(--border)] pb-5">
         <div>
-          <span className="inline-block rounded-full bg-emerald-950 border border-emerald-700/80 px-3 py-1 font-mono text-xs text-emerald-400 font-semibold mb-2">
+          <span className="inline-block rounded-sm bg-[#C1EF7B] border border-[#a5df48] px-3 py-1 font-mono text-xs text-[#0C0B1E] font-semibold mb-2">
             PRO PLAN • UNLIMITED PRODUCTIVITY
           </span>
-          <h2 className="text-2xl font-bold tracking-tight text-zinc-100">Upgrade ke Paket Pro</h2>
-          <p className="text-sm text-zinc-400 mt-1">
+          <h2 className="text-2xl font-bold tracking-tight text-[var(--card-foreground)]">Upgrade ke Paket Pro</h2>
+          <p className="text-sm text-zinc-500 mt-1">
             Dapatkan kuota scraping & AI ekstra besar untuk mencari kerja secara intensif
           </p>
         </div>
         <div className="text-left md:text-right">
-          <div className="text-3xl font-extrabold text-emerald-400">{price}</div>
+          <div className="text-3xl font-extrabold text-[#0C0B1E]">{price}</div>
           <div className="text-xs text-zinc-500 font-mono">/ bulan (akses 30 hari)</div>
         </div>
       </div>
@@ -54,29 +54,29 @@ export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
         {/* Kolom Kiri: Keuntungan Paket */}
         <div className="space-y-4">
-          <h3 className="font-semibold text-sm text-zinc-200">Keuntungan Paket Pro:</h3>
-          <ul className="space-y-2.5 font-mono text-xs text-zinc-300">
+          <h3 className="font-semibold text-sm text-[var(--card-foreground)]">Keuntungan Paket Pro:</h3>
+          <ul className="space-y-2.5 font-mono text-xs text-zinc-600">
             <li className="flex items-center gap-2">
-              <span className="text-emerald-400 font-bold">✓</span>
+              <span className="text-[#0C0B1E] font-bold">✓</span>
               <span><strong>AI Kuota:</strong> 100x / hari (Match Score, Cover Letter, Email)</span>
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-emerald-400 font-bold">✓</span>
+              <span className="text-[#0C0B1E] font-bold">✓</span>
               <span><strong>Scraping Kuota:</strong> 50x / hari (LinkedIn & Jobstreet)</span>
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-emerald-400 font-bold">✓</span>
+              <span className="text-[#0C0B1E] font-bold">✓</span>
               <span>Bisa pantau semua portal lowongan tanpa batas</span>
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-emerald-400 font-bold">✓</span>
+              <span className="text-[#0C0B1E] font-bold">✓</span>
               <span>Auto-scraping harian via Cron scheduler aktif</span>
             </li>
           </ul>
 
-          <div className="rounded-lg bg-zinc-900/90 border border-zinc-800 p-3.5 mt-4">
-            <div className="text-xs font-semibold text-zinc-300 mb-1">Alur Pembayaran:</div>
-            <ol className="list-decimal list-inside space-y-1 text-xs text-zinc-400 font-mono">
+          <div className="rounded-sm bg-[var(--muted)] border border-[var(--border)] p-3.5 mt-4">
+            <div className="text-xs font-semibold text-[#0C0B1E] mb-1">Alur Pembayaran:</div>
+            <ol className="list-decimal list-inside space-y-1 text-xs text-zinc-600 font-mono">
               <li>Pilih transfer BCA atau scan QRIS</li>
               <li>Lakukan pembayaran sebesar <strong>{price}</strong></li>
               <li>Klik tombol konfirmasi WhatsApp di bawah</li>
@@ -91,10 +91,10 @@ export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
             <button
               type="button"
               onClick={() => setMethod('bca')}
-              className={`flex-1 rounded-lg border py-2 px-3 text-xs font-mono font-medium transition-all ${
+              className={`flex-1 rounded-sm border py-2 px-3 text-xs font-mono font-medium transition-all ${
                 method === 'bca'
-                  ? 'border-emerald-600 bg-emerald-950/60 text-emerald-300 shadow-sm'
-                  : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:bg-zinc-800'
+                  ? 'border-[#a5df48] bg-[#C1EF7B] text-[#0C0B1E] shadow-sm'
+                  : 'border-[var(--border)] bg-[var(--card)] text-zinc-500 hover:bg-[var(--muted)]'
               }`}
             >
               Transfer Bank BCA
@@ -102,10 +102,10 @@ export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
             <button
               type="button"
               onClick={() => setMethod('qris')}
-              className={`flex-1 rounded-lg border py-2 px-3 text-xs font-mono font-medium transition-all ${
+              className={`flex-1 rounded-sm border py-2 px-3 text-xs font-mono font-medium transition-all ${
                 method === 'qris'
-                  ? 'border-emerald-600 bg-emerald-950/60 text-emerald-300 shadow-sm'
-                  : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:bg-zinc-800'
+                  ? 'border-[#a5df48] bg-[#C1EF7B] text-[#0C0B1E] shadow-sm'
+                  : 'border-[var(--border)] bg-[var(--card)] text-zinc-500 hover:bg-[var(--muted)]'
               }`}
             >
               Scan QRIS (Semua E-Wallet)
@@ -113,24 +113,24 @@ export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
           </div>
 
           {method === 'bca' ? (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5 space-y-4">
+            <div className="rounded-sm border border-[var(--border)] bg-[var(--card)] p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono text-zinc-400 uppercase">Bank BCA</span>
-                <span className="rounded bg-blue-950/80 border border-blue-800 px-2 py-0.5 text-[10px] font-mono text-blue-300">
+                <span className="text-xs font-mono text-zinc-500 uppercase">Bank BCA</span>
+                <span className="rounded-sm bg-[#F1F0FF] border border-[#C1EF7B] px-2 py-0.5 text-[10px] font-mono text-[#0C0B1E]">
                   Transfer Antarbank / BCA
                 </span>
               </div>
 
               <div>
-                <div className="text-xs text-zinc-400 mb-1">Nomor Rekening:</div>
-                <div className="flex items-center justify-between gap-2 rounded-lg bg-zinc-900 border border-zinc-800 px-3.5 py-2.5">
-                  <span className="text-lg font-mono font-bold tracking-wider text-zinc-100">
+                <div className="text-xs text-zinc-500 mb-1">Nomor Rekening:</div>
+                <div className="flex items-center justify-between gap-2 rounded-sm bg-[var(--muted)] border border-[var(--border)] px-3.5 py-2.5">
+                  <span className="text-lg font-mono font-bold tracking-wider text-[#0C0B1E]">
                     {bcaNumber}
                   </span>
                   <button
                     type="button"
                     onClick={handleCopyBca}
-                    className="rounded bg-zinc-800 hover:bg-zinc-700 px-3 py-1 text-xs font-mono text-zinc-200 transition-colors"
+                    className="rounded-sm bg-[#C1EF7B] hover:bg-[#a5df48] px-3 py-1 text-xs font-mono text-[#0C0B1E] font-semibold transition-colors"
                   >
                     {copied ? '✓ Tersalin' : 'Salin'}
                   </button>
@@ -138,25 +138,25 @@ export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
               </div>
 
               <div>
-                <div className="text-xs text-zinc-400 mb-0.5">Atas Nama:</div>
-                <div className="text-sm font-semibold text-zinc-200">{bcaName}</div>
+                <div className="text-xs text-zinc-500 mb-0.5">Atas Nama:</div>
+                <div className="text-sm font-semibold text-[#0C0B1E]">{bcaName}</div>
               </div>
 
               <div>
-                <div className="text-xs text-zinc-400 mb-0.5">Nominal Transfer:</div>
-                <div className="text-base font-bold text-emerald-400">{price}</div>
+                <div className="text-xs text-zinc-500 mb-0.5">Nominal Transfer:</div>
+                <div className="text-base font-bold text-[#0C0B1E]">{price}</div>
               </div>
             </div>
           ) : (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5 space-y-4 text-center">
+            <div className="rounded-sm border border-[var(--border)] bg-[var(--card)] p-5 space-y-4 text-center">
               <div className="flex items-center justify-between text-left">
-                <span className="text-xs font-mono text-zinc-400 uppercase">QRIS Pembayaran</span>
-                <span className="rounded bg-emerald-950/80 border border-emerald-800 px-2 py-0.5 text-[10px] font-mono text-emerald-300">
+                <span className="text-xs font-mono text-zinc-500 uppercase">QRIS Pembayaran</span>
+                <span className="rounded-sm bg-[#F1F0FF] border border-[#C1EF7B] px-2 py-0.5 text-[10px] font-mono text-[#0C0B1E]">
                   BCA, GoPay, OVO, Dana, ShopeePay
                 </span>
               </div>
 
-              <div className="mx-auto w-full max-w-[240px] aspect-square rounded-lg border border-zinc-800 bg-white p-2.5 flex items-center justify-center overflow-hidden shadow-md">
+              <div className="mx-auto w-full max-w-[240px] aspect-square rounded-sm border border-[var(--border)] bg-white p-2.5 flex items-center justify-center overflow-hidden shadow-sm">
                 {/* Gambar QRIS dari folder public/qris.png */}
                 <img
                   src="/qris.webp"
@@ -188,12 +188,12 @@ export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
                 />
               </div>
 
-              <div className="text-xs text-zinc-400">
+              <div className="text-xs text-zinc-500">
                 Pindai kode QRIS di atas dengan aplikasi m-Banking atau E-Wallet apa saja.
               </div>
 
-              <div className="text-sm font-semibold text-zinc-200">
-                Nominal: <span className="text-emerald-400 font-bold">{price}</span>
+              <div className="text-sm font-semibold text-[#0C0B1E]">
+                Nominal: <span className="text-[#0C0B1E] font-bold">{price}</span>
               </div>
             </div>
           )}
@@ -203,7 +203,7 @@ export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2.5 w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3.5 px-4 text-sm transition-all shadow-lg shadow-emerald-950/50 hover:scale-[1.01] active:scale-[0.99]"
+            className="flex items-center justify-center gap-2.5 w-full rounded-sm bg-[#C1EF7B] hover:bg-[#a5df48] text-[#0C0B1E] font-semibold py-3.5 px-4 text-sm transition-all border border-[#a5df48] hover:scale-[1.01] active:scale-[0.99]"
           >
             <svg
               className="w-5 h-5 fill-current"

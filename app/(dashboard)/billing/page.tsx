@@ -65,8 +65,8 @@ export default async function BillingPage() {
           <div className="flex justify-between border-b border-zinc-800/60 pb-3">
             <span className="text-zinc-500">PAKET</span>
             <span
-              className={`font-semibold ${
-                plan === 'PAID' ? 'text-emerald-400' : plan === 'ADMIN' ? 'text-purple-400' : 'text-blue-400'
+              className={`font-semibold px-2 py-0.5 rounded-sm ${
+                plan === 'PAID' ? 'bg-[#C1EF7B] text-[#0C0B1E]' : plan === 'ADMIN' ? 'bg-purple-200 text-purple-900' : 'bg-[#F1F0FF] text-[#0C0B1E]'
               }`}
             >
               {planLabel}

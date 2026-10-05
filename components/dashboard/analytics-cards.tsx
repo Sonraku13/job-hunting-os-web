@@ -26,7 +26,7 @@ export function AnalyticsCards({ jobsFound, jobsApplied, avgMatchScore }: Analyt
         <div className="text-xs font-mono text-zinc-400 uppercase tracking-wider mb-2">
           {t('dash_stats_applied')}
         </div>
-        <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-500">{jobsApplied}</div>
+        <div className="text-3xl font-bold text-[#0C0B1E]">{jobsApplied}</div>
         <p className="text-xs text-zinc-500 mt-1">{t('dash_stats_applied_desc')}</p>
       </Card>
 

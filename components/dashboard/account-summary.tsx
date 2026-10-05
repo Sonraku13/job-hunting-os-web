@@ -14,18 +14,18 @@ export function AccountSummary({ email, fullName, plan, paidUntil }: AccountSumm
       <h2 className="text-lg font-semibold mb-4 tracking-tight">Akun Saya</h2>
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-400">Nama</span>
+          <span className="text-sm text-zinc-500">Nama</span>
           <span className="text-sm font-medium">{fullName || email}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-400">Email</span>
-          <span className="text-sm text-zinc-200">{email}</span>
+          <span className="text-sm text-zinc-500">Email</span>
+          <span className="text-sm text-[var(--foreground)]">{email}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-400">Paket</span>
+          <span className="text-sm text-zinc-500">Paket</span>
           <span
-            className={`font-semibold uppercase tracking-wide text-xs ${
-              plan === 'PAID' ? 'text-emerald-400' : 'text-blue-400'
+            className={`font-semibold uppercase tracking-wide text-xs px-2 py-0.5 rounded-sm ${
+              plan === 'PAID' ? 'bg-[var(--accent)] text-[var(--foreground)]' : 'bg-[var(--card-muted)] text-[var(--foreground)]'
             }`}
           >
             {plan === 'FREE' ? 'Free' : 'Pro'}

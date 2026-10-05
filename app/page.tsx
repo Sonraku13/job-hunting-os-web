@@ -158,26 +158,26 @@ export default async function HomePage() {
               </ul>
             </div>
 
-            <div className="bg-[var(--card)] p-8">
+            <div className="bg-[var(--card)] p-8 border border-[var(--border)]">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-xs text-zinc-500">PAKET INTENSIF</span>
-                <span className="rounded bg-emerald-950/60 px-2 py-0.5 font-mono text-[10px] text-emerald-400 border border-emerald-800/40">
+                <span className="rounded-sm bg-[#C1EF7B] px-2 py-0.5 font-mono text-[10px] text-[#0C0B1E] font-semibold border border-[#a5df48]">
                   VERIFIKASI MANUAL
                 </span>
               </div>
-              <h3 className="mt-2 text-2xl font-medium text-zinc-100">Pro Plan</h3>
-              <p className="mt-2 text-sm text-zinc-400">
+              <h3 className="mt-2 text-2xl font-medium text-[var(--foreground)]">Pro Plan</h3>
+              <p className="mt-2 text-sm text-zinc-500">
                 Untuk periode aktif pencarian kerja intensif dengan kuota berlipat.
               </p>
-              <ul className="mt-6 space-y-2 border-t border-[var(--border)] pt-6 font-mono text-xs text-zinc-300">
+              <ul className="mt-6 space-y-2 border-t border-[var(--border)] pt-6 font-mono text-xs text-zinc-600">
                 <li className="flex items-center gap-2">
-                  <span className="text-emerald-400">&mdash;</span> 30x kuota pemrosesan AI / hari
+                  <span className="text-[#C1EF7B]">&mdash;</span> 30x kuota pemrosesan AI / hari
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-emerald-400">&mdash;</span> 10x scraping lintas semua portal
+                  <span className="text-[#C1EF7B]">&mdash;</span> 10x scraping lintas semua portal
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-emerald-400">&mdash;</span> Aktivasi manual via QRIS / transfer langsung
+                  <span className="text-[#C1EF7B]">&mdash;</span> Aktivasi manual via QRIS / transfer langsung
                 </li>
               </ul>
             </div>

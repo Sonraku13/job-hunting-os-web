@@ -17,12 +17,12 @@ export function QuotaBadge({ plan, usedToday }: QuotaBadgeProps) {
       title="Lihat rincian kuota di Billing"
     >
       <span
-        className={`h-1.5 w-1.5 rounded-full ${
+        className={`h-2 w-2 rounded-sm ${
           isUnlimited
-            ? 'bg-purple-400'
+            ? 'bg-purple-500'
             : usedToday >= limit
               ? 'bg-rose-500'
-              : 'bg-emerald-400'
+              : 'bg-[#C1EF7B]'
         }`}
       />
       <span className="text-[11px] text-[var(--foreground)] opacity-80">
