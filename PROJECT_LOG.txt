@@ -38,7 +38,6 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
    - Dukungan multi-format gambar QRIS di halaman billing (`qris.webp`, `qris.png`, `qris.jpg`).
    - Perbaikan error React key duplikat ("Papua" & "Maluku") pada daftar opsi lokasi di `/settings`.
    - Layout responsif penuh untuk layar mobile hingga desktop (navbar horizontal scrollable, layout header dua baris di HP).
-   - Penyelarasan variabel CSS tema gelap & terang (`var(--background)`, `var(--card)`, `var(--accent)`) pada input form dan kontainer.
    - Indikator kuota scraping harian langsung di Header (`QuotaBadge`).
    - Loading spinner terintegrasi pada tombol AI Generate (Match Score, Cover Letter, Email).
 
@@ -46,80 +45,41 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
    - Menambahkan `LanguageProvider` berbasis `useSyncExternalStore` untuk menghindari hydration mismatch (SSR-safe).
    - Memperluas `lib/i18n/translations.ts` dengan 100+ key untuk 2 locale (id/en) mencakup:
      - Navigasi, Dashboard, Job List, Modal, Profil, Settings, Billing, Auth, Toast, Error pages.
-   - Mengganti seluruh hardcoded Indonesian text di 18 komponen/halaman dengan `t('key')` via `useLanguage()` hook:
-     - `components/dashboard/job-list.tsx`, `components/dashboard/profile-form.tsx`
-     - `components/dashboard/settings-form.tsx`, `components/dashboard/nav-links.tsx`
-     - `components/dashboard/sign-out-button.tsx`, `components/dashboard/job-list.tsx`
-     - `app/(dashboard)/dashboard/page.tsx`, `app/(dashboard)/profile/page.tsx`
-     - `app/(dashboard)/settings/page.tsx`, `components/ui/language-toggle.tsx`
-     - Baru: `components/dashboard/dashboard-header.tsx`, `components/dashboard/profile-header.tsx`
-     - Baru: `components/dashboard/settings-header.tsx`, `components/dashboard/display-settings-card.tsx`
+   - Mengganti seluruh hardcoded Indonesian text di 18 komponen/halaman dengan `t('key')` via `useLanguage()` hook.
    - Language toggle (ID/EN) di Navbar & Settings bekerja seamless tanpa reload.
 
-7. Security & Code Quality Fixes:
-   - Fix lint errors: `useSyncExternalStore` ganti `useEffect` setState di `LanguageProvider` & `LanguageToggle`.
-   - Fix TypeScript errors: tambah key `dash_match_score_title`, `dash_match_gap_title`, `prof_saving` ke `TranslationKey` union.
-   - `npm run lint` passed (hanya warnings pre-existing di file legacy `webapp-dari-sheets`).
-   - `npm run build` passed (production build successful).
+7. Security & Code Quality:
+   - Lint & build checks passed (`npm run build` sukses).
+   - Strict TypeScript checking tanpa flag `any`.
 
----
-
-1. Core & Infrastructure:
-   - Setup Next.js App Router, TailwindCSS, TypeScript.
-   - Setup Supabase Auth (Google Login), Postgres Database, & RLS.
-   - Dibuat fungsi `consume_usage` RPC untuk manajemen kuota harian (FREE/PAID).
-
-2. Fitur Scraping & Database Lowongan (`saved_jobs`):
-   - Integrasi Zapi untuk LinkedIn dan Jobstreet search (menggunakan `/jobs:jobstreet/recent-jobs` sesuai spesifikasi AppsScript).
-   - Filter ketat lowongan khusus 24 jam terakhir.
-   - Fitur "Manual Scrape" tombol di Dashboard.
-   - Perbaikan kegagalan simpan PostgreSQL constraint 42P10 dengan penyelarasan `onConflict: 'user_id, job_url'` dan fallback canonical URL.
-   - Fitur "Auto Scraping" jadwal jam (WIB) dikombinasikan dengan Vercel Cron (`/api/cron/scrape`).
-   - Workflow status lowongan (discover -> analyse -> apply -> refuse -> archive).
-   - Multi-role & Multi-location scraping: pencarian berbasis OR query untuk banyak target posisi sekaligus (misal Graphic Designer, Video Editor, dsb).
-   - Preset daftar lokasi 38 Provinsi di Indonesia & Negara Populer luar negeri dengan multi-select UI di `/settings`.
-   - Engine iterasi per-lokasi otomatis di `/api/scrape/run` dan cron `/api/cron/scrape`.
-
-3. Profil, Billing & Pengaturan User (`user_profiles`, `profiles`):
-   - Dukungan role `ADMIN` dengan kuota unlimited di fungsi database `consume_usage` & `QUOTA_LIMITS`.
-   - Halaman `/billing` lengkap dengan statistik kuota, paket Rp 25.000/bulan, instruksi Transfer BCA (`1040669015` a/n YUSUF WIBISONO) & QRIS.
-   - Tombol konfirmasi otomatis ke WhatsApp Admin (`089617581900`) dengan template email akun & bukti transfer.
-   - Memecah UI menjadi dua halaman:
-     - `/profile`: Identitas diri, Ringkasan, Pengalaman, dan LLM Context (gaya bahasa AI).
-     - `/settings`: Preferensi kerja (lokasi, remote, job titles) dan jadwal cron auto-scraping (WIB ke UTC).
-   - Penggunaan operasi `.update()` dan upsert via `/api/profile/update`.
-
-4. Fitur AI (Multi-provider Fallback Engine):
-   - Engine fallback: Gemini Direct -> Zapi Copilot -> Zapi ChatEx -> Zapi ChatGPT.
-   - Anti-hallucination rules (hanya fakta, plain text tanpa markdown/simbol **).
-   - Caching output (match score, cover letter, email draft) di DB `saved_jobs` agar tidak boros kuota / double hit API.
-
-5. UI & UX Refinements (Tampilan, Tema & Responsivitas):
-   - Dukungan multi-format gambar QRIS di halaman billing (`qris.webp`, `qris.png`, `qris.jpg`).
-   - Perbaikan error React key duplikat ("Papua" & "Maluku") pada daftar opsi lokasi di `/settings`.
-   - Layout responsif penuh untuk layar mobile hingga desktop (navbar horizontal scrollable, layout header dua baris di HP).
-   - Penyelarasan variabel CSS tema gelap & terang (`var(--background)`, `var(--card)`, `var(--accent)`) pada input form dan kontainer.
-   - Indikator kuota scraping harian langsung di Header (`QuotaBadge`).
-   - Loading spinner terintegrasi pada tombol AI Generate (Match Score, Cover Letter, Email).
-
--------------------------------------------
-
-8. Planned & In-Progress Priority Fixes (2026-10-05) - COMPLETED:
+8. Recent Priorities & Enhancements (2026-10-05 ~ 2026-10-06) - COMPLETED:
    - Fix Auto-Scraper Schedule: Disesuaikan dengan batas Vercel Hobby Plan (1x/hari jam 01:00 UTC / 08:00 WIB di `vercel.json` dan hapus filter jam spesifik di `/api/cron/scrape`).
    - Refine AI Generation Prompt (Cover Letter & Email):
      - Output ringkas padat 1-2 paragraf.
      - Selalu menyertakan link portfolio dari profil pengguna.
-   - Print / Export PDF Native Cover Letter / Email (window.print).
+   - Print / Export PDF Native Cover Letter / Email (`window.print`).
    - Mini Analytics & Motivasi Dashboard (Stats Cards: Lamaran, Match Score, Lowongan).
-   - Interactive Job Detail Modal & Raw Description Cleaning (2026-10-06):
-     - Membuka modal detail popup full saat kartu lowongan diklik.
-     - Melakukan sanitisasi/pembersihan teks HTML & whitespace dari ZAPI (`cleanRawDescription`).
-     - Menyimpan & menampilkan deskripsi lengkap tanpa membebankan storage DB/Supabase.
-     - Menyederhanakan form pengaturan jadwal di `/settings` (menghapus UI jam spesifik & menambah catatan informatif).
+   - Interactive Job Detail Modal:
+     - Modal detail popup full screen overlay saat kartu lowongan diklik.
+     - Menampilkan info judul, perusahaan, metadata, dan deskripsi lengkap.
+   - Raw Description Cleaning Pipeline:
+     - Sanitisasi teks HTML dan normalisasi whitespace dari ZAPI (`cleanRawDescription`).
+     - Menyimpan & menampilkan deskripsi lengkap tanpa overhead/beban storage DB.
+   - Pengaturan Auto-Scrape `/settings`:
+     - Menghapus UI pemilihan jam spesifik, mempertahankan toggle & multi-select hari, serta menambahkan catatan informatif ringkas.
+   - Redesign Visual - Pepelsbey Design System (Vadim Makeev):
+     - Background Pure White (`#FFFFFF`), Text Ink Navy (`#0C0B1E`), Accent Neon Lime (`#C1EF7B`), Soft Lavender (`#F1F0FF`).
+     - Sudut tajam 2px (`rounded-sm` / flat aesthetic) pada seluruh tombol, kartu, input, dan modal.
+     - Performa tetap ultra-cepat dan minimalis.
 
 -------------------------------------------
 
 [ FUTURE UPDATES - ROADMAP & TODOs ]
+
+# Pending / Belum Sempat Dibuat:
+- Dark Theme (Vadim / Pepelsbey dark variant):
+  - Saat ini tema aktif difokuskan pada Light Mode murni (sesuai spesifikasi Pepelsbey.dev: White, Ink Navy, Neon Lime).
+  - Mode gelap (dark theme) belum sempat dibuat dan disiapkan untuk update berikutnya jika dibutuhkan.
 
 # Phase 1: Quick Wins (Paling Mudah & Dampak Langsung)
 1. Smart Quick-Paste Job (Universal Input):
@@ -133,28 +93,26 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
 2. Quick Action Buttons (1-Klik Kirim Lamaran):
    - Di kartu lowongan: Tombol "Chat WA", "Kirim Email", "Buka Form" muncul otomatis jika kontak terdeteksi.
    - Pre-fill pesan WA & draft Email via AI yang sudah ada.
-   - Stat cards di atas Dashboard: "Lamaran Minggu Ini", "Avg Match Score", "Lowongan Tersurvei".
-   - Query `COUNT` sederhana ke Supabase, tanpa tabel baru.
 
 # Phase 2: Productivity Boosters
-5. Bookmarklet (1-Klik Simpan dari Web Mana Saja):
+3. Bookmarklet (1-Klik Simpan dari Web Mana Saja):
    - JS snippet di bookmark browser -> POST ke `/api/jobs/bookmarklet`.
    - User save lowongan dari Kalibrr, Tech in Asia, Web Perusahaan, dll tanpa buka aplikasi.
 
-6. Kanban Board View (Drag & Drop):
+4. Kanban Board View (Drag & Drop):
    - Toggle view di Dashboard: List <-> Kanban (Discover -> Analyse -> Apply -> Interview -> Offer).
    - Library ringan `@dnd-kit` atau native HTML5 Drag & Drop API.
 
 # Phase 3: System & Data Health
-7. Cron Job Optimization:
+5. Cron Job Optimization:
    - Pastikan cron berjalan di production Vercel dengan menyetel ENV `CRON_SECRET`.
    - Logging sistem: catat user mana saja yang berhasil discrape di `last_scraped_at`.
 
-8. Data Management:
+6. Data Management:
    - Bulk delete / auto-archive status 'refuse' setelah 30 hari.
    - RLS ketat untuk `user_profiles` (hindari user ubah `scrape_active` orang lain).
 
-9. Notifikasi Email Ringan (Opsional):
+7. Notifikasi Email Ringan (Opsional):
    - Trigger via Resend API jika ada >5 lowongan cocok (Match Score tinggi) ditemukan hari itu.
 
 ===========================================
