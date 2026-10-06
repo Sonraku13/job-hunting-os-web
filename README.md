@@ -211,6 +211,36 @@ This first build does NOT include:
 
 These will be added in future phases.
 
+## Project Log / Changelog
+
+### 2026-10-06 — Pepelsbey Light Design & Smart Quick-Paste (Phase 1)
+
+**Design System Migration:**
+- Applied Pepelsbey light design system: Background `#FFFFFF`, Text `#0C0B1E`, Accent `#C1EF7B`, Muted/Tint `#F1F0FF`
+- Border radius standardized to `rounded-sm` (2px) for sharp, minimal look
+- Removed dark mode support (Pepelsbey is light-only); disabled theme toggle in headers/settings
+
+**Quick Paste Feature (Phase 1):**
+- Added Smart Quick-Paste modal: accepts text/caption + optional image + optional source URL
+- Implemented `/api/jobs/parse` endpoint using Gemini 1.5 Flash Vision for OCR extraction
+- AI extracts: Position, Company, Location, Type, Salary, Description + auto-detects contacts (Email, WhatsApp, Apply Link)
+- Added database migration `003_add_quick_paste_fields.sql` for `contact_email`, `contact_whatsapp`, `apply_url`, `source_url`
+- Created `/api/jobs/save` to persist extracted jobs with new contact fields
+
+**UI/UX Refinements (Latest):**
+- Compact horizontal action bar: `+ Quick Paste`, `LinkedIn`, `Jobstreet` inline with no vertical gap
+- Removed scrape info text ("Pengambilan data 24 jam...") for cleaner header
+- Fixed font contrast: buttons use `#0C0B1E` (ink navy) on white with bold weights; Quick Paste primary uses `#C1EF7B` on `#0C0B1E`
+- Native `<button>` elements in modals to avoid Button component variant conflicts
+- All placeholders upgraded to `text-zinc-500` for readability; labels use `font-semibold text-zinc-800`
+
+### 2026-10-05 — MVP Core Complete
+- Google OAuth login with Supabase Auth
+- Protected dashboard with FREE/PAID plan display
+- Daily quota tracking via `consume_usage` RPC
+- Manual billing page with payment instructions
+- TypeScript strict mode, lint & build passing
+
 ## License
 
 Private - All rights reserved
