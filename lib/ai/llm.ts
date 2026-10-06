@@ -149,6 +149,151 @@ ${text}`;
   }
 }
 
+export interface UniversalJobParseResult {
+  job_title: string;
+  company_name: string;
+  location: string;
+  job_type: string;
+  salary_range: string;
+  job_description: string;
+  contact_email?: string | null;
+  contact_whatsapp?: string | null;
+  apply_url?: string | null;
+}
+
+async function callGeminiVision(prompt: string, imageBase64: string, mimeType: string = 'image/jpeg'): Promise<string> {
+  if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY not set');
+  const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'];
+  let lastError: Error | null = null;
+
+  for (const model of models) {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: prompt },
+                  {
+                    inline_data: {
+                      mime_type: mimeType,
+                      data: imageBase64,
+                    },
+                  },
+                ],
+              },
+            ],
+          }),
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+        if (text) return text;
+      }
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+    }
+  }
+  throw lastError || new Error('Failed to process image with Gemini Vision');
+}
+
+export async function parseUniversalJob(params: {
+  text?: string;
+  imageBase64?: string;
+  imageMimeType?: string;
+}): Promise<UniversalJobParseResult> {
+  const prompt = `Analisis postingan lowongan kerja berikut (berupa teks, caption, atau gambar poster) dan ekstrak informasinya secara akurat dan terstruktur.
+Deteksi juga kontak resmi: Email pengiriman CV, nomor WhatsApp HR/recruiter, link formulir lamaran (Google Form/Typeform/website), atau link postingan.
+
+Kembalikan HANYA format JSON valid tanpa format markdown \`\`\`json:
+{
+  "job_title": "Judul Posisi Pekerjaan",
+  "company_name": "Nama Perusahaan / Organisasi (atau 'Tidak Disebutkan')",
+  "location": "Lokasi kerja (misal 'Jakarta (Remote)' atau 'Indonesia')",
+  "job_type": "Full-time / Part-time / Contract / Freelance / Internship",
+  "salary_range": "Kisaran gaji jika dicantumkan, atau '-'",
+  "job_description": "Rangkuman lengkap deskripsi pekerjaan, tanggung jawab, kualifikasi/syarat lowongan secara bersih dan jelas.",
+  "contact_email": "email_hr@perusahaan.com (atau null)",
+  "contact_whatsapp": "08123456789 (atau null)",
+  "apply_url": "https://link-lamaran (atau null)"
+}
+
+${params.text ? `TEKS / CAPTION:\n${params.text}` : ''}`;
+
+  let rawOutput = '';
+  if (params.imageBase64) {
+    try {
+      rawOutput = await callGeminiVision(prompt, params.imageBase64, params.imageMimeType || 'image/jpeg');
+    } catch (visionErr) {
+      console.warn('Gemini vision failed, attempting text-only fallback if text available:', visionErr);
+      if (params.text) {
+        const { text } = await callWithFallback([
+          { role: 'system', content: 'Kamu adalah parser lowongan kerja. Output HANYA JSON valid.' },
+          { role: 'user', content: prompt },
+        ], 'chat');
+        rawOutput = text;
+      } else {
+        throw visionErr;
+      }
+    }
+  } else {
+    const { text } = await callWithFallback([
+      { role: 'system', content: 'Kamu adalah parser lowongan kerja. Output HANYA JSON valid.' },
+      { role: 'user', content: prompt },
+    ], 'chat');
+    rawOutput = text;
+  }
+
+  const cleaned = rawOutput.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+  let parsed: Partial<UniversalJobParseResult> = {};
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    parsed = {
+      job_title: 'Lowongan Pekerjaan (Auto-detected)',
+      company_name: 'Perusahaan',
+      location: 'Indonesia',
+      job_type: 'Full-time',
+      salary_range: '-',
+      job_description: params.text || 'Deskripsi diekstrak dari gambar.',
+    };
+  }
+
+  // Post-processing regex helpers for contacts from text
+  const combinedText = `${params.text || ''} ${parsed.job_description || ''}`;
+  if (!parsed.contact_email) {
+    const emailMatch = combinedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+    if (emailMatch) parsed.contact_email = emailMatch[0];
+  }
+  if (!parsed.contact_whatsapp) {
+    const waMatch = combinedText.match(/(?:\+?62|08)[0-9\s-]{8,14}/);
+    if (waMatch) {
+      parsed.contact_whatsapp = waMatch[0].replace(/[\s-]/g, '');
+    }
+  }
+  if (!parsed.apply_url) {
+    const urlMatch = combinedText.match(/https?:\/\/[^\s"'<>]+/);
+    if (urlMatch) parsed.apply_url = urlMatch[0];
+  }
+
+  return {
+    job_title: parsed.job_title || 'Lowongan Pekerjaan',
+    company_name: parsed.company_name || 'Perusahaan',
+    location: parsed.location || 'Indonesia',
+    job_type: parsed.job_type || 'Full-time',
+    salary_range: parsed.salary_range || '-',
+    job_description: parsed.job_description || params.text || '',
+    contact_email: parsed.contact_email || null,
+    contact_whatsapp: parsed.contact_whatsapp || null,
+    apply_url: parsed.apply_url || null,
+  };
+}
+
 function cleanMarkdownSymbols(text: string): string {
   return text
     .replace(/\*\*(.*?)\*\*/g, '$1')

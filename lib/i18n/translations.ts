@@ -62,6 +62,20 @@ export const translations = {
     dash_relation_skills: 'Keahlian',
     dash_relation_aim: 'Target Karir',
 
+    // Quick Paste
+    qp_title: '+ Tambah Lowongan (Quick Paste)',
+    qp_text_label: 'Teks Lowongan / Caption',
+    qp_text_placeholder: 'Tempel teks lowongan dari WA, Telegram, atau sosial media di sini...',
+    qp_text_hint: 'AI akan otomatis mengekstrak posisi, gaji, kontak, dll.',
+    qp_source_label: 'Link Asal (Opsional)',
+    qp_source_placeholder: 'https://...',
+    qp_source_hint: 'Link postingan asli (Instagram, LinkedIn post, dll)',
+    qp_image_label: 'Gambar / Poster Lowongan (Opsional)',
+    qp_image_hint: 'Unggah file atau tempel (Ctrl+V) gambar di area ini',
+    qp_cancel: 'Batal',
+    qp_submit: 'Ekstrak & Simpan',
+    qp_processing: 'Memproses...',
+
     // Profile
     prof_title: 'Profil Profesional',
     prof_subtitle: 'Kelola data diri, riwayat karir, dan preferensi bahasa untuk personalisasi AI.',
@@ -203,6 +217,20 @@ export const translations = {
     dash_relation_languages: 'Languages',
     dash_relation_skills: 'Skills',
     dash_relation_aim: 'Career Goals',
+
+    // Quick Paste
+    qp_title: '+ Add Job (Quick Paste)',
+    qp_text_label: 'Job Text / Caption',
+    qp_text_placeholder: 'Paste job details from WhatsApp, Telegram, or social media here...',
+    qp_text_hint: 'AI will automatically extract the position, salary, contact, etc.',
+    qp_source_label: 'Source Link (Optional)',
+    qp_source_placeholder: 'https://...',
+    qp_source_hint: 'Original post link (Instagram, LinkedIn post, etc)',
+    qp_image_label: 'Job Image / Poster (Optional)',
+    qp_image_hint: 'Upload file or paste (Ctrl+V) image here',
+    qp_cancel: 'Cancel',
+    qp_submit: 'Extract & Save',
+    qp_processing: 'Processing...',
 
     // Profile
     prof_title: 'Professional Profile',

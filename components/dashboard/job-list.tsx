@@ -5,6 +5,7 @@ import { useToast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useLanguage } from '@/lib/i18n/context';
+import { QuickPasteModal } from '@/components/dashboard/quick-paste-modal';
 
 export type JobStatus = 'discover' | 'analyse' | 'apply' | 'refuse' | 'archive';
 
@@ -32,6 +33,10 @@ export interface SavedJob {
   status?: JobStatus;
   match_score?: number | null;
   match_score_breakdown?: MatchScoreBreakdown | null;
+  contact_email?: string | null;
+  contact_whatsapp?: string | null;
+  apply_url?: string | null;
+  source_url?: string | null;
 }
 
 const STATUS_CONFIG: Record<JobStatus, { label: string; badgeClass: string }> = {
@@ -79,7 +84,27 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
   const [modalData, setModalData] = useState<{ title: string; content: string } | null>(null);
   const [scoreModal, setScoreModal] = useState<{ job: SavedJob; result: MatchScoreBreakdown } | null>(null);
   const [jobDetailModal, setJobDetailModal] = useState<{ job: SavedJob } | null>(null);
+  const [quickPasteOpen, setQuickPasteOpen] = useState(false);
   const { showToast } = useToast();
+
+  const handleQuickPasteSuccess = async (jobData: any) => {
+    try {
+      const res = await fetch('/api/jobs/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(jobData),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setJobs((prev) => [data.data, ...prev]);
+        showToast('Lowongan berhasil diekstrak & disimpan!', 'success');
+      } else {
+        showToast(data.error || 'Gagal menyimpan lowongan', 'error');
+      }
+    } catch {
+      showToast('Gagal menghubungi server', 'error');
+    }
+  };
 
   const handleStatusChange = async (jobId: string, newStatus: JobStatus) => {
     // Optimistic update
@@ -298,8 +323,15 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
         {/* Manual Scrape Buttons */}
         <div className="flex flex-wrap items-center gap-2">
           <Button
+            onClick={() => setQuickPasteOpen(true)}
+            className="font-mono text-xs bg-[#0C0B1E] text-[#C1EF7B] hover:bg-[#1a1936]"
+          >
+            {t('qp_title') || '+ Quick Paste'}
+          </Button>
+          <Button
             onClick={() => handleManualScrape('linkedin')}
             disabled={scrapingPortal !== null}
+            variant="outline"
             className="font-mono text-xs"
           >
             {scrapingPortal === 'linkedin' ? t('dash_scraping_linkedin') : t('dash_scrape_linkedin')}
@@ -652,34 +684,78 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
       {/* Modal Detail Lowongan */}
       {jobDetailModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0C0B1E]/40"
           onClick={() => setJobDetailModal(null)}
         >
           <div
-            className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-xl bg-[var(--card)] border border-[var(--border)] p-6 overflow-hidden"
+            className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-sm border border-[var(--border)] bg-[var(--card)] p-6 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between pb-4 border-b border-[var(--border)]">
               <div>
-                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                <h3 className="text-lg font-semibold text-[#0C0B1E]">
                   {jobDetailModal.job.job_title}
                 </h3>
-                <p className="text-sm font-medium text-emerald-500">
+                <p className="text-sm font-medium text-zinc-800">
                   {jobDetailModal.job.company_name}
                 </p>
-                <div className="flex flex-wrap gap-3 font-mono text-xs text-zinc-500 pt-2">
+                <div className="flex flex-wrap gap-3 font-mono text-xs text-zinc-700 pt-2">
                   {jobDetailModal.job.location && <span>📍 {jobDetailModal.job.location}</span>}
                   {jobDetailModal.job.salary_range && <span>💰 {jobDetailModal.job.salary_range}</span>}
                   {jobDetailModal.job.job_type && <span>💼 {jobDetailModal.job.job_type}</span>}
-                  <span className="rounded bg-[var(--muted)] px-2 py-0.5 text-[10px] text-zinc-400 uppercase">
+                  <span className="rounded-sm bg-[#F1F0FF] border border-zinc-200 px-2 py-0.5 text-[10px] text-[#0C0B1E] uppercase font-medium">
                     {jobDetailModal.job.source}
                   </span>
                 </div>
+
+                {/* Auto-detected contacts banner if available */}
+                {(jobDetailModal.job.contact_email || jobDetailModal.job.contact_whatsapp || jobDetailModal.job.apply_url || jobDetailModal.job.source_url) && (
+                  <div className="mt-3 flex flex-wrap gap-2 pt-2 border-t border-dashed border-zinc-200">
+                    {jobDetailModal.job.contact_email && (
+                      <a
+                        href={`mailto:${jobDetailModal.job.contact_email}`}
+                        className="inline-flex items-center gap-1 rounded-sm bg-indigo-50 border border-indigo-200 px-2 py-0.5 font-mono text-[11px] text-indigo-700 hover:bg-indigo-100"
+                      >
+                        ✉️ {jobDetailModal.job.contact_email}
+                      </a>
+                    )}
+                    {jobDetailModal.job.contact_whatsapp && (
+                      <a
+                        href={`https://wa.me/${jobDetailModal.job.contact_whatsapp.replace(/\+/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-sm bg-emerald-50 border border-emerald-200 px-2 py-0.5 font-mono text-[11px] text-emerald-700 hover:bg-emerald-100"
+                      >
+                        💬 WA: {jobDetailModal.job.contact_whatsapp}
+                      </a>
+                    )}
+                    {jobDetailModal.job.apply_url && (
+                      <a
+                        href={jobDetailModal.job.apply_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-sm bg-[#F1F0FF] border border-zinc-200 px-2 py-0.5 font-mono text-[11px] text-[#0C0B1E] hover:bg-[#e4e2ff]"
+                      >
+                        📝 Form Lamaran ↗
+                      </a>
+                    )}
+                    {jobDetailModal.job.source_url && (
+                      <a
+                        href={jobDetailModal.job.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-sm bg-zinc-100 border border-zinc-200 px-2 py-0.5 font-mono text-[11px] text-zinc-700 hover:bg-zinc-200"
+                      >
+                        🔗 Sumber Asli ↗
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
               <Button
                 variant="ghost"
                 onClick={() => setJobDetailModal(null)}
-                className="text-zinc-400 font-mono text-xs"
+                className="text-zinc-500 hover:text-[#0C0B1E] font-mono text-xs"
               >
                 ✕
               </Button>
@@ -696,7 +772,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                     href={jobDetailModal.job.job_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center rounded border border-zinc-700 bg-zinc-800/80 px-3 py-1.5 font-mono text-xs text-zinc-200 transition-colors hover:bg-zinc-700"
+                    className="inline-flex items-center rounded-sm border border-zinc-300 bg-white px-3 py-1.5 font-mono text-xs text-zinc-700 transition-colors hover:bg-[#F1F0FF]"
                   >
                     Buka URL Portal
                   </a>
@@ -713,6 +789,13 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
           </div>
         </div>
       )}
+
+      {/* Quick Paste Modal */}
+      <QuickPasteModal
+        isOpen={quickPasteOpen}
+        onClose={() => setQuickPasteOpen(false)}
+        onSuccess={handleQuickPasteSuccess}
+      />
     </>
   );
 }

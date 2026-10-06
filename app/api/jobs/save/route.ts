@@ -22,6 +22,11 @@ export async function POST(request: Request) {
       salary_range,
       job_description,
       source,
+      // New fields from Quick Paste
+      contact_email,
+      contact_whatsapp,
+      apply_url,
+      source_url,
     } = body;
 
     if (!job_title || !company_name || !source) {
@@ -43,6 +48,11 @@ export async function POST(request: Request) {
         salary_range: salary_range || null,
         job_description: job_description || null,
         source,
+        // New fields
+        contact_email: contact_email || null,
+        contact_whatsapp: contact_whatsapp || null,
+        apply_url: apply_url || null,
+        source_url: source_url || null,
       })
       .select()
       .single();
