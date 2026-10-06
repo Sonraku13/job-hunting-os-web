@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/lib/i18n/context';
 
@@ -173,7 +172,7 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
 
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-zinc-700 mb-2">
+            <label className="block text-sm font-semibold text-zinc-800 mb-2">
               {t('qp_image_label')}
             </label>
             <div className="relative">
@@ -237,14 +236,13 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
           )}
 
           {/* Preview Toggle */}
-          <Button
+          <button
             type="button"
-            variant="ghost"
             onClick={() => setShowPreview(!showPreview)}
-            className="w-full justify-start font-mono text-xs text-zinc-700 hover:text-[#0C0B1E]"
+            className="w-full inline-flex items-center justify-start rounded-sm px-4 py-2 font-mono text-xs font-medium text-zinc-700 hover:text-[#0C0B1E] hover:bg-[#F1F0FF] transition-colors"
           >
             {showPreview ? 'Sembunyikan Pratinjau' : 'Pratinjau Hasil Ekstraksi'}
-          </Button>
+          </button>
 
           {/* Preview Section */}
           {showPreview && (text || imagePreview) && (
@@ -276,16 +274,19 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            <Button
+            <button
               type="button"
-              variant="ghost"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-4 py-2 font-mono text-xs font-semibold text-[#0C0B1E] transition-colors hover:bg-[#F1F0FF] disabled:opacity-50"
             >
               {t('qp_cancel')}
-            </Button>
-            <Button type="submit" disabled={isLoading} className="flex-1 bg-[#0C0B1E] text-[#C1EF7B] font-bold hover:bg-[#1a1936]">
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 inline-flex items-center justify-center rounded-sm bg-[#C1EF7B] px-4 py-2 font-mono text-xs font-bold text-[#0C0B1E] transition-colors hover:bg-[#b0e865] hover:border-[#a5df48] disabled:opacity-50 border border-[#a5df48]"
+            >
               {isLoading ? (
                 <>
                   <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
@@ -297,7 +298,7 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
               ) : (
                 t('qp_submit')
               )}
-            </Button>
+            </button>
           </div>
         </form>
       </Card>

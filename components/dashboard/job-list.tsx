@@ -320,36 +320,31 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
   return (
     <>
       <div className="space-y-4">
-        {/* Compact Actions Bar */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              onClick={() => setQuickPasteOpen(true)}
-              className="font-mono text-xs px-3 py-1.5 bg-[#0C0B1E] text-[#C1EF7B] font-semibold hover:bg-[#1a1936] shadow-sm"
-            >
-              {t('qp_title') || '+ Quick Paste'}
-            </Button>
-            <Button
-              onClick={() => handleManualScrape('linkedin')}
-              disabled={scrapingPortal !== null}
-              variant="outline"
-              className="font-mono text-xs px-3 py-1.5 border-zinc-300 bg-white text-zinc-800 hover:bg-[#F1F0FF] hover:text-[#0C0B1E]"
-            >
-              {scrapingPortal === 'linkedin' ? t('dash_scraping_linkedin') : t('dash_scrape_linkedin')}
-            </Button>
-            <Button
-              onClick={() => handleManualScrape('jobstreet')}
-              disabled={scrapingPortal !== null}
-              variant="outline"
-              className="font-mono text-xs px-3 py-1.5 border-zinc-300 bg-white text-zinc-800 hover:bg-[#F1F0FF] hover:text-[#0C0B1E]"
-            >
-              {scrapingPortal === 'jobstreet' ? t('dash_scraping_jobstreet') : t('dash_scrape_jobstreet')}
-            </Button>
-          </div>
-
-          <div className="text-[11px] text-zinc-600 font-mono">
-            {t('dash_scrape_info')}
-          </div>
+        {/* Compact Horizontal Actions Bar */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+          <button
+            type="button"
+            onClick={() => setQuickPasteOpen(true)}
+            className="inline-flex items-center justify-center rounded-sm bg-[#0C0B1E] px-3.5 py-1.5 font-mono text-xs font-bold text-[#C1EF7B] transition-colors hover:bg-[#1a1936] shadow-sm whitespace-nowrap"
+          >
+            {t('qp_title') || '+ Quick Paste'}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleManualScrape('linkedin')}
+            disabled={scrapingPortal !== null}
+            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[#0C0B1E] transition-colors hover:bg-[#F1F0FF] hover:border-[#0C0B1E] disabled:opacity-50 whitespace-nowrap"
+          >
+            {scrapingPortal === 'linkedin' ? t('dash_scraping_linkedin') : t('dash_scrape_linkedin')}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleManualScrape('jobstreet')}
+            disabled={scrapingPortal !== null}
+            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[#0C0B1E] transition-colors hover:bg-[#F1F0FF] hover:border-[#0C0B1E] disabled:opacity-50 whitespace-nowrap"
+          >
+            {scrapingPortal === 'jobstreet' ? t('dash_scraping_jobstreet') : t('dash_scrape_jobstreet')}
+          </button>
         </div>
 
         {jobs.length === 0 ? (
