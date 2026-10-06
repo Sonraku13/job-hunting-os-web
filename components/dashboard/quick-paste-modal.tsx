@@ -139,7 +139,7 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
         <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
           {/* Text Area */}
           <div>
-            <label htmlFor="qp-text" className="block text-sm font-medium text-zinc-700 mb-2">
+            <label htmlFor="qp-text" className="block text-sm font-semibold text-zinc-800 mb-2">
               {t('qp_text_label')} <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -149,7 +149,7 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
               onChange={(e) => setText(e.target.value)}
               onPaste={handlePaste}
               placeholder={t('qp_text_placeholder')}
-              className="w-full min-h-[140px] rounded-sm border border-zinc-300 bg-white px-4 py-3 font-mono text-sm text-[#0C0B1E] placeholder:text-zinc-400 focus:outline-none focus:border-[#C1EF7B] focus:ring-1 focus:ring-[#C1EF7B] resize-y transition-colors"
+              className="w-full min-h-[140px] rounded-sm border border-zinc-300 bg-white px-4 py-3 font-mono text-sm text-[#0C0B1E] placeholder:text-zinc-500 focus:outline-none focus:border-[#C1EF7B] focus:ring-1 focus:ring-[#C1EF7B] resize-y transition-colors"
               rows={6}
             />
             <p className="mt-1 text-xs text-zinc-500 font-mono">{t('qp_text_hint')}</p>
@@ -157,7 +157,7 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
 
           {/* Source URL */}
           <div>
-            <label htmlFor="qp-source" className="block text-sm font-medium text-zinc-700 mb-2">
+            <label htmlFor="qp-source" className="block text-sm font-semibold text-zinc-800 mb-2">
               {t('qp_source_label')}
             </label>
             <input
@@ -166,7 +166,7 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
               value={sourceUrl}
               onChange={(e) => setSourceUrl(e.target.value)}
               placeholder={t('qp_source_placeholder')}
-              className="w-full rounded-sm border border-zinc-300 bg-white px-4 py-2.5 font-mono text-sm text-[#0C0B1E] placeholder:text-zinc-400 focus:outline-none focus:border-[#C1EF7B] focus:ring-1 focus:ring-[#C1EF7B] transition-colors"
+              className="w-full rounded-sm border border-zinc-300 bg-white px-4 py-2.5 font-mono text-sm text-[#0C0B1E] placeholder:text-zinc-500 focus:outline-none focus:border-[#C1EF7B] focus:ring-1 focus:ring-[#C1EF7B] transition-colors"
             />
             <p className="mt-1 text-xs text-zinc-500 font-mono">{t('qp_source_hint')}</p>
           </div>
@@ -285,7 +285,7 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
             >
               {t('qp_cancel')}
             </Button>
-            <Button type="submit" disabled={isLoading} className="flex-1 bg-[#0C0B1E] text-[#C1EF7B] hover:bg-[#1a1936]">
+            <Button type="submit" disabled={isLoading} className="flex-1 bg-[#0C0B1E] text-[#C1EF7B] font-bold hover:bg-[#1a1936]">
               {isLoading ? (
                 <>
                   <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
