@@ -39,7 +39,7 @@ const STATUS_CONFIG: Record<JobStatus, { label: string; badgeClass: string }> = 
   analyse: { label: 'Analyse', badgeClass: 'bg-indigo-50 text-indigo-900 border-indigo-200' },
   apply: { label: 'Apply', badgeClass: 'bg-[#C1EF7B] text-[#0C0B1E] border-[#a5df48] font-bold' },
   refuse: { label: 'Refuse', badgeClass: 'bg-rose-50 text-rose-800 border-rose-200' },
-  archive: { label: 'Archive', badgeClass: 'bg-zinc-100 text-zinc-500 border-zinc-200' },
+  archive: { label: 'Archive', badgeClass: 'bg-zinc-100 text-zinc-700 border-zinc-200' },
 };
 
 export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
@@ -314,12 +314,12 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
           </Button>
         </div>
 
-        <div className="text-xs text-zinc-500 font-mono">
+        <div className="text-xs text-zinc-700 font-mono font-medium">
           {t('dash_scrape_info')}
         </div>
 
         {jobs.length === 0 ? (
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-12 text-center">
+          <div className="rounded-sm border border-[var(--border)] bg-[var(--card)] p-12 text-center">
             <div className="mx-auto max-w-md space-y-4">
               <svg
                 className="mx-auto h-12 w-12 text-zinc-600"
@@ -336,7 +336,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                 />
               </svg>
               <h3 className="text-base font-semibold text-[var(--foreground)]">{t('dash_empty_title')}</h3>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-zinc-700">
                 {t('dash_empty_desc')}
               </p>
 
@@ -391,26 +391,26 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                   key={tab}
                   type="button"
                   onClick={() => setFilterStatus(tab)}
-                  className={`rounded-lg border px-3 py-1 font-mono text-xs capitalize transition-colors ${
+                  className={`rounded-sm border px-3 py-1 font-mono text-xs capitalize transition-colors ${
                     isActive
-                      ? 'border-zinc-500 bg-zinc-800 text-zinc-100'
-                      : 'border-transparent text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'
+                      ? 'border-[#0C0B1E] bg-[#0C0B1E] text-[#C1EF7B] font-bold'
+                      : 'border-zinc-300 text-zinc-700 bg-white hover:bg-[#F1F0FF] hover:text-[#0C0B1E]'
                   }`}
                 >
                   {tab === 'all' ? t('dash_tab_all') : t(`dash_tab_${tab as JobStatus}`)}{' '}
-                  <span className="text-[10px] text-zinc-500">({count})</span>
+                  <span className="text-[10px] opacity-75">({count})</span>
                 </button>
               );
             })}
           </div>
 
-          <div className="font-mono text-xs text-zinc-500">
+          <div className="font-mono text-xs text-zinc-700 font-medium">
             {t('dash_shown')} {filteredJobs.length} {t('dash_from')} {jobs.length}
           </div>
         </div>
 
         {/* Job Cards */}
-        <div className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-[var(--card)]">
+        <div className="divide-y divide-[var(--border)] rounded-sm border border-[var(--border)] bg-[var(--card)]">
           {filteredJobs.map((job) => {
             const isExpanded = expandedId === job.id;
             const currentStatus: JobStatus = job.status || 'discover';
@@ -423,25 +423,25 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
               <div
                 key={job.id}
                 onClick={() => handleOpenJobDetail(job)}
-                className="p-5 transition-colors hover:bg-zinc-100/70 dark:hover:bg-zinc-900/30 cursor-pointer"
+                className="p-5 transition-colors hover:bg-[#F1F0FF]/50 cursor-pointer"
               >
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-1 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base font-semibold text-[var(--card-foreground)]">{job.job_title}</h3>
-                      <span className="rounded bg-[var(--muted)] px-2 py-0.5 font-mono text-[10px] text-zinc-500 uppercase">
+                      <h3 className="text-base font-semibold text-[#0C0B1E]">{job.job_title}</h3>
+                      <span className="rounded-sm bg-[#F1F0FF] border border-zinc-200 px-2 py-0.5 font-mono text-[10px] text-[#0C0B1E] uppercase font-medium">
                         {job.source}
                       </span>
                       {typeof matchScore === 'number' && (
                         <button
                           type="button"
                           onClick={() => handleMatchScore(job)}
-                          className={`rounded border px-2 py-0.5 font-mono text-[10px] font-semibold transition-opacity hover:opacity-80 ${
+                          className={`rounded-sm border px-2 py-0.5 font-mono text-[10px] font-bold transition-opacity hover:opacity-80 ${
                             matchScore >= 80
-                              ? 'border-emerald-700 bg-emerald-950/80 text-emerald-300'
+                              ? 'border-[#a5df48] bg-[#C1EF7B] text-[#0C0B1E]'
                               : matchScore >= 60
-                                ? 'border-amber-700 bg-amber-950/80 text-amber-300'
-                                : 'border-rose-700 bg-rose-950/80 text-rose-300'
+                                ? 'border-amber-300 bg-amber-100 text-amber-900'
+                                : 'border-rose-300 bg-rose-100 text-rose-900'
                           }`}
                         >
                           Match {matchScore}%
@@ -449,9 +449,9 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       )}
                     </div>
 
-                    <p className="text-sm text-[var(--card-foreground)] opacity-90 font-medium">{job.company_name}</p>
+                    <p className="text-sm text-[#0C0B1E] font-medium">{job.company_name}</p>
 
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-zinc-500 pt-1">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-zinc-700 pt-1">
                       {job.location && <span>📍 {job.location}</span>}
                       {job.salary_range && <span>💰 {job.salary_range}</span>}
                       {job.job_type && <span>💼 {job.job_type}</span>}
@@ -515,7 +515,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       variant="ghost"
                       onClick={(e) => { e.stopPropagation(); handleEmailDraft(job); }}
                       disabled={loadingActionId === `email-${job.id}`}
-                      className="font-mono text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-950/30 flex items-center gap-1.5"
+                      className="font-mono text-xs text-[#C1EF7B] hover:text-[#b0e865] hover:bg-[#F1F0FF] flex items-center gap-1.5"
                     >
                       {loadingActionId === `email-${job.id}` ? (
                         <>
@@ -545,7 +545,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       variant="ghost"
                       onClick={(e) => { e.stopPropagation(); handleDelete(job.id); }}
                       disabled={deletingId === job.id}
-                      className="font-mono text-xs text-red-400 hover:text-red-300 hover:bg-red-950/30"
+                      className="font-mono text-xs text-red-700 hover:text-red-800 hover:bg-rose-100"
                     >
                       {deletingId === job.id ? '...' : t('dash_action_delete')}
                     </Button>

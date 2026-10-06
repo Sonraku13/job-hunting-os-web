@@ -50,8 +50,8 @@ export default async function BillingPage() {
   return (
     <div className="max-w-4xl space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Billing & Batasan Kuota</h1>
-        <p className="mt-2 text-zinc-400">Pantau pemakaian harian dan kelola paket langganan Anda</p>
+        <h1 className="text-3xl font-bold tracking-tight text-[#0C0B1E]">Billing & Batasan Kuota</h1>
+        <p className="mt-2 text-zinc-700">Pantau pemakaian harian dan kelola paket langganan Anda</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -60,22 +60,22 @@ export default async function BillingPage() {
       </div>
 
       <Card>
-        <h2 className="text-xl font-semibold mb-6">Status Paket</h2>
+        <h2 className="text-xl font-semibold mb-6 text-[#0C0B1E]">Status Paket</h2>
         <div className="space-y-3 font-mono text-xs">
-          <div className="flex justify-between border-b border-zinc-800/60 pb-3">
-            <span className="text-zinc-500">PAKET</span>
+          <div className="flex justify-between border-b border-[var(--border)] pb-3">
+            <span className="text-zinc-700 font-semibold">PAKET</span>
             <span
-              className={`font-semibold px-2 py-0.5 rounded-sm ${
-                plan === 'PAID' ? 'bg-[#C1EF7B] text-[#0C0B1E]' : plan === 'ADMIN' ? 'bg-purple-200 text-purple-900' : 'bg-[#F1F0FF] text-[#0C0B1E]'
+              className={`font-bold px-2 py-0.5 rounded-sm border ${
+                plan === 'PAID' ? 'bg-[#C1EF7B] text-[#0C0B1E] border-[#a5df48]' : plan === 'ADMIN' ? 'bg-purple-200 text-purple-900 border-purple-300' : 'bg-[#F1F0FF] text-[#0C0B1E] border-zinc-200'
               }`}
             >
               {planLabel}
             </span>
           </div>
           {(plan === 'PAID' || plan === 'ADMIN') && profile.paid_until && (
-            <div className="flex justify-between border-b border-zinc-800/60 pb-3">
-              <span className="text-zinc-500">BERLAKU HINGGA</span>
-              <span className="text-zinc-200">
+            <div className="flex justify-between border-b border-[var(--border)] pb-3">
+              <span className="text-zinc-700 font-semibold">BERLAKU HINGGA</span>
+              <span className="text-[#0C0B1E] font-medium">
                 {new Date(profile.paid_until).toLocaleDateString('id-ID', {
                   day: 'numeric',
                   month: 'long',
@@ -92,7 +92,7 @@ export default async function BillingPage() {
       ) : (
         <>
           <BillingPaymentCard userEmail={user.email || ''} />
-          <p className="text-xs text-zinc-500 font-mono text-center">
+          <p className="text-xs text-zinc-700 font-mono text-center">
             Anda saat ini memakai paket {planLabel} — tampilan pembayaran di atas hanya untuk pratinjau / upgrade user FREE.
           </p>
         </>
