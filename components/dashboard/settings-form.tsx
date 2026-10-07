@@ -162,7 +162,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
         </h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
+            <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
               {t('set_search_target_positions')}
             </label>
             <input
@@ -175,7 +175,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
           </div>
 
           <div>
-            <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
+            <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
               {t('set_search_target_locations')}
             </label>
             <div className="space-y-2">
@@ -234,7 +234,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {t('set_search_classifications')}
               </label>
               <input
@@ -247,7 +247,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
             </div>
 
             <div>
-              <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {t('set_employment_types')}
               </label>
               <input
@@ -262,7 +262,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {t('set_work_arrangements')}
               </label>
               <input
@@ -275,7 +275,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
             </div>
 
             <div>
-              <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {language === 'id' ? 'Preferensi Kerja Remote' : 'Remote Work Preference'}
               </label>
               <div className="flex items-center gap-3 pt-2">
@@ -295,7 +295,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {t('set_linkedin_geo_id')}
               </label>
               <input
@@ -307,7 +307,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
               />
             </div>
             <div>
-              <label className="block text-xs font-mono text-zinc-400 uppercase mb-1">
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {t('set_jobstreet_loc_id')}
               </label>
               <input
@@ -327,7 +327,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-[var(--card-foreground)]">{t('set_schedule_title')}</h2>
-            <p className="text-xs text-zinc-400">{t('set_schedule_title_desc')}</p>
+            <p className="text-xs text-zinc-600">{t('set_schedule_title_desc')}</p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
@@ -345,7 +345,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
             {/* Pilihan Hari */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-mono text-zinc-400 uppercase">{t('set_schedule_days_label')}</label>
+                <label className="text-xs font-mono text-zinc-600 uppercase">{t('set_schedule_days_label')}</label>
                 <div className="flex gap-2">
                   <button
                     type="button"

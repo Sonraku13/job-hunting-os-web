@@ -546,7 +546,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       variant="ghost"
                       onClick={(e) => { e.stopPropagation(); handleCoverLetter(job); }}
                       disabled={loadingActionId === `letter-${job.id}`}
-                      className="font-mono text-[11px] px-2 py-1 text-[#C1EF7B] hover:text-[#b0e865] hover:bg-[#F1F0FF] flex items-center gap-1"
+                      className="font-mono text-[11px] px-2 py-1 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 flex items-center gap-1"
                     >
                       {loadingActionId === `letter-${job.id}` ? (
                         <>
@@ -563,7 +563,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       variant="ghost"
                       onClick={(e) => { e.stopPropagation(); handleEmailDraft(job); }}
                       disabled={loadingActionId === `email-${job.id}`}
-                      className="font-mono text-[11px] px-2 py-1 text-[#C1EF7B] hover:text-[#b0e865] hover:bg-[#F1F0FF] flex items-center gap-1"
+                      className="font-mono text-[11px] px-2 py-1 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 flex items-center gap-1"
                     >
                       {loadingActionId === `email-${job.id}` ? (
                         <>
@@ -647,7 +647,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                   navigator.clipboard.writeText(modalData.content);
                   showToast(t('dash_copy_success'), 'success');
                 }}
-                className="font-mono text-xs bg-[#0C0B1E] text-[#C1EF7B] font-bold hover:bg-[#1a1936]"
+                className="font-mono text-sm bg-[#0C0B1E] text-[#C1EF7B] font-semibold hover:bg-[#1a1936] ring-1 ring-[#C1EF7B]/50"
               >
                 {t('dash_copy')}
               </Button>

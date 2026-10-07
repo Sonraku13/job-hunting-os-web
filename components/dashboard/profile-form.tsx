@@ -188,7 +188,7 @@ export function ProfileForm({
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-mono text-zinc-500 uppercase mb-1">
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {t('prof_name')}
               </label>
               <input
@@ -201,7 +201,7 @@ export function ProfileForm({
             </div>
 
             <div>
-              <label className="block text-xs font-mono text-zinc-500 uppercase mb-1">
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {t('prof_job_title')}
               </label>
               <input
@@ -215,7 +215,7 @@ export function ProfileForm({
           </div>
 
           <div>
-            <label className="block text-xs font-mono text-zinc-500 uppercase mb-1">
+            <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
               {t('prof_summary')}
             </label>
             <textarea
@@ -229,7 +229,7 @@ export function ProfileForm({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-mono text-zinc-500 uppercase mb-1">
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {language === 'id' ? 'Tahun Pengalaman Kerja' : 'Years of Experience'}
               </label>
               <input
@@ -242,7 +242,7 @@ export function ProfileForm({
             </div>
 
             <div>
-              <label className="block text-xs font-mono text-zinc-500 uppercase mb-1">
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {t('prof_portfolio')}
               </label>
               <input
@@ -255,7 +255,7 @@ export function ProfileForm({
             </div>
 
             <div>
-              <label className="block text-xs font-mono text-zinc-500 uppercase mb-1">
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {t('prof_salary')}
               </label>
               <input
@@ -276,7 +276,7 @@ export function ProfileForm({
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-mono text-zinc-500 uppercase mb-1">
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {t('prof_phone')}
               </label>
               <input
@@ -289,7 +289,7 @@ export function ProfileForm({
             </div>
 
             <div>
-              <label className="block text-xs font-mono text-zinc-500 uppercase mb-1">
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {t('prof_email')}
               </label>
               <input
@@ -309,7 +309,7 @@ export function ProfileForm({
         <h2 className="text-lg font-semibold tracking-tight mb-4 text-[var(--card-foreground)]">{t('prof_skills_title')}</h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-mono text-zinc-500 uppercase mb-2">
+            <label className="block text-xs font-mono text-zinc-600 uppercase mb-2">
               {language === 'id' ? 'Ketik Skill lalu tekan ENTER:' : 'Type skill then press ENTER:'}
             </label>
             <input
@@ -351,7 +351,7 @@ export function ProfileForm({
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-[var(--card-foreground)]">{t('prof_exp_title')}</h2>
-            <p className="text-xs text-zinc-500">{language === 'id' ? 'Riwayat pekerjaan yang relevan' : 'Relevant work history'}</p>
+            <p className="text-xs text-zinc-600">{language === 'id' ? 'Riwayat pekerjaan yang relevan' : 'Relevant work history'}</p>
           </div>
           <Button type="button" variant="outline" onClick={addExperience} className="font-mono text-xs">
             {t('prof_add_exp')}
@@ -369,7 +369,7 @@ export function ProfileForm({
               >
                 <div className="space-y-1">
                   <h4 className="text-sm font-semibold text-[var(--card-foreground)]">{exp.title}</h4>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-zinc-600">
                     {exp.company} • {exp.start_date} - {exp.end_date || (language === 'id' ? 'Sekarang' : 'Present')}
                   </p>
                   {exp.description && (
@@ -395,7 +395,7 @@ export function ProfileForm({
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-[var(--card-foreground)]">{t('prof_edu_title')}</h2>
-            <p className="text-xs text-zinc-500">{language === 'id' ? 'Riwayat akademik' : 'Academic history'}</p>
+            <p className="text-xs text-zinc-600">{language === 'id' ? 'Riwayat akademik' : 'Academic history'}</p>
           </div>
           <Button type="button" variant="outline" onClick={addEducation} className="font-mono text-xs">
             {t('prof_add_edu')}
@@ -413,7 +413,7 @@ export function ProfileForm({
               >
                 <div className="space-y-1">
                   <h4 className="text-sm font-semibold text-[var(--card-foreground)]">{edu.degree}</h4>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-zinc-600">
                     {edu.institution} • {language === 'id' ? 'Lulus: ' : 'Graduated: '}{edu.year}
                   </p>
                 </div>
@@ -436,7 +436,7 @@ export function ProfileForm({
         <h2 className="text-lg font-semibold tracking-tight mb-2 text-[var(--card-foreground)]">
           {t('prof_lang_title')}
         </h2>
-        <p className="text-xs text-zinc-500 mb-4">
+        <p className="text-xs text-zinc-600 mb-4">
           {t('prof_lang_desc')}
         </p>
 
@@ -472,7 +472,7 @@ export function ProfileForm({
         <h2 className="text-lg font-semibold tracking-tight mb-2 text-[var(--card-foreground)]">
           {t('prof_llm_title')}
         </h2>
-        <p className="text-xs text-zinc-500 mb-4">
+        <p className="text-xs text-zinc-600 mb-4">
           {t('prof_llm_desc')}
         </p>
 
