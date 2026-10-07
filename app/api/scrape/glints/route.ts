@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       workArrangement,
       educationLevel,
       experience,
-      postedWithin = 'PAST_WEEK',
+      postedWithin = 'PAST_24_HOURS',
       minSalary,
       currency = 'IDR',
       sort = 'latest',

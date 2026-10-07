@@ -214,7 +214,7 @@ export async function POST(request: Request) {
         const params = new URLSearchParams({
           query,
           location,
-          days: '7',
+          days: '1',
           sort: 'date',
           limit: '20',
         });
@@ -235,7 +235,7 @@ export async function POST(request: Request) {
         const params = new URLSearchParams({
           query,
           country: 'ID',
-          postedWithin: 'PAST_WEEK',
+          postedWithin: 'PAST_24_HOURS',
           sort: 'latest',
         });
 
@@ -272,7 +272,17 @@ export async function POST(request: Request) {
         }
 
         const resData = await res.json();
-        rawJobs = extractJobs(resData);
+        const extracted = extractJobs(resData);
+        // Filter agar hanya menyertakan lowongan dalam 24 jam terakhir
+        const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
+        rawJobs = extracted.filter((j) => {
+          const rawDate = j.postedAt || j.createdAt || j.latestUpdatedAt || j.updatedAt;
+          if (typeof rawDate === 'string') {
+            const parsed = Date.parse(rawDate);
+            if (!isNaN(parsed)) return parsed >= twentyFourHoursAgo;
+          }
+          return true; // default include jika format tanggal tidak tersedia
+        });
       } else {
         // Jobstreet: gunakan endpoint recent-jobs sesuai webapp sheet
         const params = new URLSearchParams({

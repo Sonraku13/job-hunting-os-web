@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       query,
       location = 'Jakarta',
       radius,
-      days = 7,
+      days = 1,
       employmentType,
       sort = 'date',
       limit = 20,
