@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/lib/i18n/context';
 
 interface QuickPasteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (jobData: any) => void;
+  onSuccess: (jobData: Record<string, unknown>) => void;
 }
 
 export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalProps) {
@@ -19,44 +19,48 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const dragDepthRef = useRef(0);
 
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => textareaRef.current?.focus(), 100);
-    }
-    if (!isOpen) {
-      resetForm();
-    }
-  }, [isOpen]);
-
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setText('');
     setSourceUrl('');
     setImage(null);
     setImagePreview(null);
     setError(null);
     setShowPreview(false);
-  };
+    setIsDragging(false);
+    dragDepthRef.current = 0;
+  }, []);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-        setError('Format gambar tidak didukung. Gunakan JPG, PNG, atau WebP.');
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Ukuran gambar maksimal 5MB.');
-        return;
-      }
-      setImage(file);
-      setError(null);
-      const reader = new FileReader();
-      reader.onload = (ev) => setImagePreview(ev.target?.result as string);
-      reader.readAsDataURL(file);
+  const handleClose = useCallback(() => {
+    resetForm();
+    onClose();
+  }, [resetForm, onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => textareaRef.current?.focus(), 100);
     }
+  }, [isOpen]);
+
+  const handleImageChange = (file: File) => {
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setError('Format gambar tidak didukung. Gunakan JPG, PNG, atau WebP.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Ukuran gambar maksimal 5MB.');
+      return;
+    }
+    setImage(file);
+    setError(null);
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
   };
 
   const handleRemoveImage = () => {
@@ -93,7 +97,7 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
       }
 
       onSuccess(data.data);
-      onClose();
+      handleClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
     } finally {
@@ -101,30 +105,73 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
     }
   };
 
-  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const items = e.clipboardData.items;
     for (const item of items) {
       if (item.type.startsWith('image/')) {
         e.preventDefault();
         const file = item.getAsFile();
-        if (file) {
-          handleImageChange({ target: { files: [file] } } as any);
-        }
+        if (file) handleImageChange(file);
         break;
       }
     }
   };
 
+  // ---- Drag & drop ----------------------------------------------------------
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDepthRef.current += 1;
+    setIsDragging(true);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+    if (dragDepthRef.current === 0) setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDepthRef.current = 0;
+    setIsDragging(false);
+
+    const dt = e.dataTransfer;
+    if (!dt) return;
+
+    const files = Array.from(dt.files || []).filter((f) => f.type.startsWith('image/'));
+
+    if (files.length === 0) {
+      setError('Tidak ada file gambar. Unduh gambar terlebih dahulu, atau gunakan copy-paste (Ctrl+V).');
+      return;
+    }
+
+    if (files.length > 1) {
+      setError('Hanya satu gambar yang didukung. Pilih satu file saja.');
+      return;
+    }
+
+    handleImageChange(files[0]);
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0C0B1E]/40" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0C0B1E]/40" onClick={handleClose}>
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4">
           <h2 className="text-lg font-semibold text-[#0C0B1E]">{t('qp_title')}</h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-zinc-500 hover:text-[#0C0B1E] transition-colors p-1"
             aria-label="Tutup"
           >
@@ -175,17 +222,29 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
             <label className="block text-sm font-semibold text-zinc-800 mb-2">
               {t('qp_image_label')}
             </label>
-            <div className="relative">
+            <div
+              className={`relative rounded-sm transition-colors ${
+                isDragging ? 'border-2 border-dashed border-[#C1EF7B] bg-[#C1EF7B]/10' : ''
+              }`}
+              onDragEnter={handleDragEnter}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
-                onChange={handleImageChange}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleImageChange(f);
+                }}
                 className="sr-only"
                 id="qp-image"
               />
               {imagePreview ? (
                 <div className="relative rounded-sm border border-zinc-300 bg-white overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={imagePreview}
                     alt="Preview"
@@ -221,8 +280,12 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
                       d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
                     />
                   </svg>
-                  <p className="mt-2 text-sm text-zinc-600 font-mono">{t('qp_image_hint')}</p>
-                  <p className="text-xs text-zinc-500 font-mono">JPG, PNG, WebP · Maks 5MB</p>
+                  <p className="mt-2 text-sm text-zinc-600 font-mono">
+                    {isDragging ? 'Lepaskan gambar di sini' : t('qp_image_hint')}
+                  </p>
+                  <p className="text-xs text-zinc-500 font-mono">
+                    Seret gambar, klik untuk pilih file, atau Ctrl+V · JPG, PNG, WebP · Maks 5MB
+                  </p>
                 </label>
               )}
             </div>
@@ -276,7 +339,7 @@ export function QuickPasteModal({ isOpen, onClose, onSuccess }: QuickPasteModalP
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={isLoading}
               className="flex-1 inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-4 py-2 font-mono text-xs font-semibold text-[#0C0B1E] transition-colors hover:bg-[#F1F0FF] disabled:opacity-50"
             >

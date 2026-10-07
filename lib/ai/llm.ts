@@ -1,3 +1,5 @@
+import { ocrImage } from '@/lib/ai/ocr';
+
 export interface ExtractResult {
   company: string;
   position: string;
@@ -161,47 +163,6 @@ export interface UniversalJobParseResult {
   apply_url?: string | null;
 }
 
-async function callGeminiVision(prompt: string, imageBase64: string, mimeType: string = 'image/jpeg'): Promise<string> {
-  if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY not set');
-  const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'];
-  let lastError: Error | null = null;
-
-  for (const model of models) {
-    try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  { text: prompt },
-                  {
-                    inline_data: {
-                      mime_type: mimeType,
-                      data: imageBase64,
-                    },
-                  },
-                ],
-              },
-            ],
-          }),
-        }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-        if (text) return text;
-      }
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-    }
-  }
-  throw lastError || new Error('Failed to process image with Gemini Vision');
-}
-
 export async function parseUniversalJob(params: {
   text?: string;
   imageBase64?: string;
@@ -228,9 +189,24 @@ ${params.text ? `TEKS / CAPTION:\n${params.text}` : ''}`;
   let rawOutput = '';
   if (params.imageBase64) {
     try {
-      rawOutput = await callGeminiVision(prompt, params.imageBase64, params.imageMimeType || 'image/jpeg');
-    } catch (visionErr) {
-      console.warn('Gemini vision failed, attempting text-only fallback if text available:', visionErr);
+      // Step 1: OCR the image to plain text via Vleee (Qwen3.8 Omni Flash Vision)
+      const ocrResult = await ocrImage({
+        imageBase64: params.imageBase64,
+        mimeType: params.imageMimeType || 'image/jpeg',
+      });
+      rawOutput = ocrResult.text;
+      // If there was also pasted text, prepend it
+      if (params.text) {
+        rawOutput = `${params.text}\n\n--- TEKS DARI GAMBAR ---\n${rawOutput}`;
+      }
+      // Step 2: Feed OCR text to LLM text-only pipeline for structured extraction
+      const { text } = await callWithFallback([
+        { role: 'system', content: 'Kamu adalah parser lowongan kerja. Output HANYA JSON valid.' },
+        { role: 'user', content: prompt + `\n\nTEKS HASIL OCR:\n${rawOutput}` },
+      ], 'chat');
+      rawOutput = text;
+    } catch (ocrErr) {
+      console.warn('OCR failed, attempting text-only fallback if text available:', ocrErr);
       if (params.text) {
         const { text } = await callWithFallback([
           { role: 'system', content: 'Kamu adalah parser lowongan kerja. Output HANYA JSON valid.' },
@@ -238,7 +214,7 @@ ${params.text ? `TEKS / CAPTION:\n${params.text}` : ''}`;
         ], 'chat');
         rawOutput = text;
       } else {
-        throw visionErr;
+        throw ocrErr;
       }
     }
   } else {

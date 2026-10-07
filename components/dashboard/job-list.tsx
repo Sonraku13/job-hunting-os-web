@@ -87,7 +87,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
   const [quickPasteOpen, setQuickPasteOpen] = useState(false);
   const { showToast } = useToast();
 
-  const handleQuickPasteSuccess = async (jobData: any) => {
+  const handleQuickPasteSuccess = async (jobData: Record<string, unknown>) => {
     try {
       const res = await fetch('/api/jobs/save', {
         method: 'POST',
