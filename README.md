@@ -13,7 +13,7 @@ MVP SaaS shell for Job Hunting OS, providing authentication, membership manageme
 ## Features
 
 - Google OAuth authentication via Supabase
-- FREE and PAID membership plans
+- FREE, PRO, and VIP membership plans (plus internal ADMIN)
 - Daily usage quota tracking (AI actions + scraping)
 - Manual billing approval workflow
 - Protected dashboard and billing pages
@@ -94,18 +94,18 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Manual Approval (Admin)
 
-To upgrade a user to PAID:
+To upgrade a user to PRO or VIP:
 
 1. Open Supabase Dashboard
 2. Go to **Table Editor > profiles**
 3. Find the user by email
 4. Edit the row:
-   - `plan`: change to `PAID`
+   - `plan`: change to `PRO` or `VIP`
    - `paid_until`: set to subscription end date (e.g., `2026-11-03T00:00:00Z`)
    - `approved_at`: set to current timestamp
 5. Save
 
-The user will see PAID status on next dashboard load.
+The user will see their new plan status on next dashboard load.
 
 ## Vercel Deployment
 
@@ -174,13 +174,25 @@ job-hunting-os-web/
 - Only one scraping portal allowed per day
 - Auto-assigned on first login
 
-### PAID Plan
+### PRO Plan (Rp 49.000/bulan atau Rp 129.000/3 bulan)
 - AI quota: 30 uses/day
 - Scraping quota: 10 uses/day
 - Multiple portals allowed per day
 - Manual approval by admin
 - Valid until `paid_until` date
 - Auto-downgrades to FREE when expired
+
+### VIP Plan (Rp 99.000/bulan atau Rp 249.000/3 bulan)
+- AI quota: 100 uses/day
+- Scraping quota: 25 uses/day
+- Multiple portals allowed per day
+- Manual approval by admin
+- Valid until `paid_until` date
+- Auto-downgrades to FREE when expired
+
+### ADMIN (internal only)
+- Unlimited AI & scraping quota
+- Not exposed to the public billing UI
 
 ## Security Notes
 
@@ -236,7 +248,7 @@ These will be added in future phases.
 
 ### 2026-10-05 — MVP Core Complete
 - Google OAuth login with Supabase Auth
-- Protected dashboard with FREE/PAID plan display
+- Protected dashboard with FREE/PRO/VIP plan display
 - Daily quota tracking via `consume_usage` RPC
 - Manual billing page with payment instructions
 - TypeScript strict mode, lint & build passing

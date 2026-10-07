@@ -137,7 +137,7 @@ export default async function HomePage() {
             </h2>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div className="bg-[var(--card)] p-8 border border-[var(--border)] rounded-sm">
               <span className="font-mono text-xs text-zinc-600 font-semibold">PAKET DASAR</span>
               <h3 className="mt-2 text-2xl font-bold text-[#0C0B1E]">Gratis Selamanya</h3>
@@ -161,22 +161,46 @@ export default async function HomePage() {
               <div className="flex items-center justify-between">
                 <span className="font-mono text-xs text-zinc-600 font-semibold">PAKET INTENSIF</span>
                 <span className="rounded-sm bg-[#C1EF7B] px-2 py-0.5 font-mono text-[10px] text-[#0C0B1E] font-semibold border border-[#a5df48]">
-                  VERIFIKASI MANUAL
+                  PALING LARIS
                 </span>
               </div>
               <h3 className="mt-2 text-2xl font-bold text-[#0C0B1E]">Pro Plan</h3>
               <p className="mt-2 text-sm text-zinc-700">
-                Untuk periode aktif pencarian kerja intensif dengan kuota berlipat.
+                Mulai Rp 49.000/bln (atau Rp 129.000/3 bln) untuk pencarian kerja harian.
               </p>
               <ul className="mt-6 space-y-2 border-t border-[var(--border)] pt-6 font-mono text-xs text-zinc-700">
                 <li className="flex items-center gap-2">
                   <span className="text-[#0C0B1E] font-bold">&mdash;</span> 30x kuota pemrosesan AI / hari
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-[#0C0B1E] font-bold">&mdash;</span> 10x scraping lintas semua portal
+                  <span className="text-[#0C0B1E] font-bold">&mdash;</span> 10x scraping di semua 5 portal
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-[#0C0B1E] font-bold">&mdash;</span> Aktivasi manual via QRIS / transfer langsung
+                  <span className="text-[#0C0B1E] font-bold">&mdash;</span> Auto-scraping via Cron aktif
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-[var(--card)] p-8 border border-[var(--border)] rounded-sm">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs text-zinc-600 font-semibold">PAKET POWER</span>
+                <span className="rounded-sm bg-purple-100 px-2 py-0.5 font-mono text-[10px] text-purple-900 font-semibold border border-purple-300">
+                  MASS APPLY
+                </span>
+              </div>
+              <h3 className="mt-2 text-2xl font-bold text-[#0C0B1E]">VIP Plan</h3>
+              <p className="mt-2 text-sm text-zinc-700">
+                Mulai Rp 99.000/bln (atau Rp 249.000/3 bln) untuk pelamar super agresif.
+              </p>
+              <ul className="mt-6 space-y-2 border-t border-[var(--border)] pt-6 font-mono text-xs text-zinc-700">
+                <li className="flex items-center gap-2">
+                  <span className="text-[#0C0B1E] font-bold">&mdash;</span> 100x kuota pemrosesan AI / hari
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-[#0C0B1E] font-bold">&mdash;</span> 25x scraping di semua portal
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-[#0C0B1E] font-bold">&mdash;</span> Prioritas cron & support WhatsApp
                 </li>
               </ul>
             </div>

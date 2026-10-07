@@ -3,9 +3,13 @@ export const QUOTA_LIMITS = {
     AI: 3,
     SCRAPE: 1,
   },
-  PAID: {
+  PRO: {
     AI: 30,
     SCRAPE: 10,
+  },
+  VIP: {
+    AI: 100,
+    SCRAPE: 25,
   },
   ADMIN: {
     AI: 999999,
@@ -13,7 +17,7 @@ export const QUOTA_LIMITS = {
   },
 } as const;
 
-export type PlanType = 'FREE' | 'PAID' | 'ADMIN';
+export type PlanType = 'FREE' | 'PRO' | 'VIP' | 'ADMIN';
 export type UsageAction = 'AI_EXTRACT' | 'AI_GENERATE' | 'SCRAPE_LINKEDIN' | 'SCRAPE_JOBSTREET' | 'SCRAPE_INDEED' | 'SCRAPE_GLINTS' | 'SCRAPE_DEALLS';
 
 export const AI_ACTIONS: UsageAction[] = ['AI_EXTRACT', 'AI_GENERATE'];

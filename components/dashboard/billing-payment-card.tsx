@@ -2,21 +2,31 @@
 
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast';
 
 interface BillingPaymentCardProps {
   userEmail: string;
 }
 
+type PlanOption = 'pro_1' | 'pro_3' | 'vip_1' | 'vip_3';
+
 export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
   const [method, setMethod] = useState<'bca' | 'qris'>('bca');
+  const [selectedPlan, setSelectedPlan] = useState<PlanOption>('pro_1');
   const [copied, setCopied] = useState(false);
   const { showToast } = useToast();
 
   const bcaNumber = '1040669015';
   const bcaName = 'YUSUF WIBISONO';
-  const price = 'Rp 25.000';
+
+  const planDetails = {
+    pro_1: { name: 'PRO', duration: '1 Bulan', priceStr: 'Rp 49.000', description: 'Akses 30 Hari' },
+    pro_3: { name: 'PRO', duration: '3 Bulan', priceStr: 'Rp 129.000', description: 'Akses 90 Hari (Lebih Hemat)' },
+    vip_1: { name: 'VIP', duration: '1 Bulan', priceStr: 'Rp 99.000', description: 'Akses 30 Hari' },
+    vip_3: { name: 'VIP', duration: '3 Bulan', priceStr: 'Rp 249.000', description: 'Akses 90 Hari (Lebih Hemat)' },
+  };
+
+  const currentPlan = planDetails[selectedPlan];
 
   const handleCopyBca = () => {
     navigator.clipboard.writeText(bcaNumber);
@@ -26,7 +36,7 @@ export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
   };
 
   const waMessage = encodeURIComponent(
-    `Halo Mas Yusuf, saya ingin konfirmasi pembayaran paket PAID Job Hunting OS (${price}/bulan).\n\nEmail Akun: ${userEmail}\nMetode: ${
+    `Halo Mas Yusuf, saya ingin konfirmasi pembayaran paket ${currentPlan.name} Job Hunting OS untuk ${currentPlan.duration} (${currentPlan.priceStr}).\n\nEmail Akun: ${userEmail}\nMetode: ${
       method === 'bca' ? 'Transfer BCA' : 'QRIS'
     }\n\nBerikut saya lampirkan bukti transfer pembayarannya. Mohon bantuannya untuk aktivasi. Terima kasih!`
   );
@@ -38,50 +48,102 @@ export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-[var(--border)] pb-5">
         <div>
           <span className="inline-block rounded-sm bg-[#C1EF7B] border border-[#a5df48] px-3 py-1 font-mono text-xs text-[#0C0B1E] font-semibold mb-2">
-            PRO PLAN • UNLIMITED PRODUCTIVITY
+            PILIH PAKET LANGGANAN
           </span>
-          <h2 className="text-2xl font-bold tracking-tight text-[var(--card-foreground)]">Upgrade ke Paket Pro</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-[var(--card-foreground)]">Upgrade Akun Anda</h2>
           <p className="text-sm text-zinc-500 mt-1">
             Dapatkan kuota scraping & AI ekstra besar untuk mencari kerja secara intensif
           </p>
         </div>
-        <div className="text-left md:text-right">
-          <div className="text-3xl font-extrabold text-[#0C0B1E]">{price}</div>
-          <div className="text-xs text-zinc-500 font-mono">/ bulan (akses 30 hari)</div>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-        {/* Kolom Kiri: Keuntungan Paket */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-sm text-[var(--card-foreground)]">Keuntungan Paket Pro:</h3>
-          <ul className="space-y-2.5 font-mono text-xs text-zinc-600">
-            <li className="flex items-center gap-2">
-              <span className="text-[#0C0B1E] font-bold">✓</span>
-              <span><strong>AI Kuota:</strong> 100x / hari (Match Score, Cover Letter, Email)</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[#0C0B1E] font-bold">✓</span>
-              <span><strong>Scraping Kuota:</strong> 50x / hari (LinkedIn & Jobstreet)</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[#0C0B1E] font-bold">✓</span>
-              <span>Bisa pantau semua portal lowongan tanpa batas</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[#0C0B1E] font-bold">✓</span>
-              <span>Auto-scraping harian via Cron scheduler aktif</span>
-            </li>
-          </ul>
+        {/* Kolom Kiri: Pilihan Paket & Keuntungan */}
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setSelectedPlan('pro_1')}
+              className={`p-3 text-left border rounded-sm transition-all ${
+                selectedPlan === 'pro_1' ? 'border-[#a5df48] bg-[#C1EF7B]/10 ring-1 ring-[#a5df48]' : 'border-[var(--border)] hover:border-zinc-400'
+              }`}
+            >
+              <div className="text-xs font-bold text-[#0C0B1E] mb-1">PRO (1 Bulan)</div>
+              <div className="text-sm font-extrabold text-[#0C0B1E]">Rp 49.000</div>
+            </button>
+            <button
+              onClick={() => setSelectedPlan('pro_3')}
+              className={`p-3 text-left border rounded-sm transition-all ${
+                selectedPlan === 'pro_3' ? 'border-[#a5df48] bg-[#C1EF7B]/10 ring-1 ring-[#a5df48]' : 'border-[var(--border)] hover:border-zinc-400'
+              }`}
+            >
+              <div className="text-xs font-bold text-[#0C0B1E] mb-1">PRO (3 Bulan)</div>
+              <div className="text-sm font-extrabold text-[#0C0B1E]">Rp 129.000</div>
+              <div className="text-[10px] text-green-600 font-bold mt-0.5">Diskon Hemat!</div>
+            </button>
+            <button
+              onClick={() => setSelectedPlan('vip_1')}
+              className={`p-3 text-left border rounded-sm transition-all ${
+                selectedPlan === 'vip_1' ? 'border-purple-400 bg-purple-50 ring-1 ring-purple-400' : 'border-[var(--border)] hover:border-zinc-400'
+              }`}
+            >
+              <div className="text-xs font-bold text-[#0C0B1E] mb-1">VIP (1 Bulan)</div>
+              <div className="text-sm font-extrabold text-[#0C0B1E]">Rp 99.000</div>
+            </button>
+            <button
+              onClick={() => setSelectedPlan('vip_3')}
+              className={`p-3 text-left border rounded-sm transition-all ${
+                selectedPlan === 'vip_3' ? 'border-purple-400 bg-purple-50 ring-1 ring-purple-400' : 'border-[var(--border)] hover:border-zinc-400'
+              }`}
+            >
+              <div className="text-xs font-bold text-[#0C0B1E] mb-1">VIP (3 Bulan)</div>
+              <div className="text-sm font-extrabold text-[#0C0B1E]">Rp 249.000</div>
+              <div className="text-[10px] text-purple-600 font-bold mt-0.5">Diskon Hemat!</div>
+            </button>
+          </div>
 
-          <div className="rounded-sm bg-[var(--muted)] border border-[var(--border)] p-3.5 mt-4">
-            <div className="text-xs font-semibold text-[#0C0B1E] mb-1">Alur Pembayaran:</div>
-            <ol className="list-decimal list-inside space-y-1 text-xs text-zinc-600 font-mono">
-              <li>Pilih transfer BCA atau scan QRIS</li>
-              <li>Lakukan pembayaran sebesar <strong>{price}</strong></li>
-              <li>Klik tombol konfirmasi WhatsApp di bawah</li>
-              <li>Kirim bukti transfer, akun akan diaktifkan dalam hitungan menit</li>
-            </ol>
+          <div className="space-y-4">
+            <h3 className="font-semibold text-sm text-[var(--card-foreground)]">
+              Keuntungan Paket {selectedPlan.startsWith('pro') ? 'PRO' : 'VIP'}:
+            </h3>
+            {selectedPlan.startsWith('pro') ? (
+              <ul className="space-y-2.5 font-mono text-xs text-zinc-600">
+                <li className="flex items-start gap-2">
+                  <span className="text-[#0C0B1E] font-bold mt-0.5">✓</span>
+                  <span><strong>AI Kuota: 30x / hari</strong> (Parse CV, Cover Letter, Email, Match Score)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#0C0B1E] font-bold mt-0.5">✓</span>
+                  <span><strong>Scraping Kuota: 10x / hari</strong> (LinkedIn, Jobstreet, Indeed, Glints, Dealls)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#0C0B1E] font-bold mt-0.5">✓</span>
+                  <span>Simpan lowongan tanpa batas</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#0C0B1E] font-bold mt-0.5">✓</span>
+                  <span>Auto-scraping jadwal harian aktif</span>
+                </li>
+              </ul>
+            ) : (
+              <ul className="space-y-2.5 font-mono text-xs text-zinc-600">
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600 font-bold mt-0.5">✓</span>
+                  <span><strong>AI Kuota: 100x / hari</strong> (Cocok untuk pelamar agresif mass-apply)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600 font-bold mt-0.5">✓</span>
+                  <span><strong>Scraping Kuota: 25x / hari</strong> (Pantau ratusan loker setiap hari di semua portal)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600 font-bold mt-0.5">✓</span>
+                  <span>Semua fitur PRO termasuk</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600 font-bold mt-0.5">✓</span>
+                  <span>Prioritas dukungan & antrean cron otomatis</span>
+                </li>
+              </ul>
+            )}
           </div>
         </div>
 
@@ -144,7 +206,7 @@ export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
 
               <div>
                 <div className="text-xs text-zinc-500 mb-0.5">Nominal Transfer:</div>
-                <div className="text-base font-bold text-[#0C0B1E]">{price}</div>
+                <div className="text-base font-bold text-[#0C0B1E]">{currentPlan.priceStr}</div>
               </div>
             </div>
           ) : (
@@ -157,7 +219,6 @@ export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
               </div>
 
               <div className="mx-auto w-full max-w-[240px] aspect-square rounded-sm border border-[var(--border)] bg-white p-2.5 flex items-center justify-center overflow-hidden shadow-sm">
-                {/* Gambar QRIS dari folder public/qris.png */}
                 <img
                   src="/qris.webp"
                   alt="QRIS Pembayaran Job Hunting OS"
@@ -193,7 +254,7 @@ export function BillingPaymentCard({ userEmail }: BillingPaymentCardProps) {
               </div>
 
               <div className="text-sm font-semibold text-[#0C0B1E]">
-                Nominal: <span className="text-[#0C0B1E] font-bold">{price}</span>
+                Nominal: <span className="text-[#0C0B1E] font-bold">{currentPlan.priceStr}</span>
               </div>
             </div>
           )}

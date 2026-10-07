@@ -6,7 +6,7 @@ Job Hunting OS is a small SaaS shell for a Google Sheets-based job tracker.
 Current MVP scope:
 - Google login with Supabase Auth.
 - Protected dashboard.
-- FREE or PAID account status.
+- FREE, PRO, VIP account status.
 - Daily quota display.
 - A safe test endpoint that records usage only.
 - Manual-payment billing page.

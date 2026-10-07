@@ -38,7 +38,8 @@ export default async function DashboardLayout({
   const scrapeUsed =
     events?.filter((e) => SCRAPE_ACTIONS.includes(e.action as import('@/lib/quota/limits').UsageAction)).length || 0;
 
-  const plan = (profile?.plan as PlanType) || 'FREE';
+  const rawPlan = (profile?.plan as string) || 'FREE';
+  const plan = (rawPlan === 'PAID' ? 'PRO' : rawPlan) as PlanType;
 
   return (
     <ToastProvider>

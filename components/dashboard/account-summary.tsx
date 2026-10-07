@@ -9,6 +9,8 @@ interface AccountSummaryProps {
 }
 
 export function AccountSummary({ email, fullName, plan, paidUntil }: AccountSummaryProps) {
+  const displayPlan = (plan as string) === 'PAID' ? 'PRO' : plan;
+
   return (
     <Card>
       <h2 className="text-lg font-semibold mb-4 tracking-tight">Akun Saya</h2>
@@ -25,15 +27,19 @@ export function AccountSummary({ email, fullName, plan, paidUntil }: AccountSumm
           <span className="text-sm text-zinc-700 font-medium">Paket</span>
           <span
             className={`font-semibold uppercase tracking-wide text-xs px-2 py-0.5 rounded-sm border ${
-              plan === 'PAID'
+              displayPlan === 'VIP'
+                ? 'bg-purple-200 text-purple-900 border-purple-300'
+                : displayPlan === 'PRO'
                 ? 'bg-[#C1EF7B] text-[#0C0B1E] border-[#a5df48]'
+                : displayPlan === 'ADMIN'
+                ? 'bg-purple-200 text-purple-900 border-purple-300'
                 : 'bg-[#F1F0FF] text-[#0C0B1E] border-zinc-200'
             }`}
           >
-            {plan === 'FREE' ? 'Free' : 'Pro'}
+            {displayPlan}
           </span>
         </div>
-        {plan === 'PAID' && paidUntil && (
+        {(displayPlan === 'PRO' || displayPlan === 'VIP' || displayPlan === 'ADMIN') && paidUntil && (
           <div className="flex items-center justify-between">
             <span className="text-sm text-zinc-700 font-medium">Berlaku hingga</span>
             <span className="text-sm font-medium text-[#0C0B1E]">

@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { QuotaCard } from '@/components/dashboard/quota-card';
 import { BillingPaymentCard } from '@/components/dashboard/billing-payment-card';
-import { QUOTA_LIMITS, type PlanType } from '@/lib/quota/limits';
+import { QUOTA_LIMITS, SCRAPE_ACTIONS, type PlanType } from '@/lib/quota/limits';
 
 export default async function BillingPage() {
   const user = await requireUser();
@@ -19,9 +19,17 @@ export default async function BillingPage() {
     return <div>Loading...</div>;
   }
 
-  const plan: PlanType = profile.plan as PlanType;
+  const rawPlan = profile.plan as string;
+  const plan: PlanType = (rawPlan === 'PAID' ? 'PRO' : rawPlan) as PlanType;
   const limits = QUOTA_LIMITS[plan] || QUOTA_LIMITS.FREE;
-  const planLabel = plan === 'ADMIN' ? 'ADMIN (UNLIMITED)' : plan === 'PAID' ? 'PRO PLAN' : 'FREE PLAN';
+  const planLabel =
+    plan === 'ADMIN'
+      ? 'ADMIN (UNLIMITED)'
+      : plan === 'VIP'
+      ? 'VIP PLAN'
+      : plan === 'PRO'
+      ? 'PRO PLAN'
+      : 'FREE PLAN';
 
   const today = new Date();
   const jakartaOffset = 7 * 60;
@@ -40,11 +48,10 @@ export default async function BillingPage() {
     events?.filter((e) => e.action === 'AI_EXTRACT' || e.action === 'AI_GENERATE').length || 0;
 
   const scrapeUsed =
-    events?.filter((e) => e.action === 'SCRAPE_LINKEDIN' || e.action === 'SCRAPE_JOBSTREET')
-      .length || 0;
+    events?.filter((e) => SCRAPE_ACTIONS.includes(e.action as import('@/lib/quota/limits').UsageAction)).length || 0;
 
   const portal =
-    events?.find((e) => e.action === 'SCRAPE_LINKEDIN' || e.action === 'SCRAPE_JOBSTREET')
+    events?.find((e) => SCRAPE_ACTIONS.includes(e.action as import('@/lib/quota/limits').UsageAction))
       ?.portal || null;
 
   return (
@@ -66,13 +73,19 @@ export default async function BillingPage() {
             <span className="text-zinc-700 font-semibold">PAKET</span>
             <span
               className={`font-bold px-2 py-0.5 rounded-sm border ${
-                plan === 'PAID' ? 'bg-[#C1EF7B] text-[#0C0B1E] border-[#a5df48]' : plan === 'ADMIN' ? 'bg-purple-200 text-purple-900 border-purple-300' : 'bg-[#F1F0FF] text-[#0C0B1E] border-zinc-200'
+                plan === 'VIP'
+                  ? 'bg-purple-200 text-purple-900 border-purple-300'
+                  : plan === 'PRO'
+                  ? 'bg-[#C1EF7B] text-[#0C0B1E] border-[#a5df48]'
+                  : plan === 'ADMIN'
+                  ? 'bg-purple-200 text-purple-900 border-purple-300'
+                  : 'bg-[#F1F0FF] text-[#0C0B1E] border-zinc-200'
               }`}
             >
               {planLabel}
             </span>
           </div>
-          {(plan === 'PAID' || plan === 'ADMIN') && profile.paid_until && (
+          {(plan === 'PRO' || plan === 'VIP' || plan === 'ADMIN') && profile.paid_until && (
             <div className="flex justify-between border-b border-[var(--border)] pb-3">
               <span className="text-zinc-700 font-semibold">BERLAKU HINGGA</span>
               <span className="text-[#0C0B1E] font-medium">
@@ -93,7 +106,7 @@ export default async function BillingPage() {
         <>
           <BillingPaymentCard userEmail={user.email || ''} />
           <p className="text-xs text-zinc-700 font-mono text-center">
-            Anda saat ini memakai paket {planLabel} — tampilan pembayaran di atas hanya untuk pratinjau / upgrade user FREE.
+            Anda saat ini memakai paket {planLabel} — tampilan pembayaran di atas dapat digunakan untuk perpanjang atau upgrade.
           </p>
         </>
       )}
