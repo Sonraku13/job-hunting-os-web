@@ -477,43 +477,37 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
               <div
                 key={job.id}
                 onClick={() => handleOpenJobDetail(job)}
-                className="p-4 transition-colors hover:bg-[#F1F0FF]/50 cursor-pointer"
+                className="p-4 transition-colors hover:bg-[#F1F0FF]/50 cursor-pointer space-y-3"
               >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="space-y-0.5 flex-1">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <h3 className="text-base font-semibold text-[#0C0B1E]">{job.job_title}</h3>
-                      <span className="rounded-sm bg-[#F1F0FF] border border-zinc-200 px-2 py-0.5 font-mono text-[10px] text-[#0C0B1E] uppercase font-medium">
-                        {job.source}
-                      </span>
-                      {typeof matchScore === 'number' && (
-                        <button
-                          type="button"
-                          onClick={() => handleMatchScore(job)}
-                          className={`rounded-sm border px-2 py-0.5 font-mono text-[10px] font-bold transition-opacity hover:opacity-80 ${
-                            matchScore >= 80
-                              ? 'border-[#a5df48] bg-[#C1EF7B] text-[#0C0B1E]'
-                              : matchScore >= 60
-                                ? 'border-amber-300 bg-amber-100 text-amber-900'
-                                : 'border-rose-300 bg-rose-100 text-rose-900'
-                          }`}
-                        >
-                          Match {matchScore}%
-                        </button>
-                      )}
-                    </div>
-
-                    <p className="text-sm text-zinc-800 font-medium">{job.company_name}</p>
-
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[11px] text-zinc-700">
-                      {job.location && <span>📍 {job.location}</span>}
-                      {job.salary_range && <span>💰 {job.salary_range}</span>}
-                      {job.job_type && <span>💼 {job.job_type}</span>}
-                    </div>
+                {/* Header Actions & Tags Bar: Sejajar Horizontal di atas info job */}
+                <div
+                  className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 pb-2.5"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Left: Tags (Portal & Match Score) */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="rounded-sm bg-[#F1F0FF] border border-zinc-200 px-2 py-0.5 font-mono text-[10px] text-[#0C0B1E] uppercase font-semibold tracking-wide">
+                      {job.source}
+                    </span>
+                    {typeof matchScore === 'number' && (
+                      <button
+                        type="button"
+                        onClick={() => handleMatchScore(job)}
+                        className={`rounded-sm border px-2 py-0.5 font-mono text-[10px] font-bold transition-opacity hover:opacity-80 ${
+                          matchScore >= 80
+                            ? 'border-[#a5df48] bg-[#C1EF7B] text-[#0C0B1E]'
+                            : matchScore >= 60
+                              ? 'border-amber-300 bg-amber-100 text-amber-900'
+                              : 'border-rose-300 bg-rose-100 text-rose-900'
+                        }`}
+                      >
+                        Match {matchScore}%
+                      </button>
+                    )}
                   </div>
 
-                  {/* Actions & Status Dropdown */}
-                  <div className="flex flex-wrap items-center gap-1.5 self-end sm:self-auto" onClick={(e) => e.stopPropagation()}>
+                  {/* Right: Action Buttons (Discover, Match, Surat, Email, URL, Hapus) */}
+                  <div className="flex flex-wrap items-center gap-1.5">
                     {/* Status Dropdown */}
                     <div className="relative inline-block">
                       <select
@@ -603,6 +597,18 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                     >
                       {deletingId === job.id ? '...' : t('dash_action_delete')}
                     </Button>
+                  </div>
+                </div>
+
+                {/* Body Job Info */}
+                <div className="space-y-1">
+                  <h3 className="text-base font-semibold text-[#0C0B1E] leading-snug">{job.job_title}</h3>
+                  <p className="text-sm text-zinc-800 font-medium">{job.company_name}</p>
+
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 pt-0.5 font-mono text-[11px] text-zinc-700">
+                    {job.location && <span>📍 {job.location}</span>}
+                    {job.salary_range && <span>💰 {job.salary_range}</span>}
+                    {job.job_type && <span>💼 {job.job_type}</span>}
                   </div>
                 </div>
               </div>
