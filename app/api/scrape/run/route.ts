@@ -28,8 +28,15 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const portal = body.portal === 'jobstreet' ? 'jobstreet' : 'linkedin';
-    const action = portal === 'jobstreet' ? 'SCRAPE_JOBSTREET' : 'SCRAPE_LINKEDIN';
+    const portal = body.portal === 'jobstreet' ? 'jobstreet' :
+                 body.portal === 'indeed' ? 'indeed' :
+                 body.portal === 'glints' ? 'glints' :
+                 body.portal === 'dealls' ? 'dealls' : 'linkedin';
+    const action = portal === 'jobstreet' ? 'SCRAPE_JOBSTREET' :
+                 portal === 'indeed' ? 'SCRAPE_INDEED' :
+                 portal === 'glints' ? 'SCRAPE_GLINTS' :
+                 portal === 'dealls' ? 'SCRAPE_DEALLS' :
+                 'SCRAPE_LINKEDIN';
 
     // 1. Consume Quota
     const { data: quotaData, error: quotaError } = await supabase.rpc('consume_usage', {
@@ -203,6 +210,69 @@ export async function POST(request: Request) {
 
         const resData = await res.json();
         rawJobs = extractJobs(resData);
+      } else if (portal === 'indeed') {
+        const params = new URLSearchParams({
+          query,
+          location,
+          days: '7',
+          sort: 'date',
+          limit: '20',
+        });
+
+        const res = await fetch(`${ZAPI_BASE}/jobs:indeed/search?${params.toString()}`, {
+          headers: { 'x-api-key': ZAPI_KEY },
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error(`Gagal scrape Indeed untuk "${query}" @ ${location}:`, errText);
+          continue;
+        }
+
+        const resData = await res.json();
+        rawJobs = extractJobs(resData);
+      } else if (portal === 'glints') {
+        const params = new URLSearchParams({
+          query,
+          country: 'ID',
+          postedWithin: 'PAST_WEEK',
+          sort: 'latest',
+        });
+
+        const res = await fetch(`${ZAPI_BASE}/jobs:glints/search?${params.toString()}`, {
+          headers: { 'x-api-key': ZAPI_KEY },
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error(`Gagal scrape Glints untuk "${query}":`, errText);
+          continue;
+        }
+
+        const resData = await res.json();
+        rawJobs = extractJobs(resData);
+      } else if (portal === 'dealls') {
+        const params = new URLSearchParams({
+          query,
+          status: 'active',
+          sort: 'publishedAt',
+          sortDirection: 'desc',
+          page: '1',
+          limit: '20',
+        });
+
+        const res = await fetch(`${ZAPI_BASE}/jobs:dealls/search?${params.toString()}`, {
+          headers: { 'x-api-key': ZAPI_KEY },
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error(`Gagal scrape Dealls untuk "${query}":`, errText);
+          continue;
+        }
+
+        const resData = await res.json();
+        rawJobs = extractJobs(resData);
       } else {
         // Jobstreet: gunakan endpoint recent-jobs sesuai webapp sheet
         const params = new URLSearchParams({
@@ -270,10 +340,21 @@ export async function POST(request: Request) {
       
       // Pastikan job_url selalu terisi agar constraint unique (user_id, job_url) terpenuhi
       if (!jobUrl && externalId) {
-        jobUrl = portal === 'linkedin'
-          ? `https://www.linkedin.com/jobs/view/${externalId}`
-          : `https://id.jobstreet.com/id/job/${externalId}`;
+        jobUrl =
+          portal === 'linkedin' ? `https://www.linkedin.com/jobs/view/${externalId}` :
+          portal === 'jobstreet' ? `https://id.jobstreet.com/id/job/${externalId}` :
+          portal === 'indeed' ? `https://id.indeed.com/viewjob?jk=${externalId}` :
+          portal === 'glints' ? `https://glints.com/id/opportunities/jobs/${externalId}` :
+          portal === 'dealls' ? `https://dealls.com/loker/${externalId}` :
+          `https://example.com/job/${externalId}`;
       }
+
+      const sourceLabel =
+        portal === 'linkedin' ? 'LinkedIn' :
+        portal === 'jobstreet' ? 'Jobstreet' :
+        portal === 'indeed' ? 'Indeed' :
+        portal === 'glints' ? 'Glints' :
+        portal === 'dealls' ? 'Dealls' : 'Unknown';
 
       return {
         user_id: user.id,
@@ -285,7 +366,7 @@ export async function POST(request: Request) {
         salary_range: formatSalary(j),
         job_description: cleanRawDescription(pick(j, ['description', 'job_description', 'jobDescription', 'snippet', 'summary', 'details']) || `Lowongan ${pick(j, ['title', 'job_title']) || ''} di ${pick(j, ['company', 'company_name']) || 'perusahaan'}. Lihat detail via URL.`),
         external_job_id: externalId,
-        source: portal === 'linkedin' ? 'LinkedIn' : 'Jobstreet',
+        source: sourceLabel,
         status: 'discover',
       };
     });

@@ -248,9 +248,9 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
     return (job.status || 'discover') === filterStatus;
   });
 
-  const [scrapingPortal, setScrapingPortal] = useState<'linkedin' | 'jobstreet' | null>(null);
+  const [scrapingPortal, setScrapingPortal] = useState<'linkedin' | 'jobstreet' | 'indeed' | 'glints' | 'dealls' | null>(null);
 
-  const handleManualScrape = async (portal: 'linkedin' | 'jobstreet') => {
+  const handleManualScrape = async (portal: 'linkedin' | 'jobstreet' | 'indeed' | 'glints' | 'dealls') => {
     setScrapingPortal(portal);
     try {
       const res = await fetch('/api/scrape/run', {
@@ -344,6 +344,30 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
             className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[#0C0B1E] transition-colors hover:bg-[#F1F0FF] hover:border-[#0C0B1E] disabled:opacity-50 whitespace-nowrap"
           >
             {scrapingPortal === 'jobstreet' ? t('dash_scraping_jobstreet') : t('dash_scrape_jobstreet')}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleManualScrape('indeed')}
+            disabled={scrapingPortal !== null}
+            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[#0C0B1E] transition-colors hover:bg-[#F1F0FF] hover:border-[#0C0B1E] disabled:opacity-50 whitespace-nowrap"
+          >
+            {scrapingPortal === 'indeed' ? t('dash_scraping_indeed') : t('dash_scrape_indeed')}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleManualScrape('glints')}
+            disabled={scrapingPortal !== null}
+            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[#0C0B1E] transition-colors hover:bg-[#F1F0FF] hover:border-[#0C0B1E] disabled:opacity-50 whitespace-nowrap"
+          >
+            {scrapingPortal === 'glints' ? t('dash_scraping_glints') : t('dash_scrape_glints')}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleManualScrape('dealls')}
+            disabled={scrapingPortal !== null}
+            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[#0C0B1E] transition-colors hover:bg-[#F1F0FF] hover:border-[#0C0B1E] disabled:opacity-50 whitespace-nowrap"
+          >
+            {scrapingPortal === 'dealls' ? t('dash_scraping_dealls') : t('dash_scrape_dealls')}
           </button>
         </div>
 

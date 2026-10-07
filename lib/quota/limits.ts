@@ -14,4 +14,4 @@ export const QUOTA_LIMITS = {
 } as const;
 
 export type PlanType = 'FREE' | 'PAID' | 'ADMIN';
-export type UsageAction = 'AI_EXTRACT' | 'AI_GENERATE' | 'SCRAPE_LINKEDIN' | 'SCRAPE_JOBSTREET';
+export type UsageAction = 'AI_EXTRACT' | 'AI_GENERATE' | 'SCRAPE_LINKEDIN' | 'SCRAPE_JOBSTREET' | 'SCRAPE_INDEED' | 'SCRAPE_GLINTS' | 'SCRAPE_DEALLS';
