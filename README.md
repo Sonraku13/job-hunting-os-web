@@ -225,6 +225,20 @@ These will be added in future phases.
 
 ## Project Log / Changelog
 
+### 2026-10-07 — Plan Tier Expansion & UI/Visibility Enhancements
+
+**Plan Tier & Role Updates (FREE, PRO, VIP, ADMIN):**
+- Updated plan structures & quotas: FREE (1 scrape, 3 AI), PRO (10 scrape, 30 AI), VIP (25 scrape, 100 AI), ADMIN (unlimited).
+- Database migrations (`012_add_plan_enum_values.sql` & `013_update_plan_constraints_and_rpc.sql`) to safely update `plan_type` enum, migrate existing `PAID` users to `PRO`/`FREE`, update constraints, and rewrite `consume_usage` RPC.
+- Redesigned `/billing` page with 1-month and 3-month options for PRO (Rp 49.000 / Rp 129.000) and VIP (Rp 99.000 / Rp 249.000) with dynamic WhatsApp confirmation links.
+
+**Job List UI Layout & Contrast Improvements:**
+- Reorganized Job Card header: tags (portal source & match score) and action buttons (Status, Match, Cover Letter, Email, URL, Delete) are now placed in a clean, horizontal flex-wrap bar above the job details.
+- Improved text contrast across the application:
+  - Action buttons "Surat" & "Email" updated to high-contrast `text-emerald-700` with light hover state on white background.
+  - Labels in Settings and Profile forms upgraded from low-contrast `zinc-400`/`zinc-500` to `zinc-600`.
+  - Copy button in modals styled with high visibility font & ring accent.
+
 ### 2026-10-06 — Pepelsbey Light Design & Smart Quick-Paste (Phase 1)
 
 **Design System Migration:**
