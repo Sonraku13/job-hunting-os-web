@@ -69,6 +69,7 @@ export async function POST(request: Request) {
       ...parsed,
       source: 'manual',
       source_url: sourceUrl?.trim() || null,
+      is_parsed: true,
     };
 
     return NextResponse.json({

@@ -85,10 +85,10 @@ export function UsageTestButtons() {
         </div>
 
         <div>
-          <h4 className="text-xs font-mono text-zinc-400 mb-2">AKSI SCRAPING (LINKEDIN / JOBSTREET)</h4>
-          <div className="flex gap-2">
+          <h4 className="text-xs font-mono text-zinc-400 mb-2">AKSI SCRAPING (LINKEDIN / JOBSTREET / INDEED / GLINTS / DEALLS)</h4>
+          <div className="flex flex-wrap gap-2">
             <Button
-              onClick={() => testAction('SCRAPE_LINKEDIN', 'LinkedIn')}
+              onClick={() => testAction('SCRAPE_LINKEDIN', 'linkedin')}
               disabled={loading !== null}
               variant="outline"
               className="flex-1 font-mono text-xs"
@@ -96,12 +96,36 @@ export function UsageTestButtons() {
               {loading === 'SCRAPE_LINKEDIN' ? 'Testing...' : 'Test LinkedIn'}
             </Button>
             <Button
-              onClick={() => testAction('SCRAPE_JOBSTREET', 'Jobstreet')}
+              onClick={() => testAction('SCRAPE_JOBSTREET', 'jobstreet')}
               disabled={loading !== null}
               variant="outline"
               className="flex-1 font-mono text-xs"
             >
               {loading === 'SCRAPE_JOBSTREET' ? 'Testing...' : 'Test Jobstreet'}
+            </Button>
+            <Button
+              onClick={() => testAction('SCRAPE_INDEED', 'indeed')}
+              disabled={loading !== null}
+              variant="outline"
+              className="flex-1 font-mono text-xs"
+            >
+              {loading === 'SCRAPE_INDEED' ? 'Testing...' : 'Test Indeed'}
+            </Button>
+            <Button
+              onClick={() => testAction('SCRAPE_GLINTS', 'glints')}
+              disabled={loading !== null}
+              variant="outline"
+              className="flex-1 font-mono text-xs"
+            >
+              {loading === 'SCRAPE_GLINTS' ? 'Testing...' : 'Test Glints'}
+            </Button>
+            <Button
+              onClick={() => testAction('SCRAPE_DEALLS', 'dealls')}
+              disabled={loading !== null}
+              variant="outline"
+              className="flex-1 font-mono text-xs"
+            >
+              {loading === 'SCRAPE_DEALLS' ? 'Testing...' : 'Test Dealls'}
             </Button>
           </div>
         </div>
@@ -123,7 +147,8 @@ export function UsageTestButtons() {
                     job_type: 'Full-time',
                     salary_range: '15.000.000 - 25.000.000 IDR',
                     job_description: 'We are looking for a Senior Frontend Engineer to build modern, scalable web applications using React, Next.js, and TypeScript.\n\nRequirements:\n- 5+ years experience\n- Strong understanding of React ecosystem',
-                    source: 'LinkedIn'
+                    source: 'LinkedIn',
+                    is_parsed: true,
                   }),
                 });
                 if (res.ok) {

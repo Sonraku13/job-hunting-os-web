@@ -410,6 +410,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                           job_description:
                             'We are looking for a Senior Frontend Engineer to build modern, scalable web applications using React, Next.js, and TypeScript.\n\nRequirements:\n- 4+ years experience\n- Strong understanding of React ecosystem',
                           source: 'LinkedIn',
+                          is_parsed: true,
                         }),
                       });
                       const data = await res.json();

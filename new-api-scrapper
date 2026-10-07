@@ -1,0 +1,416 @@
+Indeed
+Indeed Indonesia — job search and detail parsed from its own hydration data, with radius, job-type, recency and remote filters.
+
+Search
+Indeed Indonesia job search — read from the SERP's own hydration blob, never its markup. Tier: clearance ticket (rung 8). Measured 2026-09-02 from the BE: cold solve 12.4s, then
+
+Parameters
+Name	Type	In	Description
+query	string	query	Free-text search across job titles, companies and descriptions. Required unless a location is given.
+location	string	query	City, province or the literal value Remote for work-from-anywhere roles. Required unless a query is given.
+radius	number	query	Kilometres around the location. 0 keeps the exact city only.
+days	number	query	Only jobs posted within this many days.
+employmentType	enum	query	Contract shape of the role. One of fulltime, parttime, contract, internship, temporary, permanent.
+sort	enum	query	Result order. Default relevance. One of relevance, date.
+limit	number	query	Jobs to return. Default 20, max 50 — the upstream serves one window only.
+
+Example response
+{
+"project":"jobs:indeed",
+  "data": {
+"count":4,
+    "items": [
+      {
+"url":"https://id.indeed.com/viewjob?jk=67fbccaea6aecf5a",
+"isNew":true,
+"jobId":"67fbccaea6aecf5a",
+"title":"Frontend Developer",
+        "salary": {
+"max":-1,
+"min":30000000,
+"interval":"MONTHLY"
+        },
+        "company": {
+"id":"0564a2e239095b48",
+"name":"Abhidi Solution Private Limited",
+"rating":0,
+"verified":false,
+"responsive":false,
+"reviewCount":0
+        },
+"applyUrl":"http://id.indeed.com//applystart?jk=67fbccaea6aecf5a&from=jobsearch&mvj=0&jobsearchTk=1k1guu6ru2287000&spon=0&adid=0&xkcb=SoCv67M2fw13BYSIHB0LbzkdCdPP&sjdu=XIuoK79SQCtQWY-kk6JJtKDf…",
+"isRemote":false,
+"isUrgent":false,
+        "location": {
+"city":"Jakarta",
+"region":"JW",
+"country":"ID"
+        },
+"postedAt":"2026-09-02T05:00:00.000Z",
+"createdAt":"2026-09-02T09:40:35.432Z",
+"easyApply":true,
+"isExpired":false,
+"isFeatured":false,
+"description":"<ul style=\"list-style-type:circle;margin-top: 0px;margin-bottom: 0px;padding-left:20px;\">\n <li style=\"margin-bottom:0px;\">O Proficiency in Next.js, React.js, and modern JavaScript …",
+"isSponsored":false,
+"numberOfOpenings":1
+      },
+      {
+"url":"https://id.indeed.com/viewjob?jk=270953bd0fb4b5e8",
+"isNew":true,
+"jobId":"270953bd0fb4b5e8",
+"title":"Analyst, Application Developer, Group Technology",
+        "company": {
+"id":"cc1f9ea511d140fe",
+"name":"DBS Bank",
+"rating":3.8,
+"verified":false,
+"responsive":false,
+"reviewCount":690
+        },
+"applyUrl":"http://id.indeed.com//applystart?jk=270953bd0fb4b5e8&from=jobsearch&mvj=0&jobsearchTk=1k1guu6ru2287000&spon=0&adid=0&xkcb=SoAb67M2fw13BYSIHB0KbzkdCdPP&sjdu=VdOEDs38H3NPNemjJq7z3F27…",
+"isRemote":false,
+"isUrgent":false,
+        "location": {
+"city":"Jakarta",
+"region":"JW",
+"country":"ID"
+        },
+"postedAt":"2026-09-02T05:00:00.000Z",
+"createdAt":"2026-09-02T04:31:34.606Z",
+"easyApply":false,
+"isExpired":false,
+"isFeatured":false,
+"description":"<ul style=\"list-style-type:circle;margin-top: 0px;margin-bottom: 0px;padding-left:20px;\">\n <li>Design, develop, and maintain high-quality hybrid Micro Frontends (MFE) using React J…",
+"isSponsored":false
+      },
+      {
+"url":"https://id.indeed.com/viewjob?jk=744fb9a9b5ffc473",
+"isNew":true,
+"jobId":"744fb9a9b5ffc473",
+"title":"Programmer",
+        "company": {
+"id":"91444a28cb181211",
+"name":"NTT DATA",
+"rating":3.5,
+"verified":false,
+"responsive":false,
+"reviewCount":4932
+        },
+"applyUrl":"http://id.indeed.com//applystart?jk=744fb9a9b5ffc473&from=jobsearch&mvj=0&jobsearchTk=1k1guu6ru2287000&spon=0&adid=0&xkcb=SoCG67M2fw13BYSIHB0JbzkdCdPP&sjdu=CnLQEzJ06ZM2tq_HcnVAHCL5…",
+"isRemote":false,
+"isUrgent":false,
+        "location": {
+"city":"Jakarta",
+"region":"JW",
+"country":"ID"
+        },
+"postedAt":"2026-08-28T05:00:00.000Z",
+"createdAt":"2026-08-28T10:26:34.796Z",
+"easyApply":false,
+"isExpired":false,
+"isFeatured":false,
+"description":"<ul style=\"list-style-type:circle;margin-top: 0px;margin-bottom: 0px;padding-left:20px;\">\n <li>The Software Development Engineer is a seasoned subject matter expert, tasked with pa…",
+"isSponsored":false
+      }
+    ],
+"limit":5,
+"query":"developer",
+"total":4,
+"location":"Jakarta",
+"provider":"indeed"
+  },
+"timestamp":"2026-09-02T11:46:25Z"
+}
+
+curl -X GET "https://api.zapi.ink/v1/jobs:indeed/search?query=developer&location=Jakarta&radius=25&days=7&employmentType=fulltime&sort=date&limit=20" \
+  -H "x-api-key: zpi_xxxxxxxxxxxxxxxxxxxxxxxx"
+
+
+Job
+Indeed Indonesia job detail — the SERP's two-pane payload, because /viewjob is walled. Tier: clearance ticket (rung 8). Measured 2026-09-02 from the BE: 500-700ms on a warm
+
+Parameters
+Name	Type	In	Description
+jobKey	string	path	The job key — the `jk` value in an Indeed job URL, also `jobId` in this scraper's search response. Required.
+
+Example response
+{
+"project":"jobs:indeed",
+  "data": {
+"url":"https://id.indeed.com/viewjob?jk=011150bb448a2d75",
+"jobId":"011150bb448a2d75",
+"title":"Fullstack Developer",
+    "salary": {
+"max":11000000,
+"min":8000000,
+"shown":true,
+"source":"EXTRACTION",
+"currency":"IDR",
+"interval":"MONTHLY"
+    },
+    "company": {
+"name":"PT Kreatifitas Sinergisme Teknoindo",
+"website":"https://id.indeed.com/cmp/PT-Kreatifitas-Sinergisme-Teknoindo-1?campaignid=mobvjcmp&from=mobviewjob&tk=1k1guu3c32287000&fromjk=011150bb448a2d75"
+    },
+"isRemote":false,
+    "location": {
+"city":"Jakarta"
+    },
+"provider":"indeed",
+"isExpired":false,
+"description":"<p><b>Key Responsibilities</b></p>\n<ul>\n <li>Design, develop, and maintain web applications from front-end to back-end.</li>\n <li>Build responsive and user-friendly interfaces.</li>\n <li>Develop and maintain APIs, databases, and server-side applications.</li>\n <li>Collaborate with product, design, QA, and other development teams.</li>\n <li>Troubleshoot, debug, and optimize application performance.</li>\n <li>Participate in code reviews and contribute to technical improvements.</li>\n <li>Ensure application security, scalability, and reliability.</li>\n</ul>\n<p><b>Requirements</b></p>\n<ul>\n <li>Bachelor's degree in Computer Science, Information Technology, or a related field (or equivalent practical experience).</li>\n <li>Minimum 2 years of experience in software development.</li>\n <li>Experience with front-end technologies such as JavaScript, TypeScript, HTML, CSS, React, Angular, or Vue.js.</li>\n <li>Experience with back-end technologies such as Node.js, .NET, Java, PHP, Python, or similar frameworks.</li>\n <li>Familiarity with RESTful APIs and database management systems (MySQL, PostgreSQL, SQL Server, MongoDB, etc.).</li>\n <li>Understanding of software development lifecycle and version control systems (Git).</li>\n <li>Knowledge of cloud platforms, DevOps practices, or CI/CD pipelines is a plus.</li>\n <li>Strong problem-solving and analytical skills.</li>\n <li>Good communication and teamwork abilities.</li>\n</ul>\n<p>Ability to commute/relocate:</p>\n<ul>\n <li>Jakarta: Reliably commute or planning to relocate before starting work (Required)</li>\n</ul>\n<p>Application Question(s):</p>\n<ul>\n <li>Rate your english skill? (1-10)</li>\n</ul>\n<p>Experience:</p>\n<ul>\n <li>Fullstack: 2 years (Required)</li>\n</ul>\n<p>Work Location: Hybrid remote in Jakarta</p>"
+  },
+"timestamp":"2026-09-02T11:46:25Z"
+}
+
+curl -X GET "https://api.zapi.ink/v1/jobs:indeed/job/011150bb448a2d75" \
+  -H "x-api-key: zpi_xxxxxxxxxxxxxxxxxxxxxxxx"
+
+
+
+  Glints
+Glints job board — keyword search plus a paged browse over its full listing set, with education, work-arrangement and experience filters.
+
+Search
+Glints job search. Our direct egress gets a 1.37MB "Glints - Firewall" page; the same URL through the clearance ticket answers 200 with `firewall: false`, so this runs on solvedFetch.
+
+Parameters
+Name	Type	In	Description
+query	string	query	Free-text search across job titles.
+country	string	query	Two-letter country code, e.g. ID, SG, VN, MY, TW.
+locationId	string	query	Glints hierarchical location id from the filters endpoint.
+jobType	enum	query	Employment type. One of FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP, PROJECT_BASED.
+workArrangement	enum	query	Where the work happens. One of ONSITE, HYBRID, REMOTE.
+educationLevel	enum	query	Minimum education asked for. One of PRIMARY_SCHOOL, SECONDARY_SCHOOL, HIGH_SCHOOL, DIPLOMA, COLLEGE_DEGREE, BACHELOR_DEGREE, MASTER_DEGREE, PROFESSIONAL_EDUCATION.
+experience	enum	query	Years-of-experience bracket. One of NO_EXPERIENCE, FRESH_GRAD, LESS_THAN_A_YEAR, ONE_TO_THREE_YEARS, THREE_TO_FIVE_YEARS, FIVE_TO_TEN_YEARS, MORE_THAN_TEN_YEARS.
+postedWithin	enum	query	How recently the listing was updated. One of PAST_24_HOURS, PAST_WEEK, PAST_MONTH, ANY_TIME.
+minSalary	number	query	Minimum salary; requires `currency`.
+currency	enum	query	Currency for `minSalary`. One of IDR, SGD, VND, JPY, MYR.
+sort	enum	query	Result order. Default relevance. One of relevance, latest.
+
+Example response
+{
+"project":"jobs:glints",
+  "data": {
+"page":1,
+"count":0,
+"items":[],
+"limit":30,
+"query":"developer",
+"total":null,
+"hasMore":false,
+"nextPage":null,
+"provider":"glints"
+  },
+"timestamp":"2026-09-02T11:46:25Z"
+}
+
+curl -X GET "https://api.zapi.ink/v1/jobs:glints/search?query=developer&country=SG&locationId=c7aaf839-7091-4a64-95a9-a25642d02aba&jobType=INTERNSHIP&workArrangement=REMOTE&educationLevel=BACHELOR_DEGREE&experience=FRESH_GRAD&postedWithin=PAST_WEEK&minSalary=5000000&currency=IDR&sort=latest" \
+  -H "x-api-key: zpi_xxxxxxxxxxxxxxxxxxxxxxxx"
+
+
+Job
+Glints single job. `/api/v2/jobs/{id}` is a real REST resource that answers through the clearance ticket in ~200-250ms with the full record; the rendered job page costs ~1s and
+
+
+  Parameters
+Name	Type	In	Description
+jobId	string	path	Glints job id (UUID) as returned by the search endpoints. Required.
+
+Example response
+{
+"project":"jobs:glints",
+  "data": {
+"url":"https://glints.com/id/opportunities/jobs/teknisi-jaringan/b474c1b1-0c33-4341-917e-b0bd651e2622",
+"slug":"teknisi-jaringan",
+"jobId":"b474c1b1-0c33-4341-917e-b0bd651e2622",
+"title":"Teknisi Jaringan",
+    "salary": {
+"shown":false
+    },
+"status":"OPEN",
+    "company": {
+"id":"778e91ef-37a8-48cf-ad0f-b41d67f128fd",
+"logo":"https://images.glints.com/unsafe/glints-dashboard.oss-ap-southeast-1-internal.aliyuncs.com/company-logo/67289d99840204afa100fda297d8e5f8.jpeg",
+"name":"PT GATEWAY NETWORK SERVICES",
+"size":"BETWEEN_11_AND_50",
+"isVip":true,
+"address":"Menara Sun Life, 9th floor, Unit 9C Jl. DR. Ide Anak Agung Gde Agung, RT.5/RW.2, Kuningan, Kuningan Timur, Kecamatan Setiabudi, South Jakarta, Special Capital Region of Jakarta 129…",
+"website":"https://gnsid.com",
+"isHiring":false,
+"verified":true,
+"description":"PT. Gateway Network Services adalah Perusahaan layanan telekomunikasi satellite yang memulai bisnisnya pada tahun 2018. Kami menyediakan layanan telekomunikasi satellite terpadu te…",
+"displayName":"PT GATEWAY NETWORK SERVICES"
+    },
+"function":"Network Engineer",
+"isHybrid":false,
+"isPublic":true,
+"isRemote":true,
+"isUrgent":false,
+    "location": {
+"countryCode":"ID"
+    },
+"postedAt":"2026-09-01T03:35:10.579Z",
+"provider":"glints",
+"createdAt":"2026-09-01T03:35:10.579Z",
+"expiresAt":"2026-10-02",
+"updatedAt":"2026-09-01T03:35:10.579Z",
+"description":"PT GATEWAY NETWORK SERVICES adalah perusahaan layanan telekomunikasi satellite yang memulai bisnisnya pada tahun 2018. Kami menyediakan layanan telekomunikasi satellite terpadu ter…",
+"employmentType":"FULL_TIME",
+"requiresResume":false,
+    "workExperience": {
+"max":3,
+"min":1
+    },
+"workArrangement":"REMOTE",
+"numberOfOpenings":1,
+"educationLevelCode":"HIGH_SCHOOL",
+"requiresCoverLetter":false,
+"acceptsForeignApplications":false
+  },
+"timestamp":"2026-09-02T11:46:25Z"
+}
+
+curl -X GET "https://api.zapi.ink/v1/jobs:glints/job/b474c1b1-0c33-4341-917e-b0bd651e2622" \
+  -H "x-api-key: zpi_xxxxxxxxxxxxxxxxxxxxxxxx"
+
+
+
+  Dealls
+Dealls job board — search by sector, employment type, city, company and salary band, with skills and company detail per job.
+
+Search
+Dealls job search — open JSON API, rung 1 (direct) per recon, 90-600ms. Upstream: api.sejutacita.id/v1/explore-job/job, envelope {data:{docs,totalDocs,totalPages,page},code}.
+
+Parameters
+Name	Type	In	Description
+query	string	query	Free-text search across job titles.
+city	number	query	City id, as returned in `location.cityId`.
+company	string	query	Company id, as returned in `company.id`.
+sector	string	query	Company sector, spelled as `company.industry` returns it.
+benefit	string	query	Company benefit, spelled as `company.benefits` returns it.
+employmentType	enum	query	Employment type. One of fullTime, partTime, internship, contract, freelance, projectBased, volunteer, temporary.
+workArrangement	enum	query	Where the role is worked from. One of onSite, hybrid, remote.
+educationLevel	number	query	Dealls' numeric education-level code, as returned in `candidatePreference.educationLevelCodes`.
+highSalary	enum	query	Only roles paying above 30 million IDR. One of true, false.
+status	enum	query	Posting status. Default active. One of active, paused.
+sort	enum	query	Sort key. Default mostRelevant. One of mostRelevant, createdAt, updatedAt, mostRecentAndLeastApplicant, highestSalary, publishedAt.
+sortDirection	enum	query	Sort direction. Default desc. One of asc, desc.
+page	number	query	Page number. Default 1.
+limit	number	query	Results per page. Default 20, max 50.
+
+Example response
+{
+"project":"jobs:dealls",
+  "data": {
+"page":1,
+"count":0,
+"items":[],
+"limit":5,
+"query":"marketing",
+"total":0,
+"hasMore":false,
+"nextPage":null,
+"provider":"dealls"
+  },
+"timestamp":"2026-09-02T11:46:24Z"
+}
+
+curl -X GET "https://api.zapi.ink/v1/jobs:dealls/search?query=marketing&city=158&company=6a4dcfe4417e2a001267622e&sector=Banking&benefit=Flexible+working+environment&employmentType=internship&workArrangement=hybrid&educationLevel=6&highSalary=true&status=active&sort=publishedAt&sortDirection=desc&page=1&limit=20" \
+  -H "x-api-key: zpi_xxxxxxxxxxxxxxxxxxxxxxxx"
+
+  Job
+Dealls single job by id — /v1/explore-job/job with `ids[]=<id>`. There is no detail route: /v1/explore-job/job/{id}, /job/slug/{slug} and /job/detail/{id} all 404.
+
+Parameters
+Name	Type	In	Description
+id	string	path	Dealls job id, as returned in `jobId`. Required.
+
+Example response
+{
+"project":"jobs:dealls",
+  "data": {
+"url":"https://dealls.com/loker/growth-strategy-manager~fintureid",
+"slug":"growth-strategy-manager",
+"jobId":"6a97ec54e2b28600127932b8",
+    "stats": {
+"viewCount":0,
+"applicantCount":3,
+"nonCuratedCount":3
+    },
+"title":"Growth Strategy Manager",
+    "skills": [
+      {
+"id":"67573ddc8d8bcd001286b233",
+"name":"Growth Strategy"
+      },
+      {
+"id":"62ba6b677e07610012e5af8f",
+"name":"Performance Marketing"
+      }
+    ],
+"status":"active",
+    "company": {
+"id":"6a4dcfe4417e2a001267622e",
+"logo":"https://cdn.sejutacita.id/6a4dcfe4e85dd30013306839/JobPortalCompanyLogo/5d93c034-f5b0-44a3-a6ac-94d48669bc5d.jpg",
+"name":"Finture",
+"slug":"fintureid",
+      "benefits": [
+        "Flexible working environment"
+      ],
+"industry":"education",
+"verified":false,
+"createdAt":"2026-07-08T04:19:48.678Z",
+      "workingPolicies": [
+        "flexible"
+      ]
+    },
+"authorId":"6a4dd43b304e700013b38ea7",
+"function":"strategy-and-project-management",
+"isHybrid":false,
+"isRemote":false,
+"isUrgent":false,
+    "location": {
+"city":"Jakarta Selatan",
+"cityId":158,
+"country":"Indonesia",
+"countryId":102
+    },
+"postedAt":"2026-09-02T09:28:52.962Z",
+    "taxonomy": {
+"jobRoleId":"69393facffb8a421e1efbba2",
+"jobRoleCategoryId":"6934fd532622eadf60779985",
+"jobRoleSubCategoryId":"69393fabffb8a421e1efbba1"
+    },
+"createdAt":"2026-09-02T09:28:52.973Z",
+    "recruiter": {
+"id":"6a4dd43b417e2a00126841dd",
+"name":"HR Finture",
+"email":"talent@finture.id"
+    },
+"updatedAt":"2026-09-02T09:29:35.376Z",
+"isFeatured":false,
+"salaryType":"paid",
+"employmentType":"fullTime",
+"latestUpdatedAt":"2026-09-02T09:28:52.967Z",
+"workArrangement":"onSite",
+"hasFewApplicants":true,
+    "candidatePreference": {
+      "skillIds": [
+        "67573ddc8d8bcd001286b233",
+        "62ba6b677e07610012e5af8f"
+      ],
+      "educationLevelCodes": [
+        6
+      ]
+    },
+"updatedAtByEmployer":"2026-09-02T09:29:34.295Z",
+"lastActivelyHiringAt":"2026-09-02T09:43:06.371Z",
+"applicantPrioritySlots":8
+  },
+"timestamp":"2026-09-02T11:46:24Z"
+}
+
+curl -X GET "https://api.zapi.ink/v1/jobs:dealls/job/6a97ec54e2b28600127932b8" \
+  -H "x-api-key: zpi_xxxxxxxxxxxxxxxxxxxxxxxx"

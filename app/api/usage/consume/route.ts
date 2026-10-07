@@ -7,6 +7,9 @@ const VALID_ACTIONS: UsageAction[] = [
   'AI_GENERATE',
   'SCRAPE_LINKEDIN',
   'SCRAPE_JOBSTREET',
+  'SCRAPE_INDEED',
+  'SCRAPE_GLINTS',
+  'SCRAPE_DEALLS',
 ];
 
 export async function POST(request: Request) {

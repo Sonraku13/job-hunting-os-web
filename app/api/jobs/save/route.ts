@@ -27,6 +27,7 @@ export async function POST(request: Request) {
       contact_whatsapp,
       apply_url,
       source_url,
+      is_parsed,
     } = body;
 
     if (!job_title || !company_name || !source) {
@@ -34,6 +35,31 @@ export async function POST(request: Request) {
         { error: 'Informasi lowongan tidak lengkap (job_title, company_name, source wajib ada)' },
         { status: 400 }
       );
+    }
+
+    // Opsi B: Jika input manual murni (bukan hasil OCR / Quick Paste), kurangi kuota AI
+    if (!is_parsed) {
+      const { data: quotaData, error: quotaError } = await supabase.rpc('consume_usage', {
+        p_action: 'AI_EXTRACT',
+        p_portal: null,
+      });
+
+      if (quotaError) {
+        return NextResponse.json({ error: quotaError.message }, { status: 500 });
+      }
+
+      const quotaResult = quotaData?.[0];
+      if (quotaResult && !quotaResult.allowed) {
+        return NextResponse.json(
+          {
+            error: quotaResult.message || 'Kuota AI harian sudah habis.',
+            used_today: quotaResult.used_today,
+            daily_limit: quotaResult.daily_limit,
+            plan: quotaResult.plan,
+          },
+          { status: 403 }
+        );
+      }
     }
 
     const { data, error } = await supabase
@@ -61,7 +87,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({
+      success: true,
+      data,
+      quota_consumed: !is_parsed,
+    });
   } catch (error) {
     console.error('Save job error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

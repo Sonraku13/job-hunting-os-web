@@ -6,7 +6,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { LanguageToggle } from '@/components/ui/language-toggle';
 import { NavLinks } from '@/components/dashboard/nav-links';
 import { QuotaBadge } from '@/components/dashboard/quota-badge';
-import { PlanType } from '@/lib/quota/limits';
+import { PlanType, SCRAPE_ACTIONS } from '@/lib/quota/limits';
 import Link from 'next/link';
 
 export default async function DashboardLayout({
@@ -36,8 +36,7 @@ export default async function DashboardLayout({
     .gte('created_at', jakartaTime.toISOString());
 
   const scrapeUsed =
-    events?.filter((e) => e.action === 'SCRAPE_LINKEDIN' || e.action === 'SCRAPE_JOBSTREET')
-      .length || 0;
+    events?.filter((e) => SCRAPE_ACTIONS.includes(e.action as import('@/lib/quota/limits').UsageAction)).length || 0;
 
   const plan = (profile?.plan as PlanType) || 'FREE';
 
