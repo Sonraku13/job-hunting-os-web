@@ -1,8 +1,6 @@
--- Tambah tier baru: PRO, VIP, ADMIN ke enum plan_type
--- ADMIN hanya untuk backend/internal, tidak ditampilkan di UI
-ALTER TYPE public.plan_type ADD VALUE IF NOT EXISTS 'PRO';
-ALTER TYPE public.plan_type ADD VALUE IF NOT EXISTS 'VIP';
-ALTER TYPE public.plan_type ADD VALUE IF NOT EXISTS 'ADMIN';
+-- LANGKAH 2 dari 2
+-- Jalankan file ini SETELAH 012_add_plan_enum_values.sql selesai di-RUN.
+-- Berisi constraint baru + fungsi consume_usage yang mendukung PRO, VIP, ADMIN.
 
 -- Update constraint paid_plan_requires_expiry untuk include PRO & VIP
 ALTER TABLE public.profiles
