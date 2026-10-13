@@ -41,9 +41,9 @@ export interface SavedJob {
 }
 
 const STATUS_CONFIG: Record<JobStatus, { label: string; badgeClass: string }> = {
-  discover: { label: 'Discover', badgeClass: 'bg-[#F1F0FF] text-[#0C0B1E] border-[#C1EF7B]' },
+  discover: { label: 'Discover', badgeClass: 'bg-[var(--muted)] text-[var(--foreground)] border-[var(--border)]' },
   analyse: { label: 'Analyse', badgeClass: 'bg-indigo-50 text-indigo-900 border-indigo-200' },
-  apply: { label: 'Apply', badgeClass: 'bg-[#C1EF7B] text-[#0C0B1E] border-[#a5df48] font-bold' },
+  apply: { label: 'Apply', badgeClass: 'bg-[var(--accent)] text-[var(--foreground)] border-[var(--border)] font-bold' },
   refuse: { label: 'Refuse', badgeClass: 'bg-rose-50 text-rose-800 border-rose-200' },
   archive: { label: 'Archive', badgeClass: 'bg-zinc-100 text-zinc-700 border-zinc-200' },
 };
@@ -53,8 +53,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
   const [jobs, setJobs] = useState<SavedJob[]>(initialJobs);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [loadingActionId, setLoadingActionId] = useState<string | null>(null);
+    const [loadingActionId, setLoadingActionId] = useState<string | null>(null);
 
   const [letterById, setLetterById] = useState<Record<string, string>>(() => {
     const initialMap: Record<string, string> = {};
@@ -98,7 +97,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
       const data = await res.json();
       if (res.ok) {
         setJobs((prev) => [data.data, ...prev]);
-        showToast('Lowongan berhasil diekstrak & disimpan!', 'success');
+        /* silent on success */
       } else {
         showToast(data.error || 'Gagal menyimpan lowongan', 'error');
       }
@@ -124,7 +123,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
         const data = await res.json();
         showToast(data.error || 'Gagal mengubah status', 'error');
       } else {
-        showToast(`Status diubah ke "${STATUS_CONFIG[newStatus].label}"`, 'success');
+        /* silent on success */
       }
     } catch {
       showToast('Gagal menghubungi server', 'error');
@@ -156,7 +155,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
           )
         );
         setScoreModal({ job, result: data.matchResult });
-        showToast(`Match score terhitung: ${data.matchResult.score}%`, 'success');
+        /* silent on success */
       } else {
         showToast(data.error || 'Gagal menghitung match score', 'error');
       }
@@ -183,7 +182,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
       if (res.ok) {
         setLetterById((prev) => ({ ...prev, [job.id]: data.coverLetter }));
         setModalData({ title: `Cover Letter – ${job.company_name}`, content: data.coverLetter });
-        showToast('Cover letter berhasil dibuat & disimpan', 'success');
+        /* silent on success */
       } else {
         showToast(data.error || 'Gagal membuat cover letter', 'error');
       }
@@ -210,7 +209,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
       if (res.ok) {
         setEmailById((prev) => ({ ...prev, [job.id]: data.emailDraft }));
         setModalData({ title: `Draft Email – ${job.company_name}`, content: data.emailDraft });
-        showToast('Draft email berhasil dibuat & disimpan', 'success');
+        /* silent on success */
       } else {
         showToast(data.error || 'Gagal membuat draft email', 'error');
       }
@@ -229,7 +228,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
 
       if (res.ok) {
         setJobs((prev) => prev.filter((j) => j.id !== id));
-        showToast('Lowongan berhasil dihapus', 'success');
+        /* silent on success */
       } else {
         showToast(data.error || 'Gagal menghapus lowongan', 'error');
       }
@@ -341,7 +340,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
           'error'
         );
       } else {
-        showToast(`${inserted} lowongan baru disimpan dari ${units.length} permintaan.`, 'success');
+        /* silent on success */
       }
 
       if (inserted > 0) window.location.reload();
@@ -452,7 +451,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
           <button
             type="button"
             onClick={() => setQuickPasteOpen(true)}
-            className="inline-flex items-center justify-center rounded-sm bg-[#0C0B1E] px-3.5 py-1.5 font-mono text-xs font-bold text-[#C1EF7B] transition-colors hover:bg-[#1a1936] shadow-sm whitespace-nowrap"
+            className="inline-flex items-center justify-center rounded-sm bg-[var(--foreground)] px-3.5 py-1.5 font-mono text-xs font-bold text-[var(--accent)] transition-colors hover:opacity-90 shadow-sm whitespace-nowrap"
           >
             {t('qp_title') || '+ Quick Paste'}
           </button>
@@ -460,7 +459,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
             type="button"
             onClick={() => handleManualScrape('linkedin')}
             disabled={scrapingPortal !== null}
-            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[#0C0B1E] transition-colors hover:bg-[#F1F0FF] hover:border-[#0C0B1E] disabled:opacity-50 whitespace-nowrap"
+            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--muted)] hover:border-[var(--foreground)] disabled:opacity-50 whitespace-nowrap"
           >
             {scrapingPortal === 'linkedin' ? t('dash_scraping_linkedin') : t('dash_scrape_linkedin')}
           </button>
@@ -468,7 +467,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
             type="button"
             onClick={() => handleManualScrape('jobstreet')}
             disabled={scrapingPortal !== null}
-            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[#0C0B1E] transition-colors hover:bg-[#F1F0FF] hover:border-[#0C0B1E] disabled:opacity-50 whitespace-nowrap"
+            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--muted)] hover:border-[var(--foreground)] disabled:opacity-50 whitespace-nowrap"
           >
             {scrapingPortal === 'jobstreet' ? t('dash_scraping_jobstreet') : t('dash_scrape_jobstreet')}
           </button>
@@ -476,7 +475,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
             type="button"
             onClick={() => handleManualScrape('indeed')}
             disabled={scrapingPortal !== null}
-            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[#0C0B1E] transition-colors hover:bg-[#F1F0FF] hover:border-[#0C0B1E] disabled:opacity-50 whitespace-nowrap"
+            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--muted)] hover:border-[var(--foreground)] disabled:opacity-50 whitespace-nowrap"
           >
             {scrapingPortal === 'indeed' ? t('dash_scraping_indeed') : t('dash_scrape_indeed')}
           </button>
@@ -484,7 +483,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
             type="button"
             onClick={() => handleManualScrape('glints')}
             disabled={scrapingPortal !== null}
-            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[#0C0B1E] transition-colors hover:bg-[#F1F0FF] hover:border-[#0C0B1E] disabled:opacity-50 whitespace-nowrap"
+            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--muted)] hover:border-[var(--foreground)] disabled:opacity-50 whitespace-nowrap"
           >
             {scrapingPortal === 'glints' ? t('dash_scraping_glints') : t('dash_scrape_glints')}
           </button>
@@ -492,23 +491,23 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
             type="button"
             onClick={() => handleManualScrape('dealls')}
             disabled={scrapingPortal !== null}
-            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[#0C0B1E] transition-colors hover:bg-[#F1F0FF] hover:border-[#0C0B1E] disabled:opacity-50 whitespace-nowrap"
+            className="inline-flex items-center justify-center rounded-sm border border-zinc-300 bg-white px-3.5 py-1.5 font-mono text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--muted)] hover:border-[var(--foreground)] disabled:opacity-50 whitespace-nowrap"
           >
             {scrapingPortal === 'dealls' ? t('dash_scraping_dealls') : t('dash_scrape_dealls')}
           </button>
         </div>
 
         {scrapeProgress && (
-          <div className="rounded-sm border border-[#a5df48] bg-[#F1F0FF] px-3.5 py-2.5">
+          <div className="rounded-sm border border-[var(--border)] bg-[var(--muted)] px-3.5 py-2.5">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-xs font-mono font-medium text-[#0C0B1E] truncate">
+              <span className="text-xs font-mono font-medium text-[var(--foreground)] truncate">
                 Scraping {scrapeProgress.label} ({scrapeProgress.done}/{scrapeProgress.total})
               </span>
               <span className="text-[10px] font-mono text-zinc-600 shrink-0">Jangan tutup halaman</span>
             </div>
             <div className="mt-2 h-1.5 w-full rounded-full bg-zinc-200 overflow-hidden">
               <div
-                className="h-full bg-[#C1EF7B] transition-all"
+                className="h-full bg-[var(--accent)] transition-[width]"
                 style={{ width: `${Math.round((scrapeProgress.done / Math.max(1, scrapeProgress.total)) * 100)}%` }}
               />
             </div>
@@ -516,10 +515,10 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
         )}
 
         {jobs.length === 0 ? (
-          <div className="rounded-sm border border-[var(--border)] bg-[var(--card)] p-12 text-center">
-            <div className="mx-auto max-w-md space-y-4">
+          <div className="rounded-sm border border-[var(--border)] bg-[var(--card)] p-6 text-left sm:p-8">
+            <div className="max-w-md space-y-4">
               <svg
-                className="mx-auto h-12 w-12 text-zinc-600"
+                className="h-12 w-12 text-zinc-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -560,7 +559,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                       const data = await res.json();
                       if (res.ok) {
                         setJobs([data.data]);
-                        showToast('Lowongan contoh berhasil ditambahkan!', 'success');
+                        /* silent on success */
                       } else {
                         showToast(data.error || 'Gagal menambah lowongan', 'error');
                       }
@@ -591,18 +590,18 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                   onClick={() => setFilterStatus(tab)}
                   className={`rounded-sm border px-3 py-1 font-mono text-xs capitalize transition-colors ${
                     isActive
-                      ? 'border-[#0C0B1E] bg-[#0C0B1E] text-[#C1EF7B] font-bold'
-                      : 'border-zinc-300 text-zinc-700 bg-white hover:bg-[#F1F0FF] hover:text-[#0C0B1E]'
+                      ? 'border-[var(--foreground)] bg-[var(--foreground)] text-[var(--accent)] font-bold'
+                      : 'border-zinc-300 text-zinc-700 bg-white hover:bg-[var(--muted)] hover:text-[var(--foreground)]'
                   }`}
                 >
                   {tab === 'all' ? t('dash_tab_all') : t(`dash_tab_${tab as JobStatus}`)}{' '}
-                  <span className="text-[10px] opacity-75">({count})</span>
+                  <span className="text-[10px] opacity-75 tabular-nums">({count})</span>
                 </button>
               );
             })}
           </div>
 
-          <div className="font-mono text-xs text-zinc-700 font-medium">
+          <div className="font-mono text-xs text-zinc-700 font-medium tabular-nums">
             {t('dash_shown')} {filteredJobs.length} {t('dash_from')} {jobs.length}
           </div>
         </div>
@@ -610,18 +609,22 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
         {/* Job Cards */}
         <div className="divide-y divide-[var(--border)] rounded-sm border border-[var(--border)] bg-[var(--card)]">
           {filteredJobs.map((job) => {
-            const isExpanded = expandedId === job.id;
+            
             const currentStatus: JobStatus = job.status || 'discover';
             const statusInfo = STATUS_CONFIG[currentStatus];
-            const hasLetter = Boolean(letterById[job.id]);
-            const hasEmail = Boolean(emailById[job.id]);
+            const hasLetter = false; // cover letter feature disabled
+            const hasEmail = false; // email draft feature disabled
             const matchScore = scoreById[job.id]?.score ?? job.match_score;
 
             return (
               <div
                 key={job.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`Buka detail ${job.job_title}`}
                 onClick={() => handleOpenJobDetail(job)}
-                className="p-4 transition-colors hover:bg-[#F1F0FF]/50 cursor-pointer space-y-3"
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpenJobDetail(job); } }}
+                className="p-4 transition-colors hover:bg-[var(--muted)]/50 cursor-pointer space-y-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
                 {/* Header Actions & Tags Bar: Sejajar Horizontal di atas info job */}
                 <div
@@ -630,7 +633,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                 >
                   {/* Left: Tags (Portal & Match Score) */}
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="rounded-sm bg-[#F1F0FF] border border-zinc-200 px-2 py-0.5 font-mono text-[10px] text-[#0C0B1E] uppercase font-semibold tracking-wide">
+                    <span className="rounded-sm bg-[var(--muted)] border border-zinc-200 px-2 py-0.5 font-mono text-[10px] text-[var(--foreground)] uppercase font-semibold tracking-wide">
                       {job.source}
                     </span>
                     {typeof matchScore === 'number' && (
@@ -639,7 +642,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                         onClick={() => handleMatchScore(job)}
                         className={`rounded-sm border px-2 py-0.5 font-mono text-[10px] font-bold transition-opacity hover:opacity-80 ${
                           matchScore >= 80
-                            ? 'border-[#a5df48] bg-[#C1EF7B] text-[#0C0B1E]'
+                            ? 'border-[var(--border)] bg-[var(--accent)] text-[var(--foreground)]'
                             : matchScore >= 60
                               ? 'border-amber-300 bg-amber-100 text-amber-900'
                               : 'border-rose-300 bg-rose-100 text-rose-900'
@@ -726,7 +729,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center rounded-sm border border-zinc-300 bg-white px-2.5 py-1 font-mono text-[11px] text-zinc-700 transition-colors hover:bg-[#F1F0FF]"
+                        className="inline-flex items-center rounded-sm border border-zinc-300 bg-white px-2.5 py-1 font-mono text-[11px] text-zinc-700 transition-colors hover:bg-[var(--muted)]"
                       >
                         URL
                       </a>
@@ -746,13 +749,13 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
 
                 {/* Body Job Info */}
                 <div className="space-y-1">
-                  <h3 className="text-base font-semibold text-[#0C0B1E] leading-snug">{job.job_title}</h3>
+                  <h3 className="text-base font-semibold text-[var(--foreground)] leading-snug">{job.job_title}</h3>
                   <p className="text-sm text-zinc-800 font-medium">{job.company_name}</p>
 
                   <div className="flex flex-wrap gap-x-3 gap-y-1 pt-0.5 font-mono text-[11px] text-zinc-700">
-                    {job.location && <span>📍 {job.location}</span>}
-                    {job.salary_range && <span>💰 {job.salary_range}</span>}
-                    {job.job_type && <span>💼 {job.job_type}</span>}
+                    {job.location && <span>Loc: {job.location}</span>}
+                    {job.salary_range && <span>Sal: {job.salary_range}</span>}
+                    {job.job_type && <span>Type: {job.job_type}</span>}
                   </div>
                 </div>
               </div>
@@ -765,12 +768,12 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
 
       {/* Modal Cover Letter / Email Draft */}
       {modalData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0C0B1E]/40" onClick={() => setModalData(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--foreground)]/40" onClick={() => setModalData(null)}>
           <div className="w-full max-w-2xl max-h-[80vh] overflow-auto rounded-sm bg-[var(--card)] border border-[var(--border)] p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
-              <h3 className="text-lg font-semibold text-[#0C0B1E]">{modalData.title}</h3>
-              <Button variant="ghost" onClick={() => setModalData(null)} className="text-zinc-500 hover:text-[#0C0B1E] font-mono text-xs">
-                ✕
+              <h3 className="text-lg font-semibold text-[var(--foreground)]">{modalData.title}</h3>
+              <Button variant="ghost" onClick={() => setModalData(null)} className="text-zinc-500 hover:text-[var(--foreground)] font-mono text-xs">
+                Tutup
               </Button>
             </div>
             <div className="font-sans text-sm leading-relaxed text-zinc-800 whitespace-pre-wrap">
@@ -789,9 +792,9 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                 variant="default"
                 onClick={() => {
                   navigator.clipboard.writeText(modalData.content);
-                  showToast(t('dash_copy_success'), 'success');
+                  /* silent on success */
                 }}
-                className="font-mono text-sm bg-[#0C0B1E] text-[#C1EF7B] font-semibold hover:bg-[#1a1936] ring-1 ring-[#C1EF7B]/50"
+                className="font-mono text-sm bg-[var(--foreground)] text-[var(--accent)] font-semibold hover:opacity-90 ring-1 ring-[var(--accent)]/50"
               >
                 {t('dash_copy')}
               </Button>
@@ -802,17 +805,17 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
 
       {/* Modal Match Score Breakdown */}
       {scoreModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0C0B1E]/40" onClick={() => setScoreModal(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--foreground)]/40" onClick={() => setScoreModal(null)}>
           <div className="w-full max-w-md rounded-sm bg-[var(--card)] border border-[var(--border)] p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-base font-semibold text-[#0C0B1E]">{scoreModal.job.job_title}</h3>
+                <h3 className="text-base font-semibold text-[var(--foreground)]">{scoreModal.job.job_title}</h3>
                 <p className="text-xs text-zinc-700 font-medium">{scoreModal.job.company_name}</p>
               </div>
               <span
                 className={`rounded-sm border px-2.5 py-1 font-mono text-xs font-bold ${
                   scoreModal.result.score >= 80
-                    ? 'border-[#a5df48] bg-[#C1EF7B] text-[#0C0B1E]'
+                    ? 'border-[var(--border)] bg-[var(--accent)] text-[var(--foreground)]'
                     : scoreModal.result.score >= 60
                       ? 'border-amber-300 bg-amber-100 text-amber-900'
                       : 'border-rose-300 bg-rose-100 text-rose-900'
@@ -856,7 +859,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
       {/* Modal Detail Lowongan */}
       {jobDetailModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0C0B1E]/40"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--foreground)]/40"
           onClick={() => setJobDetailModal(null)}
         >
           <div
@@ -865,17 +868,17 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
           >
             <div className="flex items-start justify-between pb-4 border-b border-[var(--border)]">
               <div>
-                <h3 className="text-lg font-semibold text-[#0C0B1E]">
+                <h3 className="text-lg font-semibold text-[var(--foreground)]">
                   {jobDetailModal.job.job_title}
                 </h3>
                 <p className="text-sm font-medium text-zinc-800">
                   {jobDetailModal.job.company_name}
                 </p>
                 <div className="flex flex-wrap gap-3 font-mono text-xs text-zinc-700 pt-2">
-                  {jobDetailModal.job.location && <span>📍 {jobDetailModal.job.location}</span>}
-                  {jobDetailModal.job.salary_range && <span>💰 {jobDetailModal.job.salary_range}</span>}
-                  {jobDetailModal.job.job_type && <span>💼 {jobDetailModal.job.job_type}</span>}
-                  <span className="rounded-sm bg-[#F1F0FF] border border-zinc-200 px-2 py-0.5 text-[10px] text-[#0C0B1E] uppercase font-medium">
+                  {jobDetailModal.job.location && <span>Loc: {jobDetailModal.job.location}</span>}
+                  {jobDetailModal.job.salary_range && <span>Sal: {jobDetailModal.job.salary_range}</span>}
+                  {jobDetailModal.job.job_type && <span>Type: {jobDetailModal.job.job_type}</span>}
+                  <span className="rounded-sm bg-[var(--muted)] border border-zinc-200 px-2 py-0.5 text-[10px] text-[var(--foreground)] uppercase font-medium">
                     {jobDetailModal.job.source}
                   </span>
                 </div>
@@ -888,7 +891,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                         href={safeHref(`mailto:${jobDetailModal.job.contact_email}`)}
                         className="inline-flex items-center gap-1 rounded-sm bg-indigo-50 border border-indigo-200 px-2 py-0.5 font-mono text-[11px] text-indigo-700 hover:bg-indigo-100"
                       >
-                        ✉️ {jobDetailModal.job.contact_email}
+                        Email: {jobDetailModal.job.contact_email}
                       </a>
                     )}
                     {jobDetailModal.job.contact_whatsapp && (
@@ -898,7 +901,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 rounded-sm bg-emerald-50 border border-emerald-200 px-2 py-0.5 font-mono text-[11px] text-emerald-700 hover:bg-emerald-100"
                       >
-                        💬 WA: {jobDetailModal.job.contact_whatsapp}
+                        WA: {jobDetailModal.job.contact_whatsapp}
                       </a>
                     )}
                     {safeHref(jobDetailModal.job.apply_url) && (
@@ -906,9 +909,9 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                         href={safeHref(jobDetailModal.job.apply_url)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded-sm bg-[#F1F0FF] border border-zinc-200 px-2 py-0.5 font-mono text-[11px] text-[#0C0B1E] hover:bg-[#e4e2ff]"
+                        className="inline-flex items-center gap-1 rounded-sm bg-[var(--muted)] border border-zinc-200 px-2 py-0.5 font-mono text-[11px] text-[var(--foreground)] hover:bg-[var(--muted)]"
                       >
-                        📝 Form Lamaran ↗
+                        Form Lamaran ↗
                       </a>
                     )}
                     {safeHref(jobDetailModal.job.source_url) && (
@@ -918,7 +921,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 rounded-sm bg-zinc-100 border border-zinc-200 px-2 py-0.5 font-mono text-[11px] text-zinc-700 hover:bg-zinc-200"
                       >
-                        🔗 Sumber Asli ↗
+                        Sumber Asli ↗
                       </a>
                     )}
                   </div>
@@ -927,9 +930,9 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
               <Button
                 variant="ghost"
                 onClick={() => setJobDetailModal(null)}
-                className="text-zinc-500 hover:text-[#0C0B1E] font-mono text-xs"
+                className="text-zinc-500 hover:text-[var(--foreground)] font-mono text-xs"
               >
-                ✕
+                Tutup
               </Button>
             </div>
 
@@ -944,7 +947,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                     href={safeHref(jobDetailModal.job.job_url)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center rounded-sm border border-zinc-300 bg-white px-3 py-1.5 font-mono text-xs text-zinc-700 transition-colors hover:bg-[#F1F0FF]"
+                    className="inline-flex items-center rounded-sm border border-zinc-300 bg-white px-3 py-1.5 font-mono text-xs text-zinc-700 transition-colors hover:bg-[var(--muted)]"
                   >
                     Buka URL Portal
                   </a>

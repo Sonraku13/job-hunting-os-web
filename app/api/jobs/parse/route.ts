@@ -25,6 +25,22 @@ export async function POST(request: Request) {
       );
     }
 
+    // TM-003: batasi ukuran upload server-side (client sudah 5 MB, server harus enforce)
+    const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+    const MAX_TEXT_BYTES = 40 * 1024; // 40 KB
+    if (text && Buffer.byteLength(text, 'utf8') > MAX_TEXT_BYTES) {
+      return NextResponse.json({ error: 'Teks terlalu besar (maks 40 KB)' }, { status: 413 });
+    }
+    if (imageFile) {
+      const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowed.includes(imageFile.type)) {
+        return NextResponse.json({ error: 'Format gambar harus JPG/PNG/WebP' }, { status: 400 });
+      }
+      if (imageFile.size > MAX_IMAGE_BYTES) {
+        return NextResponse.json({ error: 'Ukuran gambar maksimal 5 MB' }, { status: 413 });
+      }
+    }
+
     // Check quota first
     const { data: quotaData, error: quotaError } = await supabase.rpc('consume_usage', {
       p_action: 'AI_EXTRACT',

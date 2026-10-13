@@ -27,7 +27,6 @@ export async function POST(request: Request) {
       contact_whatsapp,
       apply_url,
       source_url,
-      is_parsed,
     } = body;
 
     if (!job_title || !company_name || !source) {
@@ -37,30 +36,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Opsi B: Jika input manual murni (bukan hasil OCR / Quick Paste), kurangi kuota AI
-    if (!is_parsed) {
-      const { data: quotaData, error: quotaError } = await supabase.rpc('consume_usage', {
-        p_action: 'AI_EXTRACT',
-        p_portal: null,
-      });
-
-      if (quotaError) {
-        return NextResponse.json({ error: quotaError.message }, { status: 500 });
-      }
-
-      const quotaResult = quotaData?.[0];
-      if (quotaResult && !quotaResult.allowed) {
-        return NextResponse.json(
-          {
-            error: quotaResult.message || 'Kuota AI harian sudah habis.',
-            used_today: quotaResult.used_today,
-            daily_limit: quotaResult.daily_limit,
-            plan: quotaResult.plan,
-          },
-          { status: 403 }
-        );
-      }
-    }
+    // Catatan: route ini tidak memotong kuota AI. Kuota AI hanya
+    // dipotong di /api/jobs/parse (sekali per ekstraksi). Percaya flag
+    // `is_parsed` dari client = bypass kuota (TM-002), jadi diabaikan.
 
     const { data, error } = await supabase
       .from('saved_jobs')
@@ -90,7 +68,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       data,
-      quota_consumed: !is_parsed,
+      quota_consumed: false,
     });
   } catch (error) {
     console.error('Save job error:', error);

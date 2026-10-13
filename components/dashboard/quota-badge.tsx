@@ -22,10 +22,10 @@ export function QuotaBadge({ plan, usedToday }: QuotaBadgeProps) {
             ? 'bg-purple-500'
             : usedToday >= limit
               ? 'bg-rose-500'
-              : 'bg-[#C1EF7B]'
+              : 'bg-[var(--accent)]'
         }`}
       />
-      <span className="text-[11px] text-[var(--foreground)] opacity-80">
+      <span className="text-[11px] text-[var(--foreground)] opacity-80 tabular-nums">
         {isUnlimited ? '∞ Unlimited' : `${usedToday}/${limit} Scrape`}
       </span>
     </Link>
