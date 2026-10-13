@@ -1,8 +1,48 @@
 -- Fix quota race condition by locking user's profile row during consume_usage transaction
 -- This ensures that concurrent requests for the same user are serialized.
 
--- First, we need to update the consume_usage function to use SELECT FOR UPDATE on the profiles table.
+-- GUARD (fixes ERROR 42704: type public.usage_action does not exist):
+-- The function signature references these enums at CREATE time, so they must
+-- exist BEFORE the CREATE OR REPLACE FUNCTION statement runs. If migrations
+-- 001/010/012 were never applied to the target DB, creation fails with 42704.
+-- This block recreates any missing enum, then tops up missing values.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_namespace n ON n.oid = t.typnamespace
+    WHERE n.nspname = 'public' AND t.typname = 'usage_action'
+  ) THEN
+    CREATE TYPE public.usage_action AS ENUM (
+      'AI_EXTRACT',
+      'AI_GENERATE',
+      'SCRAPE_LINKEDIN',
+      'SCRAPE_JOBSTREET',
+      'SCRAPE_INDEED',
+      'SCRAPE_GLINTS',
+      'SCRAPE_DEALLS'
+    );
+  END IF;
 
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_namespace n ON n.oid = t.typnamespace
+    WHERE n.nspname = 'public' AND t.typname = 'plan_type'
+  ) THEN
+    CREATE TYPE public.plan_type AS ENUM ('FREE', 'PRO', 'VIP', 'ADMIN');
+  END IF;
+END
+$$;
+
+-- Top up values in case the enum exists but is outdated (idempotent).
+ALTER TYPE public.usage_action ADD VALUE IF NOT EXISTS 'SCRAPE_INDEED';
+ALTER TYPE public.usage_action ADD VALUE IF NOT EXISTS 'SCRAPE_GLINTS';
+ALTER TYPE public.usage_action ADD VALUE IF NOT EXISTS 'SCRAPE_DEALLS';
+ALTER TYPE public.plan_type ADD VALUE IF NOT EXISTS 'PRO';
+ALTER TYPE public.plan_type ADD VALUE IF NOT EXISTS 'VIP';
+ALTER TYPE public.plan_type ADD VALUE IF NOT EXISTS 'ADMIN';
+
+-- Update the consume_usage function to use SELECT FOR UPDATE on the profiles table.
 CREATE OR REPLACE FUNCTION public.consume_usage(
     p_action public.usage_action,
     p_portal text DEFAULT NULL
