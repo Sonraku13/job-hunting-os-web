@@ -9,12 +9,16 @@ import {
   PORTAL_LABEL,
 } from '@/lib/constants/portal-locations';
 import { remainingZapiCalls } from '@/lib/quota/zapi-cap';
+import { fetchWithTimeout } from '@/lib/net/fetch-with-timeout';
 
 // Route ini dipanggil oleh Vercel Cron sekali sehari (Hobby Plan limitation)
 export const dynamic = 'force-dynamic';
 
 const ZAPI_KEY = process.env.ZAPI_API_KEY || '';
 const ZAPI_BASE = 'https://api.zapi.ink/v1';
+
+/** TM-004: cron memanggil banyak portal berurutan — tiap panggilan dibatasi 15 detik. */
+const ZAPI_TIMEOUT_MS = 15000;
 
 const SCRAPE_ACTIONS_FOR_ZAPI_CAP = [
   'SCRAPE_LINKEDIN',
@@ -71,61 +75,58 @@ async function callZapi(
 ): Promise<Record<string, unknown>[] | null> {
   let res: Response;
 
-  if (portal === 'dealls') {
-    const params = new URLSearchParams({
-      query,
-      status: 'active',
-      sort: 'publishedAt',
-      sortDirection: 'desc',
-      page: '1',
-      limit: '20',
-    });
-    params.append('city', String(deallsCityId));
-    res = await fetch(`${ZAPI_BASE}/jobs:dealls/search?${params.toString()}`, {
-      headers: { 'x-api-key': ZAPI_KEY },
-    });
-  } else if (portal === 'glints') {
-    // Glints tidak bisa difilter kota, jadi satu panggilan nasional.
-    const params = new URLSearchParams({
-      query,
-      country: 'ID',
-      postedWithin: 'PAST_24_HOURS',
-      sort: 'latest',
-    });
-    res = await fetch(`${ZAPI_BASE}/jobs:glints/search?${params.toString()}`, {
-      headers: { 'x-api-key': ZAPI_KEY },
-    });
-  } else if (portal === 'indeed') {
-    const params = new URLSearchParams({ query, location, days: '1', sort: 'date', limit: '20' });
-    res = await fetch(`${ZAPI_BASE}/jobs:indeed/search?${params.toString()}`, {
-      headers: { 'x-api-key': ZAPI_KEY },
-    });
-  } else if (portal === 'jobstreet') {
-    const params = new URLSearchParams({
-      query,
-      location,
-      withinDays: '1',
-      page: '1',
-      limit: '20',
-    });
-    res = await fetch(`${ZAPI_BASE}/jobs:jobstreet/recent-jobs?${params.toString()}`, {
-      headers: { 'x-api-key': ZAPI_KEY },
-    });
-    if (!res.ok) {
-      res = await fetch(`${ZAPI_BASE}/jobs:jobstreet/search?${params.toString()}`, {
-        headers: { 'x-api-key': ZAPI_KEY },
+  const zapi = (path: string) =>
+    fetchWithTimeout(`${ZAPI_BASE}${path}`, { headers: { 'x-api-key': ZAPI_KEY } }, ZAPI_TIMEOUT_MS);
+
+  try {
+    if (portal === 'dealls') {
+      const params = new URLSearchParams({
+        query,
+        status: 'active',
+        sort: 'publishedAt',
+        sortDirection: 'desc',
+        page: '1',
+        limit: '20',
       });
+      params.append('city', String(deallsCityId));
+      res = await zapi(`/jobs:dealls/search?${params.toString()}`);
+    } else if (portal === 'glints') {
+      // Glints tidak bisa difilter kota, jadi satu panggilan nasional.
+      const params = new URLSearchParams({
+        query,
+        country: 'ID',
+        postedWithin: 'PAST_24_HOURS',
+        sort: 'latest',
+      });
+      res = await zapi(`/jobs:glints/search?${params.toString()}`);
+    } else if (portal === 'indeed') {
+      const params = new URLSearchParams({ query, location, days: '1', sort: 'date', limit: '20' });
+      res = await zapi(`/jobs:indeed/search?${params.toString()}`);
+    } else if (portal === 'jobstreet') {
+      const params = new URLSearchParams({
+        query,
+        location,
+        withinDays: '1',
+        page: '1',
+        limit: '20',
+      });
+      res = await zapi(`/jobs:jobstreet/recent-jobs?${params.toString()}`);
+      if (!res.ok) {
+        res = await zapi(`/jobs:jobstreet/search?${params.toString()}`);
+      }
+    } else {
+      const params = new URLSearchParams({
+        query,
+        location,
+        postedWithin: '24h',
+        page: '1',
+      });
+      res = await zapi(`/jobs:linkedin/search?${params.toString()}`);
     }
-  } else {
-    const params = new URLSearchParams({
-      query,
-      location,
-      postedWithin: '24h',
-      page: '1',
-    });
-    res = await fetch(`${ZAPI_BASE}/jobs:linkedin/search?${params.toString()}`, {
-      headers: { 'x-api-key': ZAPI_KEY },
-    });
+  } catch (err: unknown) {
+    // Timeout: perlakukan seperti Zapi non-200 — tidak ada kredit dipotong.
+    console.error(`Cron Zapi ${portal} @ ${location} timeout:`, err instanceof Error ? err.message : err);
+    return null;
   }
 
   if (!res.ok) {

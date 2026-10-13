@@ -7,9 +7,13 @@ import {
 } from '@/lib/constants/portal-locations';
 import { SCRAPE_ACTION_BY_PORTAL, type UsageAction } from '@/lib/quota/limits';
 import { remainingZapiCalls, wibDayStartISO } from '@/lib/quota/zapi-cap';
+import { fetchWithTimeout, FetchTimeoutError } from '@/lib/net/fetch-with-timeout';
 
 const ZAPI_KEY = process.env.ZAPI_API_KEY || '';
 const ZAPI_BASE = 'https://api.zapi.ink/v1';
+
+/** TM-004: batas waktu panggilan Zapi supaya request tidak menggantung. */
+const ZAPI_TIMEOUT_MS = 15000;
 
 const SCRAPE_ACTIONS_FOR_ZAPI_CAP = [
   'SCRAPE_LINKEDIN',
@@ -254,9 +258,9 @@ export async function POST(request: Request) {
           params.append('geoId', profile.linkedin_geo_id);
         }
 
-        const res = await fetch(`${ZAPI_BASE}/jobs:linkedin/search?${params.toString()}`, {
+        const res = await fetchWithTimeout(`${ZAPI_BASE}/jobs:linkedin/search?${params.toString()}`, {
           headers: { 'x-api-key': ZAPI_KEY },
-        });
+        }, ZAPI_TIMEOUT_MS);
 
         if (!res.ok) {
           return zapiFailure(portal, location, res.status, await res.text());
@@ -273,9 +277,9 @@ export async function POST(request: Request) {
           limit: '20',
         });
 
-        const res = await fetch(`${ZAPI_BASE}/jobs:indeed/search?${params.toString()}`, {
+        const res = await fetchWithTimeout(`${ZAPI_BASE}/jobs:indeed/search?${params.toString()}`, {
           headers: { 'x-api-key': ZAPI_KEY },
-        });
+        }, ZAPI_TIMEOUT_MS);
 
         if (!res.ok) {
           return zapiFailure(portal, location, res.status, await res.text());
@@ -291,9 +295,9 @@ export async function POST(request: Request) {
           sort: 'latest',
         });
 
-        const res = await fetch(`${ZAPI_BASE}/jobs:glints/search?${params.toString()}`, {
+        const res = await fetchWithTimeout(`${ZAPI_BASE}/jobs:glints/search?${params.toString()}`, {
           headers: { 'x-api-key': ZAPI_KEY },
-        });
+        }, ZAPI_TIMEOUT_MS);
 
         if (!res.ok) {
           return zapiFailure(portal, location, res.status, await res.text());
@@ -320,9 +324,9 @@ export async function POST(request: Request) {
         // permintaan ditolak API dengan HTTP 400, jadi satu panggilan satu kota.
         params.append('city', String(deallsCityId));
 
-        const res = await fetch(`${ZAPI_BASE}/jobs:dealls/search?${params.toString()}`, {
+        const res = await fetchWithTimeout(`${ZAPI_BASE}/jobs:dealls/search?${params.toString()}`, {
           headers: { 'x-api-key': ZAPI_KEY },
-        });
+        }, ZAPI_TIMEOUT_MS);
 
         if (!res.ok) {
           return zapiFailure(portal, location, res.status, await res.text(), deallsCityId);
@@ -353,15 +357,15 @@ export async function POST(request: Request) {
           params.append('locationId', profile.jobstreet_location_id);
         }
 
-        let res = await fetch(`${ZAPI_BASE}/jobs:jobstreet/recent-jobs?${params.toString()}`, {
+        let res = await fetchWithTimeout(`${ZAPI_BASE}/jobs:jobstreet/recent-jobs?${params.toString()}`, {
           headers: { 'x-api-key': ZAPI_KEY },
-        });
+        }, ZAPI_TIMEOUT_MS);
 
         // Fallback ke /search jika /recent-jobs tidak ok
         if (!res.ok) {
-          res = await fetch(`${ZAPI_BASE}/jobs:jobstreet/search?${params.toString()}`, {
+          res = await fetchWithTimeout(`${ZAPI_BASE}/jobs:jobstreet/search?${params.toString()}`, {
             headers: { 'x-api-key': ZAPI_KEY },
-          });
+          }, ZAPI_TIMEOUT_MS);
         }
 
         if (!res.ok) {
@@ -541,6 +545,15 @@ export async function POST(request: Request) {
       usage: { used_today: quotaResult.used_today, daily_limit: quotaResult.daily_limit },
     });
   } catch (error: unknown) {
+    if (error instanceof FetchTimeoutError) {
+      // TM-004: Zapi menggantung. Kuota belum dipotong karena konsumsi
+      // kredit terjadi setelah respons Zapi sukses.
+      console.error('Zapi timeout:', error.message);
+      return NextResponse.json(
+        { error: 'Portal tidak merespons tepat waktu. Credit tidak dipotong.', creditCharged: false },
+        { status: 504 }
+      );
+    }
     console.error('Manual scrape error:', error);
     const message = error instanceof Error ? error.message : 'Terjadi kesalahan internal';
     return NextResponse.json({ error: message }, { status: 500 });

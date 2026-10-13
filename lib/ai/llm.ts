@@ -23,66 +23,110 @@ const providerOrder: LLMProvider[] = [
 
 async function callZapiCopilot(messages: { role: string; content: string }[], mode: 'chat' | 'reasoning' | 'smart' = 'chat'): Promise<string> {
   if (!ZAPI_KEY) throw new Error('ZAPI_API_KEY not set');
-  const res = await fetch(`${ZAPI_BASE}/ai:copilot/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': ZAPI_KEY },
-    body: JSON.stringify({ messages, stream: false, mode }),
-  });
-  if (!res.ok) throw new Error(`Zapi Copilot error (${res.status}): ${await res.text()}`);
-  const data = await res.json();
-  const text = data.choices?.[0]?.message?.content ?? data.content ?? data.text ?? data.response ?? '';
-  if (!text || text === 'Empty response') throw new Error('Empty response from Zapi Copilot');
-  return text;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds
+  try {
+    const res = await fetch(`${ZAPI_BASE}/ai:copilot/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ZAPI_KEY },
+      body: JSON.stringify({ messages, stream: false, mode }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`Zapi Copilot error (${res.status}): ${await res.text()}`);
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content ?? data.content ?? data.text ?? data.response ?? '';
+    if (!text || text === 'Empty response') throw new Error('Empty response from Zapi Copilot');
+    return text;
+  } catch (err: unknown) {
+    clearTimeout(timeoutId);
+    const errorObj = err instanceof Error ? err : new Error(String(err));
+    if (errorObj.name === 'AbortError') throw new Error('Zapi Copilot request timed out');
+    throw errorObj;
+  }
 }
 
 async function callZapiChatGPT(messages: { role: string; content: string }[]): Promise<string> {
   if (!ZAPI_KEY) throw new Error('ZAPI_API_KEY not set');
-  const res = await fetch(`${ZAPI_BASE}/ai:chatgpt/chat?stream=false`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': ZAPI_KEY },
-    body: JSON.stringify({ messages, stream: false }),
-  });
-  if (!res.ok) throw new Error(`Zapi ChatGPT error (${res.status}): ${await res.text()}`);
-  const data = await res.json();
-  const text = data.choices?.[0]?.message?.content ?? data.content ?? data.text ?? data.response ?? '';
-  if (!text || text === 'Empty response') throw new Error('Empty response from Zapi ChatGPT');
-  return text;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  try {
+    const res = await fetch(`${ZAPI_BASE}/ai:chatgpt/chat?stream=false`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ZAPI_KEY },
+      body: JSON.stringify({ messages, stream: false }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`Zapi ChatGPT error (${res.status}): ${await res.text()}`);
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content ?? data.content ?? data.text ?? data.response ?? '';
+    if (!text || text === 'Empty response') throw new Error('Empty response from Zapi ChatGPT');
+    return text;
+  } catch (err: unknown) {
+    clearTimeout(timeoutId);
+    const errorObj = err instanceof Error ? err : new Error(String(err));
+    if (errorObj.name === 'AbortError') throw new Error('Zapi ChatGPT request timed out');
+    throw errorObj;
+  }
 }
 
 async function callZapiChatEx(messages: { role: string; content: string }[]): Promise<string> {
   if (!ZAPI_KEY) throw new Error('ZAPI_API_KEY not set');
-  const res = await fetch(`${ZAPI_BASE}/ai:chatex/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': ZAPI_KEY },
-    body: JSON.stringify({ messages, stream: false }),
-  });
-  if (!res.ok) throw new Error(`Zapi ChatEx error (${res.status}): ${await res.text()}`);
-  const data = await res.json();
-  const text = data.choices?.[0]?.message?.content ?? data.content ?? data.text ?? data.response ?? '';
-  if (!text || text === 'Empty response') throw new Error('Empty response from Zapi ChatEx');
-  return text;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  try {
+    const res = await fetch(`${ZAPI_BASE}/ai:chatex/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ZAPI_KEY },
+      body: JSON.stringify({ messages, stream: false }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`Zapi ChatEx error (${res.status}): ${await res.text()}`);
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content ?? data.content ?? data.text ?? data.response ?? '';
+    if (!text || text === 'Empty response') throw new Error('Empty response from Zapi ChatEx');
+    return text;
+  } catch (err: unknown) {
+    clearTimeout(timeoutId);
+    const errorObj = err instanceof Error ? err : new Error(String(err));
+    if (errorObj.name === 'AbortError') throw new Error('Zapi ChatEx request timed out');
+    throw errorObj;
+  }
 }
 
 async function callGeminiDirect(prompt: string): Promise<string> {
   if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY not set');
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-      }),
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+        }),
+        signal: controller.signal,
+      }
+    );
+    clearTimeout(timeoutId);
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Gemini API error (${res.status}): ${errorText}`);
     }
-  );
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Gemini API error (${res.status}): ${errorText}`);
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    if (!text) throw new Error('Empty response from Gemini');
+    return text;
+  } catch (err: unknown) {
+    clearTimeout(timeoutId);
+    const errorObj = err instanceof Error ? err : new Error(String(err));
+    if (errorObj.name === 'AbortError') throw new Error('Gemini request timed out');
+    throw errorObj;
   }
-  const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-  if (!text) throw new Error('Empty response from Gemini');
-  return text;
 }
 
 async function callWithFallback(messages: { role: string; content: string }[], mode: 'chat' | 'reasoning' | 'smart' = 'chat'): Promise<{ text: string; provider: LLMProvider }> {

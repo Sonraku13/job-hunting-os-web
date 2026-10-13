@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "static_analysis_semgrep_1/**",
+    "webapp-dari-sheets/**",
+    "*.sh",
+    "*.ps1",
   ]),
 ]);
 

@@ -1,8 +1,9 @@
-- Security fixes applied (TM-001 to TM-004):
+- Security fixes applied (TM-001 to TM-005):
   * TM-001: Removed legacy scrape endpoints (/api/scrape/linkedin, /jobstreet, /indeed, /glints, /dealls) that bypassed quota.
   * TM-002: Fixed /api/jobs/save route to remove dangling `is_parsed` check and ensure quota is not consumed incorrectly.
   * TM-003: Added server-side upload limits (text 40KB, image 5MB) and MIME type validation in /api/jobs/parse.
-  * TM-004: Placeholder for fetch timeout on external API calls (to be implemented in next iteration).
+  * TM-004: Added 10-15s AbortController timeouts to all external fetches (lib/ai/llm.ts, lib/ai/ocr.ts, lib/net/fetch-with-timeout.ts, /api/scrape/run, /api/cron/scrape). Zapi timeout in /api/scrape/run returns 504 without charging credit.
+  * TM-005: Added SELECT FOR UPDATE row lock on profiles in consume_usage RPC (015_fix_quota_race.sql) to prevent concurrent quota bypass.
 - Removed unused legacy routes to reduce attack surface.
 - Updated quota enforcement to always consume via RPC in /api/jobs/save (no client-controlled bypass).
 - Added server-side validation for upload size and type in /api/jobs/parse.
