@@ -1,8 +1,23 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import {
+  PORTALS,
+  type Portal,
+  GLINTS_REGION_ALIASES,
+} from '@/lib/constants/portal-locations';
+import { SCRAPE_ACTION_BY_PORTAL, type UsageAction } from '@/lib/quota/limits';
+import { remainingZapiCalls, wibDayStartISO } from '@/lib/quota/zapi-cap';
 
 const ZAPI_KEY = process.env.ZAPI_API_KEY || '';
 const ZAPI_BASE = 'https://api.zapi.ink/v1';
+
+const SCRAPE_ACTIONS_FOR_ZAPI_CAP = [
+  'SCRAPE_LINKEDIN',
+  'SCRAPE_JOBSTREET',
+  'SCRAPE_INDEED',
+  'SCRAPE_GLINTS',
+  'SCRAPE_DEALLS',
+];
 
 function cleanRawDescription(text: string): string {
   if (!text) return '';
@@ -10,6 +25,74 @@ function cleanRawDescription(text: string): string {
     .replace(/<[^>]*>?/gm, '') // Hapus tag HTML jika ada
     .replace(/\n\s*\n/g, '\n\n') // Rapikan baris kosong berlebih
     .trim();
+}
+
+/**
+ * Samakan nama lokasi dengan yang diharapkan portal
+ * ("DKI Jakarta" -> "Jakarta", "DI Yogyakarta" -> "Yogyakarta").
+ * Dealls dikecualikan karena ia menerima cityId, bukan nama.
+ */
+function normalizeLocation(loc: string, portal: Portal): string {
+  if (portal === 'dealls') return loc.trim();
+  return (
+    loc
+      .replace(/^DKI\s+/i, '')
+      .replace(/^DI\s+/i, '')
+      .replace(/^D\.I\.\s+/i, '')
+      .trim() || loc
+  );
+}
+
+function readString(source: Record<string, unknown>, key: string): string | null {
+  const value = source[key];
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+/**
+ * Cocokkan satu lowongan Glints dengan lokasi yang diminta user.
+ * Glints mengembalikan `location.region` berupa nama provinsi apa adanya
+ * ("Jawa Barat"), jadi pencocokan dilakukan di sini, bukan lewat API.
+ */
+function matchesGlintsLocation(job: Record<string, unknown>, requested: string): boolean {
+  const loc = job.location;
+  const region =
+    loc && typeof loc === 'object'
+      ? readString(loc as Record<string, unknown>, 'region')
+      : null;
+  const city =
+    loc && typeof loc === 'object'
+      ? readString(loc as Record<string, unknown>, 'city')
+      : null;
+
+  if (!region && !city) return false;
+
+  const wanted = GLINTS_REGION_ALIASES[requested.trim()] ?? [requested.trim()];
+  const haystack = [region, city].filter((v): v is string => Boolean(v));
+  return haystack.some((v) => wanted.some((w) => v.toLowerCase() === w.toLowerCase()));
+}
+
+/**
+ * Respons ketika Zapi tidak mengembalikan 200.
+ * Credit TIDAK dipotong pada jalur ini.
+ */
+function zapiFailure(
+  portal: Portal,
+  location: string,
+  status: number,
+  body: string,
+  deallsCityId?: number | null
+) {
+  console.error(`Zapi ${portal} @ ${location} (${status}):`, body.slice(0, 300));
+  return NextResponse.json(
+    {
+      error: `${portal} gagal merespons (HTTP ${status}). Credit tidak dipotong.`,
+      creditCharged: false,
+      portal,
+      location,
+      deallsCityId: deallsCityId ?? null,
+    },
+    { status: 502 }
+  );
 }
 
 export async function POST(request: Request) {
@@ -28,61 +111,43 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const portal = body.portal === 'jobstreet' ? 'jobstreet' :
-                 body.portal === 'indeed' ? 'indeed' :
-                 body.portal === 'glints' ? 'glints' :
-                 body.portal === 'dealls' ? 'dealls' : 'linkedin';
-    const action = portal === 'jobstreet' ? 'SCRAPE_JOBSTREET' :
-                 portal === 'indeed' ? 'SCRAPE_INDEED' :
-                 portal === 'glints' ? 'SCRAPE_GLINTS' :
-                 portal === 'dealls' ? 'SCRAPE_DEALLS' :
-                 'SCRAPE_LINKEDIN';
+    const portal: Portal = (PORTALS as readonly string[]).includes(body.portal)
+      ? (body.portal as Portal)
+      : 'linkedin';
+    const action: UsageAction = SCRAPE_ACTION_BY_PORTAL[portal];
 
-    // 1. Consume Quota
-    const { data: quotaData, error: quotaError } = await supabase.rpc('consume_usage', {
-      p_action: action,
-      p_portal: portal,
-    });
-
-    if (quotaError) {
-      return NextResponse.json({ error: quotaError.message }, { status: 500 });
-    }
-
-    const quotaResult = quotaData[0];
-    if (!quotaResult.allowed) {
-      return NextResponse.json(
-        {
-          error: quotaResult.message,
-          used_today: quotaResult.used_today,
-          daily_limit: quotaResult.daily_limit,
-        },
-        { status: 403 }
-      );
-    }
-
-    // 2. Ambil preferensi pencarian dari profile
+    // 1. Ambil preferensi pencarian dari profile
     const { data: profile } = await supabase
       .from('user_profiles')
       .select('target_job_titles, target_locations, linkedin_geo_id, jobstreet_location_id')
       .eq('user_id', user.id)
       .single();
 
+    // Frontend mengirim satu (portal, lokasi) per panggilan supaya tiap
+    // kredit terisolasi dan Vercel tidak pernah timeout di tengah loop.
+    const rawLocation: string = typeof body.location === 'string' ? body.location : '';
+    const location = normalizeLocation(rawLocation || 'Indonesia', portal);
+    const deallsCityId: number | null =
+      typeof body.deallsCityId === 'number' ? body.deallsCityId : null;
+
     const rawTitles = profile?.target_job_titles?.filter(Boolean) ?? [];
-    const rawLocations = profile?.target_locations?.filter(Boolean) ?? [];
 
-    // Fallback default
-    const titles: string[] = rawTitles.length > 0 ? rawTitles : ['Software Engineer'];
-    const locations: string[] = rawLocations.length > 0 ? rawLocations : ['Indonesia'];
+    // Satu panggilan backend = satu judul pekerjaan utama.
+    // Kalau user punya banyak judul, frontend mengulang panggilan untuk tiap judul.
+    const requestedTitle = typeof body.title === 'string' ? body.title.trim() : '';
+    const titles: string[] =
+      requestedTitle && rawTitles.includes(requestedTitle)
+        ? [requestedTitle]
+        : rawTitles.length > 0
+          ? [rawTitles[0]]
+          : ['Software Engineer'];
 
-    // Normalisasi nama lokasi agar cocok dengan ekspektasi Zapi/LinkedIn
-    // ("DKI Jakarta" -> "Jakarta", "DI Yogyakarta" -> "Yogyakarta")
-    const normalizeLocation = (loc: string): string => {
-      return loc
-        .replace(/^DKI\s+/i, '')
-        .replace(/^DI\s+/i, '')
-        .replace(/^D\.I\.\s+/i, '')
-        .trim() || loc;
-    };
+    if (portal === 'dealls' && deallsCityId === null) {
+      return NextResponse.json(
+        { error: 'Dealls wajib menerima deallsCityId karena API-nya hanya menerima angka cityId.' },
+        { status: 400 }
+      );
+    }
 
     // Ambil array data dari respons Zapi.
     // Bentuk asli (terbukti dari tes live):
@@ -164,24 +229,13 @@ export async function POST(request: Request) {
     };
 
     const allRawJobs: Record<string, unknown>[] = [];
-    const perLocation: { location: string; fetched: number }[] = [];
 
-    // 3. Loop tiap kombinasi lokasi x judul (1 call per kombinasi).
-    // Zapi tidak konsisten mendukung operator OR, jadi query sederhana per judul lebih aman.
-    // ponytail: ceiling 6 Zapi calls per aksi manual; naikkan + paginasi saat kuota Zapi longgar.
-    const MAX_CALLS = 6;
-    let callCount = 0;
-
-    for (const rawLocation of locations) {
-      const location = normalizeLocation(rawLocation);
-      let fetchedForLocation = 0;
-
-      for (const rawTitle of titles) {
-        if (callCount >= MAX_CALLS) break;
-        if (allRawJobs.length >= 20) break;
-        const query = rawTitle.trim();
-        if (!query) continue;
-        callCount++;
+    // 3. Satu panggilan = satu (portal, lokasi) = satu kredit.
+    // Panggilan berikutnya (lokasi berikutnya, portal berikutnya) datang dari
+    // frontend sebagai request terpisah. Ini yang membuat frontend bebas
+    // menampilkan progres tanpa risiko timeout di sisi server.
+    {
+      const query = titles[0].trim();
 
         let rawJobs: Record<string, unknown>[] = [];
 
@@ -194,7 +248,9 @@ export async function POST(request: Request) {
           page: '1',
           limit: '20',
         });
-        if (profile?.linkedin_geo_id) {
+        // geoId hanya dipakai bila user tidak memilih lokasi spesifik,
+        // karena geoId mengunci hasil ke satu wilayah saja.
+        if (profile?.linkedin_geo_id && rawLocation === 'Indonesia') {
           params.append('geoId', profile.linkedin_geo_id);
         }
 
@@ -203,9 +259,7 @@ export async function POST(request: Request) {
         });
 
         if (!res.ok) {
-          const errText = await res.text();
-          console.error(`Gagal scrape LinkedIn untuk "${query}" @ ${location}:`, errText);
-          continue; // Lanjut ke kombinasi berikutnya
+          return zapiFailure(portal, location, res.status, await res.text());
         }
 
         const resData = await res.json();
@@ -224,9 +278,7 @@ export async function POST(request: Request) {
         });
 
         if (!res.ok) {
-          const errText = await res.text();
-          console.error(`Gagal scrape Indeed untuk "${query}" @ ${location}:`, errText);
-          continue;
+          return zapiFailure(portal, location, res.status, await res.text());
         }
 
         const resData = await res.json();
@@ -244,13 +296,17 @@ export async function POST(request: Request) {
         });
 
         if (!res.ok) {
-          const errText = await res.text();
-          console.error(`Gagal scrape Glints untuk "${query}":`, errText);
-          continue;
+          return zapiFailure(portal, location, res.status, await res.text());
         }
 
         const resData = await res.json();
-        rawJobs = extractJobs(resData);
+        const national = extractJobs(resData);
+
+        // Glints tidak punya filter lokasi di API: `locationId` hanya berisi
+        // UUID tingkat kecamatan yang berubah tiap query. Karena itu satu
+        // panggilan nasional ini tetap dilayani satu kredit, lalu hasilnya
+        // disaring di sini berdasarkan provinsi yang benar-benar dipinta user.
+        rawJobs = national.filter((j) => matchesGlintsLocation(j, rawLocation));
       } else if (portal === 'dealls') {
         const params = new URLSearchParams({
           query,
@@ -260,15 +316,16 @@ export async function POST(request: Request) {
           page: '1',
           limit: '20',
         });
+        // Dealls hanya menerima cityId angka. Multi-kota dalam satu
+        // permintaan ditolak API dengan HTTP 400, jadi satu panggilan satu kota.
+        params.append('city', String(deallsCityId));
 
         const res = await fetch(`${ZAPI_BASE}/jobs:dealls/search?${params.toString()}`, {
           headers: { 'x-api-key': ZAPI_KEY },
         });
 
         if (!res.ok) {
-          const errText = await res.text();
-          console.error(`Gagal scrape Dealls untuk "${query}":`, errText);
-          continue;
+          return zapiFailure(portal, location, res.status, await res.text(), deallsCityId);
         }
 
         const resData = await res.json();
@@ -308,9 +365,7 @@ export async function POST(request: Request) {
         }
 
         if (!res.ok) {
-          const errText = await res.text();
-          console.error(`Gagal scrape Jobstreet untuk "${query}" @ ${location}:`, errText);
-          continue;
+          return zapiFailure(portal, location, res.status, await res.text());
         }
 
         const resData = await res.json();
@@ -324,21 +379,53 @@ export async function POST(request: Request) {
         _scraped_title: query,
       }));
 
-      fetchedForLocation += jobsWithLocation.length;
       allRawJobs.push(...jobsWithLocation);
+    }
 
-      // Batasi total agar tidak melebihi kuota DB
-      if (allRawJobs.length >= 20) break;
-      }
-      perLocation.push({ location, fetched: fetchedForLocation });
-      if (allRawJobs.length >= 20) break;
+    // 4. Zona kuota. Panggilan Zapi sudah sukses di atas, jadi sekarang
+    // baru kred-nya dipotong. Kalau Zapi gagal, credit user utuh.
+    const zapiUsed = await supabase
+      .from('usage_events')
+      .select('id', { count: 'exact', head: true })
+      .in('action', SCRAPE_ACTIONS_FOR_ZAPI_CAP)
+      .gte('created_at', wibDayStartISO());
+    const zapiHeadroom = remainingZapiCalls(zapiUsed.count ?? 0);
+    if (zapiHeadroom <= 0) {
+      return NextResponse.json(
+        { error: 'Kuota harian scraping platform sudah habis. Coba lagi besok.' },
+        { status: 503 }
+      );
+    }
+
+    const { data: quotaData, error: quotaError } = await supabase.rpc('consume_usage', {
+      p_action: action,
+      p_portal: portal,
+    });
+
+    if (quotaError) {
+      return NextResponse.json({ error: quotaError.message }, { status: 500 });
+    }
+
+    const quotaResult = quotaData[0];
+    if (!quotaResult.allowed) {
+      return NextResponse.json(
+        {
+          error: quotaResult.message,
+          used_today: quotaResult.used_today,
+          daily_limit: quotaResult.daily_limit,
+          creditCharged: false,
+        },
+        { status: 403 }
+      );
     }
 
     if (allRawJobs.length === 0) {
       return NextResponse.json({
         success: true,
-        message: `Tidak ditemukan lowongan baru dalam 24 jam terakhir untuk ${titles.length} posisi di lokasi: ${locations.join(', ')}.`,
+        message: `Tidak ada lowongan ${portal} dalam 24 jam terakhir untuk "${titles[0]}" di ${rawLocation || 'Indonesia'}.`,
         inserted: 0,
+        fetched: 0,
+        creditCharged: true,
         usage: { used_today: quotaResult.used_today, daily_limit: quotaResult.daily_limit },
       });
     }
@@ -422,9 +509,11 @@ export async function POST(request: Request) {
     if (insertedCount === 0 && skippedDuplicates > 0) {
       return NextResponse.json({
         success: true,
-        message: `Ditemukan ${skippedDuplicates} lowongan, namun semuanya sudah pernah tersimpan sebelumnya di database Anda.`,
+        message: `${skippedDuplicates} lowongan ${portal} di ${rawLocation || 'Indonesia'} sudah pernah tersimpan sebelumnya.`,
         inserted: 0,
         skipped: skippedDuplicates,
+        fetched: allRawJobs.length,
+        creditCharged: true,
         usage: { used_today: quotaResult.used_today, daily_limit: quotaResult.daily_limit },
       });
     }
@@ -434,6 +523,7 @@ export async function POST(request: Request) {
         {
           error: `Gagal menyimpan lowongan ke database: ${insertErrors[0]}`,
           details: insertErrors,
+          creditCharged: true,
         },
         { status: 500 }
       );
@@ -441,9 +531,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Berhasil mengambil & menyimpan ${insertedCount} lowongan baru (${portal.toUpperCase()})!`,
+      message: `${insertedCount} lowongan baru dari ${portal} @ ${rawLocation || 'Indonesia'}.`,
       inserted: insertedCount,
       skipped: skippedDuplicates,
+      fetched: allRawJobs.length,
+      creditCharged: true,
+      portal,
+      location: rawLocation || 'Indonesia',
       usage: { used_today: quotaResult.used_today, daily_limit: quotaResult.daily_limit },
     });
   } catch (error: unknown) {

@@ -1,6 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import {
+  estimateCredits,
+  type Portal,
+} from '@/lib/constants/portal-locations';
 import { useToast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -25,7 +29,26 @@ interface UserSettingsData {
   scrape_active?: boolean | null;
   scrape_days?: number[] | null;
   scrape_hours?: number[] | null;
+  target_portals?: string[] | null;
+  auto_portals?: string[] | null;
+  auto_location?: string | null;
 }
+
+const PORTAL_OPTIONS = [
+  { value: 'linkedin', label: 'LinkedIn', note: 'Filter kota langsung. 1 kota = 1 credit.' },
+  { value: 'jobstreet', label: 'Jobstreet', note: 'Filter kota langsung. 1 kota = 1 credit.' },
+  { value: 'indeed', label: 'Indeed', note: 'Filter kota langsung. 1 kota = 1 credit.' },
+  {
+    value: 'dealls',
+    label: 'Dealls',
+    note: 'Hanya kota yang punya lowongan. 1 credit per kota, jadi satu provinsi bisa banyak credit.',
+  },
+  {
+    value: 'glints',
+    label: 'Glints',
+    note: 'Tidak bisa filter kota, jadi semua lokasi diproses dalam 1 panggilan = 1 credit.',
+  },
+] as const;
 
 const DAYS_LIST = [
   { id: 1, name: 'Senin' },
@@ -37,21 +60,18 @@ const DAYS_LIST = [
   { id: 7, name: 'Minggu' },
 ];
 
-function utcToWib(utcHour: number): number {
-  return (utcHour + 7) % 24;
-}
-
-function wibToUtc(wibHour: number): number {
-  return (wibHour - 7 + 24) % 24;
-}
-
 export function SettingsForm({ initialSettings }: { initialSettings: UserSettingsData }) {
   const { t, language } = useLanguage();
-  const initialWibHours = (initialSettings.scrape_hours || [2]).map(utcToWib);
 
   const [scrapeActive, setScrapeActive] = useState<boolean>(Boolean(initialSettings.scrape_active));
   const [selectedDays, setSelectedDays] = useState<number[]>(initialSettings.scrape_days || [1, 2, 3, 4, 5]);
-  const [selectedWibHours, setSelectedWibHours] = useState<number[]>(initialWibHours);
+
+  const [targetPortals, setTargetPortals] = useState<string[]>(
+    initialSettings.target_portals?.length ? initialSettings.target_portals : ['linkedin']
+  );
+  const [autoPortals, setAutoPortals] = useState<string[]>(
+    initialSettings.auto_portals?.length ? initialSettings.auto_portals : ['linkedin']
+  );
 
   // Parse initial locations dari string koma ke array
   const initialLocations = parseLocations(
@@ -69,6 +89,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
     target_work_arrangements: (initialSettings.target_work_arrangements || []).join(', '),
     linkedin_geo_id: initialSettings.linkedin_geo_id || '',
     jobstreet_location_id: initialSettings.jobstreet_location_id || '',
+    auto_location: initialSettings.auto_location || '',
     min_salary: initialSettings.min_salary ? String(initialSettings.min_salary) : '',
     max_salary: initialSettings.max_salary ? String(initialSettings.max_salary) : '',
     remote_only: Boolean(initialSettings.remote_only),
@@ -83,11 +104,25 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
     );
   };
 
-  const toggleHour = (hour: number) => {
-    setSelectedWibHours((prev) =>
-      prev.includes(hour) ? prev.filter((h) => h !== hour) : [...prev, hour].sort((a, b) => a - b)
-    );
+  const togglePortal = (
+    value: string,
+    setter: React.Dispatch<React.SetStateAction<string[]>>
+  ) => {
+    setter((prev) => {
+      if (prev.includes(value)) {
+        const next = prev.filter((p) => p !== value);
+        // Minimal satu portal harus selalu aktif.
+        return next.length > 0 ? next : prev;
+      }
+      return [...prev, value];
+    });
   };
+
+  /** Credit harian untuk kombinasi portal + lokasi saat ini. */
+  const dailyCreditEstimate = estimateCredits(
+    targetPortals as Portal[],
+    selectedLocations
+  );
 
   const toggleLocation = (loc: string) => {
     setSelectedLocations((prev) => {
@@ -130,7 +165,9 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
 
         scrape_active: scrapeActive,
         scrape_days: selectedDays,
-        scrape_hours: selectedWibHours.map(wibToUtc),
+        target_portals: targetPortals,
+        auto_portals: autoPortals,
+        auto_location: formData.auto_location || null,
       };
 
       const res = await fetch('/api/profile/update', {
@@ -322,7 +359,68 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
         </div>
       </Card>
 
-      {/* 2. Jadwal Auto-Scraping */}
+      {/* 2. Portal Scrape Manual */}
+      <Card>
+        <h2 className="text-lg font-semibold tracking-tight mb-1 text-[var(--card-foreground)]">
+          {language === 'id' ? 'Portal untuk Scraping Manual' : 'Portals for Manual Scraping'}
+        </h2>
+        <p className="text-xs text-zinc-600 mb-4">
+          {language === 'id'
+            ? 'Boleh pilih lebih dari satu. Biaya = 1 credit per 1 halaman hasil scraping.'
+            : 'You may select more than one. Cost is 1 credit per scraped page.'}
+        </p>
+
+        <div className="space-y-2">
+          {PORTAL_OPTIONS.map((opt) => {
+            const checked = targetPortals.includes(opt.value);
+            return (
+              <label
+                key={opt.value}
+                className={`flex items-start gap-2.5 px-3 py-2.5 rounded-sm border cursor-pointer transition-colors ${
+                  checked
+                    ? 'border-[#a5df48] bg-[#F1F0FF]'
+                    : 'border-[var(--border)] bg-[var(--muted)] hover:border-zinc-600'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => togglePortal(opt.value, setTargetPortals)}
+                  className="mt-0.5 w-4 h-4 rounded-sm border-zinc-300 text-[#0C0B1E] focus:ring-[#C1EF7B]"
+                />
+                <span className="flex flex-col">
+                  <span className="text-sm font-medium text-[var(--card-foreground)]">{opt.label}</span>
+                  <span className="text-xs text-zinc-500">{opt.note}</span>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+
+        {selectedLocations.length > 0 && (
+          <div className="mt-4 rounded-sm border border-zinc-200 bg-[#F1F0FF] px-3 py-2.5">
+            <p className="text-xs font-mono font-medium text-[#0C0B1E]">
+              {language === 'id'
+                ? `Biaya jika scrape semua lokasi sekarang: ${dailyCreditEstimate.total} credit`
+                : `Cost to scrape all current locations: ${dailyCreditEstimate.total} credits`}
+            </p>
+            <ul className="mt-1.5 space-y-0.5">
+              {dailyCreditEstimate.lines.map((line, idx) => (
+                <li key={`${line.portal}-${idx}`} className="text-[11px] text-zinc-600 font-mono">
+                  {line.portal} &middot; {line.label} &rarr; {line.credits} credit
+                </li>
+              ))}
+            </ul>
+            {dailyCreditEstimate.warnings.map((w, idx) => (
+              <p key={`w-${idx}`} className="mt-1.5 text-[11px] text-amber-700">
+                {w}
+              </p>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* 3. Jadwal Auto-Scraping */}
       <Card>
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -386,11 +484,74 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
               </div>
             </div>
 
-            <p className="text-xs text-zinc-500 font-mono">
-              {language === 'id'
-                ? 'ℹ️ Auto-scrape dijalankan otomatis 1 kali sehari di pagi hari.'
-                : 'ℹ️ Auto-scrape runs automatically once daily in the morning.'}
-            </p>
+            {/* Portal untuk cron */}
+            <div>
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-2">
+                {language === 'id' ? 'Portal Auto-Scrape' : 'Auto-Scrape Portals'}
+              </label>
+              <div className="space-y-2">
+                {PORTAL_OPTIONS.map((opt) => {
+                  const checked = autoPortals.includes(opt.value);
+                  return (
+                    <label
+                      key={opt.value}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-sm border cursor-pointer transition-colors ${
+                        checked
+                          ? 'border-[#a5df48] bg-[#F1F0FF]'
+                          : 'border-[var(--border)] bg-[var(--muted)] hover:border-zinc-600'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => togglePortal(opt.value, setAutoPortals)}
+                        className="w-4 h-4 rounded-sm border-zinc-300 text-[#0C0B1E] focus:ring-[#C1EF7B]"
+                      />
+                      <span className="text-sm text-[var(--card-foreground)]">{opt.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-[11px] text-zinc-500">
+                {language === 'id'
+                  ? 'Paket FREE hanya memakai 1 portal saja per hari agar kuota tidak langsung habis.'
+                  : 'The FREE plan uses only 1 portal per day so the quota is not exhausted immediately.'}
+              </p>
+            </div>
+
+            {/* Lokasi prioritas cron */}
+            <div>
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
+                {language === 'id' ? 'Lokasi Prioritas Cron' : 'Cron Priority Location'}
+              </label>
+              <select
+                value={formData.auto_location}
+                onChange={(e) => setFormData({ ...formData, auto_location: e.target.value })}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] focus:outline-none focus:border-zinc-500"
+              >
+                <option value="">
+                  {language === 'id' ? 'Pakai lokasi pertama yang dipilih' : 'Use the first selected location'}
+                </option>
+                {selectedLocations.map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-[11px] text-zinc-500">
+                {language === 'id'
+                  ? 'FREE hanya memproses lokasi ini. PRO &amp; VIP memakai semua lokasi sampai kuota habis.'
+                  : 'FREE processes only this location. PRO &amp; VIP use every location until the quota runs out.'}
+              </p>
+            </div>
+
+            <div className="mt-3 rounded-sm border border-zinc-200 bg-[#F1F0FF] px-3 py-2">
+              <p className="text-xs text-[#0C0B1E] font-mono font-medium">
+                {language === 'id'
+                  ? '⏰ Cron berjalan 08:00 WIB setiap hari terpilih'
+                  : '⏰ Cron runs at 08:00 WIB on selected days'}
+              </p>
+            </div>
           </div>
         )}
       </Card>

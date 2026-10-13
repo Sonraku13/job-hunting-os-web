@@ -1,6 +1,6 @@
-===========================================
+=========================================
 JOB HUNTING OS - HISTORY & FUTURE UPDATES
-===========================================
+=========================================
 
 [ LOG HISTORY - COMPLETED ]
 
@@ -33,6 +33,7 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
    - Engine fallback: Gemini Direct -> Zapi Copilot -> Zapi ChatEx -> Zapi ChatGPT.
    - Anti-hallucination rules (hanya fakta, plain text tanpa markdown/simbol **).
    - Caching output (match score, cover letter, email draft) di DB `saved_jobs` agar tidak boros kuota / double hit API.
+   - Support untuk vision-based OCR via Vleee API (ali/qwen3.8-omni-flash, ag/gemini-3.8-flash-high).
 
 5. UI & UX Refinements (Tampilan, Tema & Responsivitas):
    - Dukungan multi-format gambar QRIS di halaman billing (`qris.webp`, `qris.png`, `qris.jpg`).
@@ -52,25 +53,90 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
    - Lint & build checks passed (`npm run build` sukses).
    - Strict TypeScript checking tanpa flag `any`.
 
-8. Recent Priorities & Enhancements (2026-10-05 ~ 2026-10-06) - COMPLETED:
-   - Fix Auto-Scraper Schedule: Disesuaikan dengan batas Vercel Hobby Plan (1x/hari jam 01:00 UTC / 08:00 WIB di `vercel.json` dan hapus filter jam spesifik di `/api/cron/scrape`).
-   - Refine AI Generation Prompt (Cover Letter & Email):
-     - Output ringkas padat 1-2 paragraf.
-     - Selalu menyertakan link portfolio dari profil pengguna.
-   - Print / Export PDF Native Cover Letter / Email (`window.print`).
-   - Mini Analytics & Motivasi Dashboard (Stats Cards: Lamaran, Match Score, Lowongan).
-   - Interactive Job Detail Modal:
-     - Modal detail popup full screen overlay saat kartu lowongan diklik.
-     - Menampilkan info judul, perusahaan, metadata, dan deskripsi lengkap.
-   - Raw Description Cleaning Pipeline:
-     - Sanitisasi teks HTML dan normalisasi whitespace dari ZAPI (`cleanRawDescription`).
-     - Menyimpan & menampilkan deskripsi lengkap tanpa overhead/beban storage DB.
-   - Pengaturan Auto-Scrape `/settings`:
-     - Menghapus UI pemilihan jam spesifik, mempertahankan toggle & multi-select hari, serta menambahkan catatan informatif ringkas.
-   - Redesign Visual - Pepelsbey Design System (Vadim Makeev):
-     - Background Pure White (`#FFFFFF`), Text Ink Navy (`#0C0B1E`), Accent Neon Lime (`#C1EF7B`), Soft Lavender (`#F1F0FF`).
-     - Sudut tajam 2px (`rounded-sm` / flat aesthetic) pada seluruh tombol, kartu, input, dan modal.
-     - Performa tetap ultra-cepat dan minimalis.
+8. Smart Quick-Paste Job (Phase 1) — 2026-10-13:
+   - Modal "+ Quick Paste" di Dashboard dengan:
+     - Input Teks/Caption (wajib) + Link Asal Trackback (opsional).
+     - Upload / Paste Gambar (JPG, PNG, WebP) -> OCR via Vleee API dengan fallback chain.
+     - Auto-detect Email, WhatsApp, Link Form, & URL Postingan di dalam teks/gambar.
+   - Backend endpoint `/api/jobs/parse` memakai multi-provider fallback engine (OCR -> LLM -> Regex).
+   - Otomatis simpan ke `saved_jobs` & siap generate Cover Letter/Email dengan konsumsi quota `AI_EXTRACT`.
+   - Database migration `003_add_quick_paste_fields.sql` menambahkan:
+     - `contact_email`, `contact_whatsapp`, `apply_url`, `source_url`.
+
+9. Quick Action Buttons (Phase 1) — 2026-10-13:
+   - Tombol "Chat WA", "Kirim Email", "Buka Form" muncul otomatis jika kontak terdeteksi di detail modal.
+   - Pre-fill pesan WA & draft Email via AI engine yang sudah ada.
+   - Deteksi kontak berbasis regex fallback untuk data yang tidak tercoret luas oleh LLM.
+
+10. Security Hardening (Critical Audit Fixes) — 2026-10-13:
+    - C-1 (Mass Assignment): Whitelist field aman pada `/api/profile/update` (cegah modifikasi field internal tak terduga).
+    - C-2 (Stored XSS): Sanitasi skema protocol URL via helper `safeHref()` di `lib/utils.ts`, hanya izinkan `http:`, `https:`, `mailto:`, `tel:`.
+    - C-3 (Cron Timing & Auth): Validasi wajib keberadaan `CRON_SECRET` + perbandingan `crypto.timingSafeEqual` pada `/api/cron/scrape`.
+    - HTML entity escaping pada `handlePrint()` di `job-list.tsx` untuk mencegah DOM injection.
+
+11. Credit Scraping per Lokasi & Portal (2026-10-13) - COMPLETED:
+    - Aturan biaya: 1 portal x 1 lokasi = 1 credit = 1 halaman scraping.
+    - Credit hanya dipotong kalau Zapi merespons HTTP 200. Panggilan gagal
+      tidak memotong credit user.
+    - `/api/scrape/quota/preview` (baru): menghitung biaya + sisa kuota
+      SEBELUM scraping dimulai, lengkap dengan rincian per portal/lokasi.
+    - Loop scraping dipindah ke frontend (Opsi B). Backend menerima satu
+      (portal, lokasi) per request. Menghindari timeout Vercel Hobby dan
+      membuat kegagalan satu lokasi tidak menggagalkan yang lain.
+    - Pemetaan lokasi per portal di `lib/constants/portal-locations.ts`:
+      * LinkedIn / Indeed / Jobstreet: nama kota langsung, semua lokasi aman.
+      * Dealls: hanya menerima `city` berupa ANGKA (cityId). Multi-kota dalam
+        satu request ditolak API (HTTP 400), jadi 1 kota = 1 credit.
+        Peta 68 kota dari 24 provinsi (hasil harvest `location.cityId`).
+        14 provinsi tanpa coverage dilewati dengan peringatan, bukan diam-diam.
+      * Glints: tidak punya filter kota. `locationId` hanya UUID tingkat
+        kecamatan yang dinamis, jadi tidak bisa dipetakan ke nama provinsi.
+        Diganti 1 panggilan nasional (`country=ID`) = 1 credit flat, hasil
+        disaring di backend lewat `location.region`.
+    - `ZAPI_DAILY_CAP` (default 100/hari): pagu global yang melindungi kuota
+      paket Zapi, terpisah dari kuota credit user.
+    - Pengaturan: multi-select portal untuk scraping manual, multi-select portal
+      untuk cron, dan lokasi prioritas cron. FREE dipaksa ke 1 portal.
+    - Perbaikan whitelist `/api/profile/update`: field `linkedin_geo_id`,
+      `min_salary`, `max_salary`, `target_classifications`,
+      `target_employment_types`, `target_work_arrangements` sebenarnya sudah
+      dikirim form tetapi sebelumnya dibuang karena tidak ada di whitelist.
+    - Cron kini memakai portal pilihan user (`auto_portals`), bukan hardcode
+      LinkedIn, dan mencatat credit sebanyak panggilan yang sukses.
+    - Migrasi baru: `014_auto_scrape_portals.sql` (`target_portals`,
+      `auto_portals`, `auto_location`). WAJIB dijalankan manual di Supabase
+      SQL Editor sebelum cron dipakai.
+
+12. Recent Priorities & Enhancements (2026-10-05 ~ 2026-10-06) - COMPLETED:
+    - Fix Auto-Scraper Schedule: Disesuaikan dengan batas Vercel Hobby Plan (1x/hari jam 01:00 UTC / 08:00 WIB di `vercel.json` dan hapus filter jam spesifik di `/api/cron/scrape`).
+    - Refine AI Generation Prompt (Cover Letter & Email):
+      - Output ringkas padat 1-2 paragraf.
+      - Selalu menyertakan link portfolio dari profil pengguna.
+    - Print / Export PDF Native Cover Letter / Email (`window.print`).
+    - Mini Analytics & Motivasi Dashboard (Stats Cards: Lamaran, Match Score, Lowongan).
+    - Interactive Job Detail Modal:
+      - Modal detail popup full screen overlay saat kartu lowongan diklik.
+      - Menampilkan info judul, perusahaan, metadata, dan deskripsi lengkap.
+    - Raw Description Cleaning Pipeline:
+      - Sanitisasi teks HTML dan normalisasi whitespace dari ZAPI (`cleanRawDescription`).
+      - Menyimpan & menampilkan deskripsi lengkap tanpa overhead/beban storage DB.
+    - Pengaturan Auto-Scrape `/settings`:
+      - Menghapus UI pemilihan jam spesifik, mempertahankan toggle & multi-select hari, serta menambahkan catatan informatif ringkas.
+    - Redesign Visual - Pepelsbey Design System (Vadim Makeev):
+      - Background Pure White (`#FFFFFF`), Text Ink Navy (`#0C0B1E`), Accent Neon Lime (`#C1EF7B`), Soft Lavender (`#F1F0FF`).
+      - Sudut tajam 2px (`rounded-sm` / flat aesthetic) pada seluruh tombol, kartu, input, dan modal.
+      - Performa tetap ultra-cepat dan minimalis.
+
+13. End-to-End Testing, Speed Testing, & Pentest (2026-10-13) - COMPLETED:
+    - Lint & Typecheck: PASS (0 error, strict TypeScript, no `any`).
+    - Build Verification: PASS (Next.js 16.3.8 Turbopack 26 routes, build duration ~34s).
+    - Speed Benchmarking: Server ready 651ms, Root redirect 348ms, Login render 249ms.
+    - Penetration & Security Testing:
+      * API Auth Protection: Middleware langsung merespons `401 Unauthorized` JSON (bukan 307 HTML redirect) untuk semua request unauthenticated ke `/api/*`.
+      * Verified endpoints protected: `/api/usage/consume`, `/api/scrape/run`, `/api/scrape/quota/preview`, `/api/profile/update`, `/api/jobs/list`, `/api/ai/process`.
+      * Route `/`: Redirect ke `/dashboard` jika authenticated, ke `/login` jika belum (sesuai spec AGENTS.md).
+      * Secret Auditing: `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, `ZAPI_API_KEY` terverifikasi server-only, zero client exposure, zero git tracking.
+      * Timing-attack protection via `crypto.timingSafeEqual` pada cron secret.
 
 -------------------------------------------
 
@@ -81,41 +147,47 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
   - Saat ini tema aktif difokuskan pada Light Mode murni (sesuai spesifikasi Pepelsbey.dev: White, Ink Navy, Neon Lime).
   - Mode gelap (dark theme) belum sempat dibuat dan disiapkan untuk update berikutnya jika dibutuhkan.
 
-# Phase 1: Quick Wins (Paling Mudah & Dampak Langsung)
-1. Smart Quick-Paste Job (Universal Input):
-   - Modal "+ Quick Paste" di Dashboard dengan:
-     - Input Teks/Caption (wajib) + Link Asal Trackback (opsional).
-     - Upload / Paste Gambar (JPG, PNG, WebP) -> Gemini Vision OCR.
-     - Auto-detect Email, WhatsApp, Link Form, & URL Postingan di dalam teks/gambar.
-   - Backend: 1 endpoint baru `/api/jobs/parse` memakai Gemini untuk ekstraksi data terstruktur.
-   - Otomatis simpan ke `saved_jobs` & siap generate Cover Letter/Email.
-
-2. Quick Action Buttons (1-Klik Kirim Lamaran):
-   - Di kartu lowongan: Tombol "Chat WA", "Kirim Email", "Buka Form" muncul otomatis jika kontak terdeteksi.
-   - Pre-fill pesan WA & draft Email via AI yang sudah ada.
-
 # Phase 2: Productivity Boosters
-3. Bookmarklet (1-Klik Simpan dari Web Mana Saja):
+1. Bookmarklet (1-Klik Simpan dari Web Mana Saja):
    - JS snippet di bookmark browser -> POST ke `/api/jobs/bookmarklet`.
    - User save lowongan dari Kalibrr, Tech in Asia, Web Perusahaan, dll tanpa buka aplikasi.
 
-4. Kanban Board View (Drag & Drop):
+2. Kanban Board View (Drag & Drop):
    - Toggle view di Dashboard: List <-> Kanban (Discover -> Analyse -> Apply -> Interview -> Offer).
    - Library ringan `@dnd-kit` atau native HTML5 Drag & Drop API.
 
 # Phase 3: System & Data Health
-5. Cron Job Optimization:
+3. Cron Job Optimization:
    - Pastikan cron berjalan di production Vercel dengan menyetel ENV `CRON_SECRET`.
    - Logging sistem: catat user mana saja yang berhasil discrape di `last_scraped_at`.
 
-6. Data Management:
+4. Data Management:
    - Bulk delete / auto-archive status 'refuse' setelah 30 hari.
    - RLS ketat untuk `user_profiles` (hindari user ubah `scrape_active` orang lain).
 
-7. Notifikasi Email Ringan (Opsional):
+5. Notifikasi Email Ringan (Opsional):
    - Trigger via Resend API jika ada >5 lowongan cocok (Match Score tinggi) ditemukan hari itu.
 
-===========================================
-CATATAN: 
+# Phase 4: Security Hardening (Sisa Temuan Audit)
+1. HIGH - Rate Limiting:
+   - Tambah rate limiter sederhana (in-memory token bucket per user/IP) pada `/api/ai/*`, `/api/jobs/parse`, `/api/scrape/run`.
+
+2. HIGH - Security Headers:
+   - Tambah `headers()` di `next.config.ts`: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`.
+
+3. MEDIUM - Image Magic Bytes Validation:
+   - Validasi file signature (4 byte pertama) JPEG/PNG/WebP di `/api/jobs/parse` (jangan hanya percaya MIME type dari client).
+
+4. MEDIUM - Generic Error Messages:
+   - Jangan kembalikan `error.message` mentah dari Supabase ke client; log detail hanya server-side.
+
+5. LOW - `.env.example`:
+   - Buat file template environment variables (placeholder saja, tanpa secret asli).
+
+6. LOW - Input Length Validation:
+   - Tambah batas panjang string pada `/api/jobs/save` & `/api/profile/update`.
+
+=========================================
+CATATAN:
 Tetap pertahankan konsep "Lazy Development": Pakai Stdlib & native features, jangan tambah dependencies rumit (Redux, tRPC, Prisma). Fokus ke Next.js API Routes + Supabase.
-===========================================
+=========================================

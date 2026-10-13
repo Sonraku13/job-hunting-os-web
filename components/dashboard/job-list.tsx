@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useLanguage } from '@/lib/i18n/context';
 import { QuickPasteModal } from '@/components/dashboard/quick-paste-modal';
+import { safeHref } from '@/lib/utils';
 
 export type JobStatus = 'discover' | 'analyse' | 'apply' | 'refuse' | 'archive';
 
@@ -248,40 +249,166 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
     return (job.status || 'discover') === filterStatus;
   });
 
-  const [scrapingPortal, setScrapingPortal] = useState<'linkedin' | 'jobstreet' | 'indeed' | 'glints' | 'dealls' | null>(null);
+  type ScrapePortal = 'linkedin' | 'jobstreet' | 'indeed' | 'glints' | 'dealls';
 
-  const handleManualScrape = async (portal: 'linkedin' | 'jobstreet' | 'indeed' | 'glints' | 'dealls') => {
+  const [scrapingPortal, setScrapingPortal] = useState<ScrapePortal | null>(null);
+  const [scrapeProgress, setScrapeProgress] = useState<{ done: number; total: number; label: string } | null>(null);
+
+  /** Satu unit kerja = satu panggilan API = satu credit. */
+  interface ScrapeUnit {
+    portal: ScrapePortal;
+    location: string;
+    deallsCityId?: number;
+    label: string;
+  }
+
+  /**
+   * Scraping satu per satu dari frontend (bukan satu request besar).
+   *
+   * Alasannya dua:
+   *  1. Vercel Hobby punya batas durasi fungsi serverless. Satu request
+   *     yang memanggil 10 lokasi akan risking timeout.
+   *  2. Credit terisolasi per panggilan, jadi kegagalan satu lokasi tidak
+   *     menggagalkan seluruh pekerjaan lain.
+   */
+  const handleManualScrape = async (portal: ScrapePortal) => {
     setScrapingPortal(portal);
-    try {
-      const res = await fetch('/api/scrape/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ portal }),
-      });
-      const data = await res.json();
 
-      if (res.ok && data.success) {
-        showToast(data.message, 'success');
-        // Refresh page agar list terbaru muncul
-        window.location.reload();
-      } else {
-        showToast(data.error || 'Gagal melakukan scraping', 'error');
+    try {
+      // 1. Minta estimasi biaya dulu. Endpoint ini tidak memotong credit.
+      const locations = await fetchSavedLocations();
+      if (locations.length === 0) {
+        showToast('Pilih lokasi target dulu di halaman Pengaturan.', 'error');
+        return;
       }
+
+      const preview = await postPreview(portal, locations);
+      if (!preview.ok) {
+        showToast(preview.error, 'error');
+        return;
+      }
+
+      const { units, total, remainingUser } = preview;
+
+      if (!preview.enoughUserQuota) {
+        showToast(
+          `Kuota tidak cukup. Butuh ${total} credit untuk ${units.length} panggilan, sisa ${remainingUser} credit.`,
+          'error'
+        );
+        return;
+      }
+
+      const confirmMessage =
+        `Mulai scraping ${units.length} permintaan memakai ${total} credit?\n` +
+        `Sisa kuota: ${remainingUser} credit.\n\n` +
+        units.map((u, i) => `${i + 1}. ${u.label}`).join('\n');
+
+      if (!window.confirm(confirmMessage)) return;
+
+      // 2. Jalankan satu per satu, tampilkan progres tiap langkah.
+      let done = 0;
+      let inserted = 0;
+      const failures: string[] = [];
+
+      for (const unit of units) {
+        setScrapeProgress({ done, total: units.length, label: unit.label });
+        done++;
+
+        const res = await fetch('/api/scrape/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            portal: unit.portal,
+            location: unit.location,
+            deallsCityId: unit.deallsCityId,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.success) {
+          inserted += data.inserted ?? 0;
+        } else {
+          failures.push(`${unit.label}: ${data.error || 'gagal'}`);
+        }
+      }
+
+      setScrapeProgress(null);
+
+      if (failures.length > 0) {
+        showToast(
+          `Selesai: ${inserted} lowongan baru, ${failures.length} permintaan gagal. ` +
+            `Credit tidak dipotong untuk yang gagal.`,
+          'error'
+        );
+      } else {
+        showToast(`${inserted} lowongan baru disimpan dari ${units.length} permintaan.`, 'success');
+      }
+
+      if (inserted > 0) window.location.reload();
     } catch {
       showToast('Gagal menghubungi server', 'error');
     } finally {
+      setScrapeProgress(null);
       setScrapingPortal(null);
     }
   };
 
+  async function fetchSavedLocations(): Promise<string[]> {
+    const res = await fetch('/api/profile/update');
+    const data = await res.json().catch(() => ({}));
+    const list = data?.profile?.target_locations;
+    return Array.isArray(list) ? list.filter((l: unknown) => typeof l === 'string') : [];
+  }
+
+  async function postPreview(portal: ScrapePortal, locations: string[]) {
+    const res = await fetch('/api/scrape/quota/preview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ portals: [portal], locations }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      return { ok: false as const, error: data.error || 'Gagal menghitung biaya scraping' };
+    }
+
+    // Satu baris preview = satu panggilan API = satu credit.
+    const units: ScrapeUnit[] = data.lines.flatMap((line: {
+      portal: ScrapePortal;
+      location: string;
+      label: string;
+      deallsCities?: { cityId: number; city: string }[];
+    }) => {
+      if (line.portal === 'dealls') {
+        return (line.deallsCities ?? []).map((c) => ({
+          portal: line.portal,
+          location: line.location,
+          deallsCityId: c.cityId,
+          label: `${line.portal} - ${c.city} (${c.cityId})`,
+        }));
+      }
+      return [{ portal: line.portal, location: line.location, label: `${line.portal} - ${line.label}` }];
+    });
+
+    return {
+      ok: true as const,
+      units,
+      total: data.total as number,
+      remainingUser: data.usage.remainingUser as number,
+      enoughUserQuota: data.enoughUserQuota as boolean,
+    };
+  }
+
   const handlePrint = (title: string, content: string) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
+    const escapeHtml = (str: string) =>
+      str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const safeTitle = escapeHtml(title);
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>${title}</title>
+          <title>${safeTitle}</title>
           <style>
             body { 
               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
@@ -303,8 +430,8 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
           </style>
         </head>
         <body>
-          <h2>${title}</h2>
-          <div>${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+          <h2>${safeTitle}</h2>
+          <div>${escapeHtml(content)}</div>
           <script>
             window.onload = function() {
               window.print();
@@ -370,6 +497,23 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
             {scrapingPortal === 'dealls' ? t('dash_scraping_dealls') : t('dash_scrape_dealls')}
           </button>
         </div>
+
+        {scrapeProgress && (
+          <div className="rounded-sm border border-[#a5df48] bg-[#F1F0FF] px-3.5 py-2.5">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs font-mono font-medium text-[#0C0B1E] truncate">
+                Scraping {scrapeProgress.label} ({scrapeProgress.done}/{scrapeProgress.total})
+              </span>
+              <span className="text-[10px] font-mono text-zinc-600 shrink-0">Jangan tutup halaman</span>
+            </div>
+            <div className="mt-2 h-1.5 w-full rounded-full bg-zinc-200 overflow-hidden">
+              <div
+                className="h-full bg-[#C1EF7B] transition-all"
+                style={{ width: `${Math.round((scrapeProgress.done / Math.max(1, scrapeProgress.total)) * 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {jobs.length === 0 ? (
           <div className="rounded-sm border border-[var(--border)] bg-[var(--card)] p-12 text-center">
@@ -576,9 +720,9 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                     </Button>
 
                     {/* URL Link */}
-                    {job.job_url && (
+                    {safeHref(job.job_url) && (
                       <a
-                        href={job.job_url}
+                        href={safeHref(job.job_url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
@@ -739,9 +883,9 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                 {/* Auto-detected contacts banner if available */}
                 {(jobDetailModal.job.contact_email || jobDetailModal.job.contact_whatsapp || jobDetailModal.job.apply_url || jobDetailModal.job.source_url) && (
                   <div className="mt-3 flex flex-wrap gap-2 pt-2 border-t border-dashed border-zinc-200">
-                    {jobDetailModal.job.contact_email && (
+                    {jobDetailModal.job.contact_email && safeHref(`mailto:${jobDetailModal.job.contact_email}`) && (
                       <a
-                        href={`mailto:${jobDetailModal.job.contact_email}`}
+                        href={safeHref(`mailto:${jobDetailModal.job.contact_email}`)}
                         className="inline-flex items-center gap-1 rounded-sm bg-indigo-50 border border-indigo-200 px-2 py-0.5 font-mono text-[11px] text-indigo-700 hover:bg-indigo-100"
                       >
                         ✉️ {jobDetailModal.job.contact_email}
@@ -749,7 +893,7 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                     )}
                     {jobDetailModal.job.contact_whatsapp && (
                       <a
-                        href={`https://wa.me/${jobDetailModal.job.contact_whatsapp.replace(/\+/g, '')}`}
+                        href={`https://wa.me/${encodeURIComponent(jobDetailModal.job.contact_whatsapp.replace(/[^0-9]/g, ''))}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 rounded-sm bg-emerald-50 border border-emerald-200 px-2 py-0.5 font-mono text-[11px] text-emerald-700 hover:bg-emerald-100"
@@ -757,9 +901,9 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                         💬 WA: {jobDetailModal.job.contact_whatsapp}
                       </a>
                     )}
-                    {jobDetailModal.job.apply_url && (
+                    {safeHref(jobDetailModal.job.apply_url) && (
                       <a
-                        href={jobDetailModal.job.apply_url}
+                        href={safeHref(jobDetailModal.job.apply_url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 rounded-sm bg-[#F1F0FF] border border-zinc-200 px-2 py-0.5 font-mono text-[11px] text-[#0C0B1E] hover:bg-[#e4e2ff]"
@@ -767,9 +911,9 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
                         📝 Form Lamaran ↗
                       </a>
                     )}
-                    {jobDetailModal.job.source_url && (
+                    {safeHref(jobDetailModal.job.source_url) && (
                       <a
-                        href={jobDetailModal.job.source_url}
+                        href={safeHref(jobDetailModal.job.source_url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 rounded-sm bg-zinc-100 border border-zinc-200 px-2 py-0.5 font-mono text-[11px] text-zinc-700 hover:bg-zinc-200"
@@ -795,9 +939,9 @@ export function JobList({ initialJobs }: { initialJobs: SavedJob[] }) {
 
             <div className="pt-4 border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap gap-2">
-                {jobDetailModal.job.job_url && (
+                {safeHref(jobDetailModal.job.job_url) && (
                   <a
-                    href={jobDetailModal.job.job_url}
+                    href={safeHref(jobDetailModal.job.job_url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center rounded-sm border border-zinc-300 bg-white px-3 py-1.5 font-mono text-xs text-zinc-700 transition-colors hover:bg-[#F1F0FF]"
