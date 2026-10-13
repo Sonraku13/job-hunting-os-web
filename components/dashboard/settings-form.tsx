@@ -198,7 +198,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
           {language === 'id' ? 'Target Posisi & Lokasi Pencarian' : 'Target Position & Search Locations'}
         </h2>
         <div className="space-y-4">
-          <div>
+          <div data-onboard="settings-titles">
             <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
               {t('set_search_target_positions')}
             </label>
@@ -212,10 +212,10 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
           </div>
 
           <div>
-            <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
-              {t('set_search_target_locations')}
-            </label>
-            <div className="space-y-2">
+            <div data-onboard="settings-locations">
+              <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
+                {t('set_search_target_locations')}
+              </label>
               {/* Search box */}
               <input
                 type="text"
@@ -224,7 +224,8 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
                 placeholder={language === 'id' ? 'Cari provinsi / negara...' : 'Search province / country...'}
                 className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-sm text-[var(--card-foreground)] placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
               />
-              
+            </div>
+            <div className="space-y-2 mt-2">
               {/* Selected chips */}
               {selectedLocations.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -370,7 +371,7 @@ export function SettingsForm({ initialSettings }: { initialSettings: UserSetting
             : 'You may select more than one. Cost is 1 credit per scraped page.'}
         </p>
 
-        <div className="space-y-2">
+        <div className="space-y-2" data-onboard="settings-portals">
           {PORTAL_OPTIONS.map((opt) => {
             const checked = targetPortals.includes(opt.value);
             return (

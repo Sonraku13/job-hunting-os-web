@@ -6,6 +6,9 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { LanguageToggle } from '@/components/ui/language-toggle';
 import { NavLinks } from '@/components/dashboard/nav-links';
 import { QuotaBadge } from '@/components/dashboard/quota-badge';
+import { OnboardingProvider } from '@/components/onboarding/provider';
+import { OnboardingSpotlight } from '@/components/onboarding/spotlight';
+import { OnboardingRestartButton } from '@/components/onboarding/restart-button';
 import { PlanType, SCRAPE_ACTIONS } from '@/lib/quota/limits';
 import Link from 'next/link';
 
@@ -41,38 +44,54 @@ export default async function DashboardLayout({
   const rawPlan = (profile?.plan as string) || 'FREE';
   const plan = (rawPlan === 'PAID' ? 'PRO' : rawPlan) as PlanType;
 
+  const { data: userProfile } = await supabase
+    .from('user_profiles')
+    .select('full_name, target_job_titles')
+    .eq('user_id', user.id)
+    .single();
+
+  const profileIncomplete =
+    !userProfile?.full_name?.trim() ||
+    !(userProfile?.target_job_titles as string[] | null)?.filter(Boolean).length;
+
   return (
-    <ToastProvider>
-      <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] transition-colors">
-        <header className="sticky top-0 z-50 w-full border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl transition-colors">
-          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-3 space-y-3 sm:space-y-0 sm:py-0 sm:min-h-16 sm:flex sm:items-center sm:justify-between sm:gap-6">
-            <div className="flex items-center justify-between gap-3">
-              <Link href="/dashboard" className="text-base sm:text-lg font-semibold tracking-tight whitespace-nowrap">
-                Job Hunting OS
-              </Link>
-              <div className="flex sm:hidden items-center gap-2">
-                <QuotaBadge plan={plan} usedToday={scrapeUsed} />
-                <LanguageToggle />
-                <ThemeToggle />
-                <SignOutButton />
+    <OnboardingProvider profileIncomplete={profileIncomplete}>
+      <ToastProvider>
+        <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] transition-colors">
+          <header className="sticky top-0 z-50 w-full border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl transition-colors">
+            <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-3 space-y-3 sm:space-y-0 sm:py-0 sm:min-h-16 sm:flex sm:items-center sm:justify-between sm:gap-6">
+              <div className="flex items-center justify-between gap-3">
+                <Link href="/dashboard" className="text-base sm:text-lg font-semibold tracking-tight whitespace-nowrap">
+                  Job Hunting OS
+                </Link>
+                <div className="flex sm:hidden items-center gap-2">
+                  <QuotaBadge plan={plan} usedToday={scrapeUsed} />
+                  <OnboardingRestartButton />
+                  <LanguageToggle />
+                  <ThemeToggle />
+                  <SignOutButton />
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1 overflow-x-auto no-scrollbar">
+                  <NavLinks />
+                </div>
+                <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+                  <QuotaBadge plan={plan} usedToday={scrapeUsed} />
+                  <OnboardingRestartButton />
+                  <LanguageToggle />
+                  <ThemeToggle />
+                  <SignOutButton />
+                </div>
               </div>
             </div>
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0 flex-1 overflow-x-auto no-scrollbar">
-                <NavLinks />
-              </div>
-              <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
-                <QuotaBadge plan={plan} usedToday={scrapeUsed} />
-                <ThemeToggle />
-                <SignOutButton />
-              </div>
-            </div>
-          </div>
-        </header>
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
-          {children}
-        </main>
-      </div>
-    </ToastProvider>
+          </header>
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
+            {children}
+          </main>
+          <OnboardingSpotlight />
+        </div>
+      </ToastProvider>
+    </OnboardingProvider>
   );
 }

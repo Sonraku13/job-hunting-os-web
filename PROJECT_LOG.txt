@@ -147,6 +147,15 @@ JOB HUNTING OS - HISTORY & FUTURE UPDATES
   - Saat ini tema aktif difokuskan pada Light Mode murni (sesuai spesifikasi Pepelsbey.dev: White, Ink Navy, Neon Lime).
   - Mode gelap (dark theme) belum sempat dibuat dan disiapkan untuk update berikutnya jika dibutuhkan.
 
+# Completed: Onboarding & Layout Polish (2026-10-13)
+- Onboarding spotlight: pure viewport coordinates (no scroll offset drift), instant scrollIntoView, rAF measure, resize listener.
+- Full scroll lock: body overflow hidden + wheel/touch/key prevention; click capture via overlay.
+- Tooltip follows target horizontally (clamp to target left), vertical flip above/below with viewport clamp.
+- Work experience: description text contrast fixed (text-zinc-700), Edit button added beside Delete with pre-filled prompts.
+- Dashboard pages (/profile, /settings, /billing): centered max-w-4xl (mx-auto w-full) — no empty right gutter on wide screens.
+- Navbar desktop now shows QuotaBadge, LanguageToggle, and OnboardingRestartButton (?) same as mobile.
+- ONBOARDING_DONE_KEY bumped to v2 so existing users re-see the fixed tour.
+
 # Phase 2: Productivity Boosters
 1. Bookmarklet (1-Klik Simpan dari Web Mana Saja):
    - JS snippet di bookmark browser -> POST ke `/api/jobs/bookmarklet`.

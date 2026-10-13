@@ -55,7 +55,7 @@ export default async function BillingPage() {
       ?.portal || null;
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="max-w-4xl mx-auto w-full space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-[#0C0B1E]">Billing & Batasan Kuota</h1>
         <p className="mt-2 text-zinc-700">Pantau pemakaian harian dan kelola paket langganan Anda</p>

@@ -105,6 +105,40 @@ export function ProfileForm({
     ]);
   };
 
+  const editExperience = (index: number) => {
+    const exp = experienceArray[index];
+    if (!exp) return;
+    const isId = language === 'id';
+    const title = prompt(isId ? 'Posisi / Job Title:' : 'Position / Job Title:', exp.title);
+    if (title === null) return;
+    if (!title.trim()) return;
+    const company = prompt(isId ? 'Perusahaan:' : 'Company:', exp.company);
+    if (company === null) return;
+    if (!company.trim()) return;
+    const startDate = prompt(isId ? 'Tahun / Tanggal Mulai:' : 'Start Date / Year:', exp.start_date);
+    if (startDate === null) return;
+    const endDate = prompt(isId ? 'Tahun / Tanggal Selesai (atau "Sekarang"):' : 'End Date / Year (or "Present"):', exp.end_date);
+    if (endDate === null) return;
+    const description = prompt(
+      isId ? 'Deskripsi singkat tugas/pencapaian:' : 'Brief description of duties/achievements:',
+      exp.description
+    );
+    if (description === null) return;
+    setExperienceArray(
+      experienceArray.map((item, i) =>
+        i === index
+          ? {
+              title: title.trim(),
+              company: company.trim(),
+              start_date: (startDate || '').trim(),
+              end_date: (endDate || '').trim(),
+              description: (description || '').trim(),
+            }
+          : item
+      )
+    );
+  };
+
   const removeExperience = (index: number) => {
     setExperienceArray(experienceArray.filter((_, i) => i !== index));
   };
@@ -187,7 +221,7 @@ export function ProfileForm({
         <h2 className="text-lg font-semibold tracking-tight mb-4 text-[var(--card-foreground)]">{t('prof_identity_title')}</h2>
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+            <div data-onboard="profile-name">
               <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {t('prof_name')}
               </label>
@@ -241,7 +275,7 @@ export function ProfileForm({
               />
             </div>
 
-            <div>
+            <div data-onboard="profile-portfolio">
               <label className="block text-xs font-mono text-zinc-600 uppercase mb-1">
                 {t('prof_portfolio')}
               </label>
@@ -308,7 +342,7 @@ export function ProfileForm({
       <Card>
         <h2 className="text-lg font-semibold tracking-tight mb-4 text-[var(--card-foreground)]">{t('prof_skills_title')}</h2>
         <div className="space-y-4">
-          <div>
+          <div data-onboard="profile-skills">
             <label className="block text-xs font-mono text-zinc-600 uppercase mb-2">
               {language === 'id' ? 'Ketik Skill lalu tekan ENTER:' : 'Type skill then press ENTER:'}
             </label>
@@ -373,17 +407,27 @@ export function ProfileForm({
                     {exp.company} • {exp.start_date} - {exp.end_date || (language === 'id' ? 'Sekarang' : 'Present')}
                   </p>
                   {exp.description && (
-                    <p className="text-xs text-[var(--card-muted)] pt-1">{exp.description}</p>
+                    <p className="text-xs text-zinc-700 pt-1 leading-relaxed">{exp.description}</p>
                   )}
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => removeExperience(idx)}
-                  className="text-red-400 hover:text-red-300 hover:bg-red-950/30 text-xs font-mono h-8 px-2"
-                >
-                  {t('dash_action_delete')}
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => editExperience(idx)}
+                    className="text-zinc-700 hover:text-zinc-900 hover:bg-zinc-200/60 text-xs font-mono h-8 px-2"
+                  >
+                    {t('dash_action_edit')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => removeExperience(idx)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs font-mono h-8 px-2"
+                  >
+                    {t('dash_action_delete')}
+                  </Button>
+                </div>
               </div>
             ))
           )}

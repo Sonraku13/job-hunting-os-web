@@ -19,7 +19,7 @@ export default async function SettingsPage() {
     .single();
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="max-w-4xl mx-auto w-full space-y-6">
       <SettingsHeader />
       <DisplaySettingsCard />
       <SettingsForm initialSettings={userProfile || {}} />

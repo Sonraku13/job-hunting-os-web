@@ -40,6 +40,7 @@ export const translations = {
     dash_action_details: 'Rincian',
     dash_action_close: 'Tutup',
     dash_action_delete: 'Hapus',
+    dash_action_edit: 'Ubah',
     dash_copy: 'Salin',
     dash_copy_success: 'Teks berhasil disalin ke clipboard',
     dash_print_pdf: 'Cetak / PDF',
@@ -162,6 +163,24 @@ export const translations = {
 
     // Common
     app_quota: 'Kuota Harian',
+
+    // Onboarding
+    ob_welcome_title: 'Selamat datang di Job Hunting OS',
+    ob_welcome_body: 'Butuh 3 menit. Isi profil, atur pencarian, lalu scrape lowongan. Bisa dilewati kapan saja dengan tombol Lewati atau Esc.',
+    ob_name_title: 'Siapa kamu?',
+    ob_name_body: 'Isi nama lengkap dan jabatan saat ini. AI memakai ini sebagai identitas di setiap cover letter.',
+    ob_skills_title: 'Tambahkan skill',
+    ob_skills_body: 'Ketik satu skill lalu tekan Enter. Skill adalah bahan utama match score — makin lengkap, makin akurat.',
+    ob_portfolio_title: 'Link portfolio',
+    ob_portfolio_body: 'Tempel link portfolio di sini. Link ini otomatis dikutip di setiap cover letter yang dibuat AI.',
+    ob_titles_title: 'Posisi yang dicari',
+    ob_titles_body: 'Tulis posisi target dipisahkan koma. Contoh: Frontend Engineer, React Developer. Ini jadi kata kunci pencarian.',
+    ob_locations_title: 'Pilih lokasi secukupnya',
+    ob_locations_body: '1 lokasi = 1 credit scraping. Pilih seperlunya saja supaya kuota harian tidak langsung habis.',
+    ob_portals_title: 'Pilih portal',
+    ob_portals_body: 'LinkedIn, Jobstreet, Indeed: 1 kota = 1 credit. Dealls: 1 kota = 1 credit, satu provinsi bisa banyak credit. Glints: semua lokasi = 1 credit flat.',
+    ob_done_title: 'Siap mulai',
+    ob_done_body: 'Klik tombol portal di Dashboard untuk scrape pertama. Sistem hitung biaya dulu dan minta konfirmasi sebelum jalan.',
   },
   en: {
     // Nav
@@ -202,6 +221,7 @@ export const translations = {
     dash_action_details: 'Details',
     dash_action_close: 'Close',
     dash_action_delete: 'Delete',
+    dash_action_edit: 'Edit',
     dash_copy: 'Copy',
     dash_copy_success: 'Text copied to clipboard',
     dash_print_pdf: 'Print / PDF',
@@ -324,6 +344,24 @@ export const translations = {
 
     // Common
     app_quota: 'Daily Quota',
+
+    // Onboarding
+    ob_welcome_title: 'Welcome to Job Hunting OS',
+    ob_welcome_body: 'Takes 3 minutes. Fill your profile, set search preferences, then scrape jobs. You can skip anytime with Skip or Esc.',
+    ob_name_title: 'Who are you?',
+    ob_name_body: 'Fill in your full name and current job title. AI uses this as your identity in every cover letter.',
+    ob_skills_title: 'Add skills',
+    ob_skills_body: 'Type one skill then press Enter. Skills feed the match score — the more complete, the more accurate.',
+    ob_portfolio_title: 'Portfolio link',
+    ob_portfolio_body: 'Paste your portfolio link here. It is quoted automatically in every AI-generated cover letter.',
+    ob_titles_title: 'Target positions',
+    ob_titles_body: 'Write target positions separated by commas. Example: Frontend Engineer, React Developer. This becomes the search keyword.',
+    ob_locations_title: 'Pick just enough locations',
+    ob_locations_body: '1 location = 1 scraping credit. Pick only what you need so the daily quota is not exhausted.',
+    ob_portals_title: 'Pick portals',
+    ob_portals_body: 'LinkedIn, Jobstreet, Indeed: 1 city = 1 credit. Dealls: 1 city = 1 credit, one province can cost many credits. Glints: all locations = 1 flat credit.',
+    ob_done_title: 'Ready to start',
+    ob_done_body: 'Click a portal button on the Dashboard for your first scrape. The system estimates cost first and asks for confirmation.',
   },
 } as const;
 
